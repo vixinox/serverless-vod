@@ -1,8 +1,8 @@
 /**
  * 脚本行为：
  * 1) 在 LocalStack 中确保 raw/hls/image 三个 S3 桶存在。
- * 2) 为这三个桶配置开发友好的 CORS 与可选宽松访问策略。
- * 3) 确保转码队列存在，并输出队列 URL。
+ * 2) 为三个桶配置开发友好的 CORS 与可选宽松访问策略。
+ * 3) 创建 Lambda 与 Step Functions 所需的虚拟 IAM 角色（LocalStack 不校验权限，仅需 ARN 合法）。
  */
 import {
   CreateBucketCommand,
@@ -11,14 +11,17 @@ import {
   PutBucketPolicyCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { CreateQueueCommand, GetQueueUrlCommand, SQSClient } from "@aws-sdk/client-sqs";
+import {
+  IAMClient,
+  CreateRoleCommand,
+  GetRoleCommand,
+} from "@aws-sdk/client-iam";
 
 const region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
 const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
 const rawBucket = process.env.VOD_RAW_BUCKET ?? "vod-raw";
 const hlsBucket = process.env.VOD_HLS_BUCKET ?? "vod-hls";
 const imageBucket = process.env.VOD_IMAGE_BUCKET ?? "vod-image";
-const queueName = process.env.VOD_TRANSCODE_QUEUE_NAME ?? "vod-transcode";
 const hlsPublicRead = process.env.VOD_HLS_PUBLIC_READ !== "false";
 const imagePublicRead = process.env.VOD_IMAGE_PUBLIC_READ !== "false";
 const devOpenAccess = process.env.VOD_S3_DEV_OPEN_ACCESS !== "false";
@@ -43,29 +46,11 @@ const s3 = new S3Client({
   credentials,
 });
 
-const sqs = new SQSClient({
+const iam = new IAMClient({
   region,
   endpoint,
   credentials,
 });
-
-function isSqsDisabledError(error) {
-  const message = error?.Error?.Message ?? error?.message ?? "";
-  return typeof message === "string" && message.includes("Service 'sqs' is not enabled");
-}
-
-function withSqsHint(error) {
-  if (!isSqsDisabledError(error)) return error;
-
-  return new Error(
-    [
-      "LocalStack SQS service is disabled.",
-      "Set LOCALSTACK_SERVICES=s3,sqs and recreate the localstack container.",
-      "Example: docker compose up -d --force-recreate localstack",
-    ].join(" "),
-    { cause: error },
-  );
-}
 
 async function ensureBucket(bucket) {
   try {
@@ -78,29 +63,37 @@ async function ensureBucket(bucket) {
   }
 }
 
-async function ensureQueue(name) {
+/**
+ * 在 LocalStack 中创建虚拟 IAM 角色（LocalStack 免费版不做权限校验，仅需 ARN 存在）。
+ * Lambda 和 Step Functions 创建时引用这些角色 ARN。
+ */
+async function ensureIamRole(roleName, services) {
   try {
-    const found = await sqs.send(new GetQueueUrlCommand({ QueueName: name }));
-    if (found.QueueUrl) {
-      console.log(`[ok] queue exists: ${name}`);
-      console.log(`VOD_TRANSCODE_QUEUE_URL=${found.QueueUrl}`);
-      return;
-    }
-  } catch (error) {
-    const handled = withSqsHint(error);
-    if (handled !== error) throw handled;
-
-    try {
-      const created = await sqs.send(new CreateQueueCommand({ QueueName: name }));
-      console.log(`[ok] queue created: ${name}`);
-      console.log(`VOD_TRANSCODE_QUEUE_URL=${created.QueueUrl}`);
-      return;
-    } catch (createError) {
-      throw withSqsHint(createError);
-    }
+    await iam.send(new GetRoleCommand({ RoleName: roleName }));
+    console.log(`[ok] iam role exists: ${roleName}`);
+    return;
+  } catch {
+    // role 不存在，创建
   }
 
-  throw new Error(`cannot ensure queue: ${name}`);
+  const assumeRolePolicy = JSON.stringify({
+    Version: "2012-10-17",
+    Statement: [
+      {
+        Effect: "Allow",
+        Principal: { Service: services },
+        Action: "sts:AssumeRole",
+      },
+    ],
+  });
+
+  await iam.send(
+    new CreateRoleCommand({
+      RoleName: roleName,
+      AssumeRolePolicyDocument: assumeRolePolicy,
+    }),
+  );
+  console.log(`[ok] iam role created: ${roleName}`);
 }
 
 async function ensureBucketCors(bucket) {
@@ -199,6 +192,7 @@ async function ensureDevOpenAccess(bucket) {
 }
 
 async function main() {
+  // S3 桶
   await ensureBucket(rawBucket);
   await ensureBucket(hlsBucket);
   await ensureBucket(imageBucket);
@@ -210,7 +204,10 @@ async function main() {
   await ensureDevOpenAccess(imageBucket);
   await ensurePublicRead(hlsBucket, hlsPublicRead, "hls");
   await ensurePublicRead(imageBucket, imagePublicRead, "image");
-  await ensureQueue(queueName);
+
+  // IAM 角色（LocalStack 不校验，仅需 ARN 合法供 Lambda/SFN 引用）
+  await ensureIamRole("lambda-role",  ["lambda.amazonaws.com"]);
+  await ensureIamRole("sfn-role",     ["states.amazonaws.com"]);
 }
 
 main().catch((error) => {

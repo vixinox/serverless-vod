@@ -88,6 +88,7 @@ model User {
   subscriptions Subscription[]    @relation("UserSubscriptions")
   playlists     Playlist[]
   uploadSessions UploadSession[]
+  videos        Video[]
   playlistItems PlaylistItem[]
   playbackEvents VideoPlaybackEvent[]
 
@@ -181,6 +182,8 @@ model Video {
   publishedAt      DateTime?
   readyAt          DateTime?
   processingError  String?
+  userId           String
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   channelId        String
   channel          Channel               @relation(fields: [channelId], references: [id], onDelete: Cascade)
   views            BigInt                @default(0)
@@ -200,8 +203,10 @@ model Video {
   updatedAt        DateTime              @updatedAt
 
   @@index([channelId])
+  @@index([userId])
   @@index([visibility, createdAt])
   @@index([channelId, createdAt])
+  @@index([userId, createdAt])
   @@index([processingStatus])
 }
 

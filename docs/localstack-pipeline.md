@@ -1,8 +1,8 @@
-# LocalStack Lambda + SQS HLS 管道（答辩演示版）
+﻿# LocalStack Lambda + Step Functions HLS 管道
 
 ## 1. 环境变量
 
-建议在 `.env.local` 中配置：
+在 `.env.local` 中配置：
 
 ```env
 DATABASE_URL=postgresql://...
@@ -11,100 +11,82 @@ AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
 AWS_DEFAULT_REGION=us-east-1
 LOCALSTACK_ENDPOINT=http://127.0.0.1:4566
-LOCALSTACK_SERVICES=s3,sqs
 
 VOD_RAW_BUCKET=vod-raw
 VOD_HLS_BUCKET=vod-hls
-VOD_TRANSCODE_QUEUE_NAME=vod-transcode
+VOD_IMAGE_BUCKET=vod-image
 VOD_HLS_PUBLIC_READ=true
-VOD_HLS_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+VOD_S3_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# 运行 localstack:setup 后自动输出，复制到此处：
+VOD_SFN_STATE_MACHINE_ARN=arn:aws:states:us-east-1:000000000000:stateMachine:vod-transcode
 
 # Windows 可选：如果 ffmpeg 不在 PATH
-# FFMPEG_BIN=C:\\tools\\ffmpeg\\bin\\ffmpeg.exe
+# FFMPEG_BIN=C:\tools\ffmpeg\bin\ffmpeg.exe
 ```
 
-说明：
-- `localstack:bootstrap` 会为 HLS 桶写入 CORS。
-- 若 `VOD_HLS_PUBLIC_READ=true`，会写入公开读策略，方便 hls.js 直接播放切片。
+## 2. 管道架构
 
-## 2. 启动顺序
+```
+上传完成
+   complete API
+        SFN StartExecution
+             Lambda: vod-extract-metadata   标记 TranscodeJob RUNNING / Video PROCESSING
+             Lambda: vod-transcode          ffmpeg 转码 + 上传 vod-hls（重试 3 次）
+             Lambda: vod-finalize           写 VideoAsset / 标记 READY
+                   (任意步骤失败)
+                   Lambda: vod-mark-failed  标记 FAILED
+```
 
-1. 启动依赖
+S3 路径约定：
+
+| 桶 | 路径 | 说明 |
+|----|------|------|
+| `vod-raw` | `{shortCode}/source.mp4` | 上传的原始视频 |
+| `vod-hls` | `{shortCode}/master.m3u8` | HLS 主清单 |
+| `vod-hls` | `{shortCode}/{variant}/seg_*.ts` | 切片（LONG 视频含 source/720p 两个子目录）|
+| `vod-image` | `thumbnails/{shortCode}/thumbnail.{ext}` | 缩略图 |
+
+## 3. 启动顺序
 
 ```bash
+# 1. 启动 Docker 服务
 docker compose up -d
-```
 
-2. 初始化 LocalStack 资源
+# 2. 一键初始化 LocalStack（S3 桶 + IAM 角色 + Lambda + 状态机）
+npm run localstack:setup
 
-```bash
-npm run localstack:bootstrap
-```
+# 3. 将输出的 ARN 写入 .env.local
+#    VOD_SFN_STATE_MACHINE_ARN=arn:aws:states:...
 
-3. 启动 Next 服务
-
-```bash
+# 4. 启动 Next.js
 npm run dev
 ```
 
-4. 启动 transcode worker（模拟 Lambda 消费 SQS）
+上传视频后，complete API 直接触发 Step Functions，无需额外进程。
+
+## 4. 分步部署命令
 
 ```bash
-npm run localstack:worker
+npm run localstack:bootstrap      # 仅初始化 S3 桶 + IAM 角色
+npm run localstack:deploy-lambda  # 仅部署/更新 4 个 Lambda 函数
+npm run localstack:deploy-sfn     # 仅更新状态机定义
+npm run localstack:setup          # 上述三步一次完成
 ```
 
-## 3. 业务流程 API
+修改 Lambda 代码后只需重新运行 `localstack:deploy-lambda`；修改状态机流程后运行 `localstack:deploy-sfn`。
 
-### 初始化上传（拿 presign）
+## 5. 查询转码状态
 
-`POST /api/videos/upload/init`
+前端轮询：
 
-请求体示例：
-
-```json
-{
-  "title": "demo-video",
-  "filename": "demo.mp4",
-  "contentType": "video/mp4",
-  "videoType": "LONG"
-}
+```
+GET /api/videos/status/shortcode/:shortCode
 ```
 
-返回：`videoId`、`uploadSessionId`、`upload.presignedUrl`。
+当 `processingStatus === "READY"` 时返回 `playbackUrl`（HLS 地址）。
 
-### 完成上传并入队
+## 6. 前端播放器地址策略
 
-前端 PUT 到 presignedUrl 成功后，调用：
-
-`POST /api/videos/upload/complete`
-
-请求体示例：
-
-```json
-{
-  "videoId": "...",
-  "uploadSessionId": "..."
-}
-```
-
-### 查询状态
-
-`GET /api/videos/status/:videoId`
-
-或（前端只拿 shortCode 的场景）：
-
-`GET /api/videos/status/shortcode/:shortCode`
-
-当 `processingStatus = READY` 时会返回 `playbackUrl`（master.m3u8 的签名地址）。
-
-## 4. 演示建议
-
-- 先用 10~20 秒短视频做一次上传。
-- 页面轮询状态直到 `READY`。
-- 演示 S3 内存在 `hls/<shortCode>/master.m3u8` 与分片文件。
-- 如果只想先验证 worker，可手动上传视频到 raw bucket，再直接调用 complete API 触发任务。
-
-## 5. 前端播放器地址策略
-
-- 若设置了 `VIDEO_CLOUDFRONT_DOMAIN`：播放地址为 `https://<domain>/hls/<shortCode>/master.m3u8`。
-- 未设置时：播放地址为 `http://127.0.0.1:4566/<hls-bucket>/hls/<shortCode>/master.m3u8`。
+- 设置了 `VIDEO_CLOUDFRONT_DOMAIN`：`https://<domain>/<shortCode>/master.m3u8`
+- 未设置时（本地开发）：`http://127.0.0.1:4566/vod-hls/<shortCode>/master.m3u8`

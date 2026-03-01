@@ -1,0 +1,6 @@
+{
+  "extract-metadata": "arn:aws:lambda:us-east-1:000000000000:function:vod-extract-metadata",
+  "finalize": "arn:aws:lambda:us-east-1:000000000000:function:vod-finalize",
+  "mark-failed": "arn:aws:lambda:us-east-1:000000000000:function:vod-mark-failed",
+  "transcode": "arn:aws:lambda:us-east-1:000000000000:function:vod-transcode"
+}

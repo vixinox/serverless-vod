@@ -96,6 +96,7 @@ export async function createUploadVideoDraft(params: {
 
   return prisma.video.create({
     data: {
+      userId: params.userId,
       channelId,
       title: params.title,
       shortCode,

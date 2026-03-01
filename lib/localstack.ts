@@ -6,11 +6,9 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import {
-  CreateQueueCommand,
-  GetQueueUrlCommand,
-  SendMessageCommand,
-  SQSClient,
-} from "@aws-sdk/client-sqs";
+  SFNClient,
+  StartExecutionCommand,
+} from "@aws-sdk/client-sfn";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
@@ -19,21 +17,21 @@ const forcePathStyle = process.env.S3_FORCE_PATH_STYLE !== "false";
 
 const rawBucket = process.env.VOD_RAW_BUCKET ?? "vod-raw";
 const hlsBucket = process.env.VOD_HLS_BUCKET ?? "vod-hls";
-const transcodeQueueName = process.env.VOD_TRANSCODE_QUEUE_NAME ?? "vod-transcode";
+const imageBucket = process.env.VOD_IMAGE_BUCKET ?? "vod-image";
+const sfnStateMachineArn = process.env.VOD_SFN_STATE_MACHINE_ARN ?? "";
 
 const credentials = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "test",
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "test",
 };
 
-let cachedQueueUrl: string | null = null;
-
 export const localstackConfig = {
   region,
   endpoint,
   rawBucket,
   hlsBucket,
-  transcodeQueueName,
+  imageBucket,
+  sfnStateMachineArn,
 };
 
 export const s3Client = new S3Client({
@@ -43,15 +41,18 @@ export const s3Client = new S3Client({
   forcePathStyle,
 });
 
-export const sqsClient = new SQSClient({
+export const sfnClient = new SFNClient({
   region,
   endpoint,
   credentials,
 });
 
-export function createRawVideoObjectKey(videoId: string, filename: string) {
-  const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-  return `raw/${videoId}/${Date.now()}-${safeName}`;
+/**
+ * vod-raw 存储键：{shortCode}/source.mp4
+ * 与 vod-hls 的 {shortCode}/ 前缀保持命名空间一致，方便对照调试。
+ */
+export function createRawVideoObjectKey(shortCode: string) {
+  return `${shortCode}/source.mp4`;
 }
 
 export function createHlsOutputPrefix(shortCode: string) {
@@ -67,36 +68,12 @@ export async function ensureBucket(bucket: string) {
   }
 }
 
-export async function ensureQueueUrl() {
-  if (cachedQueueUrl) return cachedQueueUrl;
-
-  const explicitQueueUrl = process.env.VOD_TRANSCODE_QUEUE_URL;
-  if (explicitQueueUrl) {
-    cachedQueueUrl = explicitQueueUrl;
-    return cachedQueueUrl;
-  }
-
-  try {
-    const response = await sqsClient.send(
-      new GetQueueUrlCommand({
-        QueueName: transcodeQueueName,
-      }),
-    );
-    cachedQueueUrl = response.QueueUrl ?? null;
-  } catch {
-    const created = await sqsClient.send(
-      new CreateQueueCommand({
-        QueueName: transcodeQueueName,
-      }),
-    );
-    cachedQueueUrl = created.QueueUrl ?? null;
-  }
-
-  if (!cachedQueueUrl) {
-    throw new Error("无法获取 transcode queue URL");
-  }
-
-  return cachedQueueUrl;
+export async function ensureStateMachineArn(): Promise<string> {
+  const explicitArn = process.env.VOD_SFN_STATE_MACHINE_ARN;
+  if (explicitArn) return explicitArn;
+  throw new Error(
+    "VOD_SFN_STATE_MACHINE_ARN 未配置，请先运行 npm run localstack:setup",
+  );
 }
 
 export async function createUploadPresignedUrl(params: {
@@ -115,18 +92,30 @@ export async function createUploadPresignedUrl(params: {
   return getSignedUrl(s3Client, command, { expiresIn });
 }
 
-export async function enqueueTranscodeJob(messageBody: Record<string, unknown>) {
-  const queueUrl = await ensureQueueUrl();
-  const response = await sqsClient.send(
-    new SendMessageCommand({
-      QueueUrl: queueUrl,
-      MessageBody: JSON.stringify(messageBody),
+export interface TranscodeExecutionInput {
+  jobId: string;
+  videoId: string;
+  shortCode: string;
+  inputBucket: string;
+  inputKey: string;
+  outputBucket: string;
+  outputPrefix: string;
+  videoType: "LONG" | "SHORT";
+}
+
+export async function startTranscodeExecution(input: TranscodeExecutionInput) {
+  const stateMachineArn = await ensureStateMachineArn();
+  const response = await sfnClient.send(
+    new StartExecutionCommand({
+      stateMachineArn,
+      name: `vod-${input.shortCode}-${Date.now()}`,
+      input: JSON.stringify(input),
     }),
   );
 
   return {
-    queueUrl,
-    messageId: response.MessageId ?? null,
+    executionArn: response.executionArn ?? null,
+    startDate: response.startDate ?? null,
   };
 }
 

@@ -19,18 +19,27 @@ services:
       start_period: 10s
 
   localstack:
-    image: localstack/localstack:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.localstack
+      args:
+        APT_MIRROR: ${APT_MIRROR}
+    pull_policy: never
     container_name: localstack
     restart: unless-stopped
     ports:
       - "4566:4566"
     environment:
       DEBUG: ${LOCALSTACK_DEBUG:-0}
-      PERSISTENCE: ${LOCALSTACK_PERSISTENCE:-1}
+      PERSISTENCE: "1"
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT: "30"
+      SERVICES: s3,stepfunctions,lambda,iam,events
+      LAMBDA_DOCKER_FLAGS: -v localstack_data:/var/lib/localstack
     volumes:
       - localstack_data:/var/lib/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./node_modules:/opt/node_modules"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
@@ -40,4 +49,6 @@ services:
 
 volumes:
   postgres_data:
+    name: postgres_data
   localstack_data:
+    name: localstack_data
