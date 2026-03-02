@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { EllipsisVertical, Flag, PencilLine, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ReactionType } from "@prisma/client";
+import { authClient } from "@/lib/auth-client";
 
 interface CommentActionsProps {
   userId: string;
@@ -28,6 +29,7 @@ export function CommentActions({
   isEditing,
   showTextarea,
 }: CommentActionsProps) {
+  const { data: session } = authClient.useSession();
   const reaction = prevReaction;
   const likes = likesCount;
 
@@ -76,8 +78,7 @@ export function CommentActions({
           </Button>
         </PopoverTrigger>
         <PopoverContent className={`w-28 rounded-xl p-0 overflow-hidden ${isEditing ? "hidden" : "block}"}`}>
-          {/* {(user?.id && userId === user.id) ? ( */}
-          {false ? (
+          {(session?.user?.id && session.user.id === userId) ? (
             <>
               <div
                 className="w-full h-11 flex py-1 items-center justify-center cursor-pointer hover:bg-primary/15"

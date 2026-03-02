@@ -2,7 +2,8 @@
 
 import prisma from "@/lib/prisma";
 import { ReactionType } from "@prisma/client";
-import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export type ReplyCursor = {
   id: string;
@@ -26,9 +27,8 @@ export async function getReplies(
   cursor?: ReplyCursor,
   limit: number = 10
 ) {
-  const currentUserId = undefined;
-
-  if (!currentUserId) redirect('/auth/sign-in')
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const currentUserId = session?.user?.id ?? null;
 
   let cursorFilter = {};
   if (cursor) {

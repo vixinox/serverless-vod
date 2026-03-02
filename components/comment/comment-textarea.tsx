@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { authClient } from '@/lib/auth-client';
 
 export type CommentMode = 'comment' | 'reply';
 
@@ -30,7 +31,8 @@ export const CommentTextarea = memo(function CommentTextarea({
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const user = { name: "User", image: undefined };
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current;

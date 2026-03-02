@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ReactionType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export type NextCursor = {
   id: string;
@@ -97,7 +99,8 @@ export async function getComments(
   limit: number = 20,
   cursor?: NextCursor,
 ) {
-  const currentUserId = undefined;
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const currentUserId = session?.user?.id ?? null;
 
   const video = await prisma.video.findUnique({
     where: { shortCode },

@@ -175,35 +175,3 @@ CREATE TRIGGER trg_subscription_counter
 AFTER INSERT OR UPDATE OR DELETE ON "Subscription"
 FOR EACH ROW
 EXECUTE FUNCTION fn_subscription_counter();
-
--- ------------------------------------------------------------
--- 5) Video lifecycle timestamps: readyAt / publishedAt
--- ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION fn_video_lifecycle_timestamps()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  IF NEW."processingStatus" = 'READY' AND (OLD."processingStatus" IS DISTINCT FROM NEW."processingStatus") THEN
-    IF NEW."readyAt" IS NULL THEN
-      NEW."readyAt" = NOW();
-    END IF;
-  END IF;
-
-  IF NEW."visibility" = 'PUBLIC' AND (OLD."visibility" IS DISTINCT FROM NEW."visibility") THEN
-    IF NEW."publishedAt" IS NULL THEN
-      NEW."publishedAt" = NOW();
-    END IF;
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trg_video_lifecycle_timestamps ON "Video";
-CREATE TRIGGER trg_video_lifecycle_timestamps
-BEFORE UPDATE ON "Video"
-FOR EACH ROW
-EXECUTE FUNCTION fn_video_lifecycle_timestamps();
-
-COMMIT;

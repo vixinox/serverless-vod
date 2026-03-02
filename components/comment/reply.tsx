@@ -5,9 +5,10 @@ import { CommentActions } from "@/components/comment/comment-actions";
 import { useState } from "react";
 import { CommentTextarea } from "@/components/comment/comment-textarea";
 import { ReactionType } from "@prisma/client";
+import { ReplyData } from "@/actions/comment/get-replies";
 
 interface ReplyProps {
-  data: any;
+  data: ReplyData;
   onSubmit: (content: string) => void;
   onDelete: (replyId: string) => void;
   onEdit: (replyId: string, content: string) => void;
