@@ -66,7 +66,7 @@ export function AuthButton() {
         <DropdownMenuSeparator/>
 
         <DropdownMenuItem asChild className="rounded-none cursor-pointer mt-1 h-11">
-          <Link href="#" className="flex items-center gap-3">
+          <Link href="/studio" className="flex items-center gap-3">
             <User className="text-foreground size-5.5 ml-2" strokeWidth="2"/>
             <span className="text-sm ml-2">工作室</span>
           </Link>

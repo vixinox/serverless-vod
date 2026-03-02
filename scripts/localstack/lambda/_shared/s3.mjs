@@ -8,6 +8,7 @@ import {
   DeleteObjectCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
+import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 
 const region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
@@ -81,6 +82,25 @@ export async function uploadDirectory(bucket, prefix, dir, base) {
   }
 }
 
+/**
+ * 上传单个本地文件到 S3
+ * @param {string} bucket
+ * @param {string} key
+ * @param {string} filePath  - 本地文件绝对路径
+ * @param {string} [contentType] - 可选 Content-Type；未指定时由文件名自动推断
+ */
+export async function uploadFile(bucket, key, filePath, contentType) {
+  const body = await readFile(filePath);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType ?? guessMime(key),
+    }),
+  );
+}
+
 export async function clearPrefix(bucket, prefix) {
   const listed = await s3.send(
     new ListObjectsV2Command({ Bucket: bucket, Prefix: `${prefix}/` }),
@@ -94,7 +114,10 @@ export async function clearPrefix(bucket, prefix) {
 
 function guessMime(name) {
   if (name.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
-  if (name.endsWith(".ts")) return "video/mp2t";
+  if (name.endsWith(".ts"))   return "video/mp2t";
   if (name.endsWith(".mp4")) return "video/mp4";
+  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+  if (name.endsWith(".png"))  return "image/png";
+  if (name.endsWith(".webp")) return "image/webp";
   return "application/octet-stream";
 }

@@ -9,6 +9,13 @@ export type PipelineStatus = {
   jobError: string | null;
   attempt: number;
   maxAttempts: number;
+  /**
+   * 当前流水线阶段，仅在 RUNNING 状态下有意义。
+   * 可能的值：job_started | downloading | probing | transcoding
+   *           uploading_segments | thumbnail_extracting | thumbnail_uploading
+   * 完成后为 null。
+   */
+  pipelineStage: string | null;
   /** Step Functions execution ARN，存储在 TranscodeJob.queueMessageId */
   executionArn: string | null;
   inputKey: string | null;
@@ -31,6 +38,7 @@ export async function getPipelineStatus(shortCode: string): Promise<PipelineStat
           lastError: true,
           attempt: true,
           maxAttempts: true,
+          pipelineStage: true,
           queueMessageId: true,
           inputKey: true,
           queuedAt: true,
@@ -52,6 +60,7 @@ export async function getPipelineStatus(shortCode: string): Promise<PipelineStat
     jobError: job?.lastError ?? null,
     attempt: job?.attempt ?? 0,
     maxAttempts: job?.maxAttempts ?? 3,
+    pipelineStage: job?.pipelineStage ?? null,
     executionArn: job?.queueMessageId ?? null,
     inputKey: job?.inputKey ?? null,
     queuedAt: job?.queuedAt?.toISOString() ?? null,

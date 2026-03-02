@@ -19,18 +19,20 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# 将静态 ffmpeg 放到镜像文件系统（不在 volume 路径下），供 init hook 使用
-COPY --from=static-ffmpeg /ffmpeg /opt/static-ffmpeg/ffmpeg
-RUN chmod +x /opt/static-ffmpeg/ffmpeg
+# 将静态 ffmpeg 和 ffprobe 放到镜像文件系统（不在 volume 路径下），供 init hook 使用
+COPY --from=static-ffmpeg /ffmpeg  /opt/static-ffmpeg/ffmpeg
+COPY --from=static-ffmpeg /ffprobe /opt/static-ffmpeg/ffprobe
+RUN chmod +x /opt/static-ffmpeg/ffmpeg /opt/static-ffmpeg/ffprobe
 
-# LocalStack ready 钩子：容器启动就绪后，将静态 ffmpeg 复制到 localstack_data 卷中
-# Lambda 容器通过 --volumes-from=localstack 访问该卷（/var/lib/localstack/bin/ffmpeg）
+# LocalStack ready 钉子：容器启动就绪后，将静态 ffmpeg/ffprobe 复制到 localstack_data 卷中
+# Lambda 容器通过 --volumes-from=localstack 访问该卷（/var/lib/localstack/bin/）
 RUN mkdir -p /etc/localstack/init/ready.d && \
     printf '#!/bin/sh\n\
 set -e\n\
 mkdir -p /var/lib/localstack/bin\n\
-cp /opt/static-ffmpeg/ffmpeg /var/lib/localstack/bin/ffmpeg\n\
-chmod +x /var/lib/localstack/bin/ffmpeg\n\
-echo "[init] static ffmpeg ready at /var/lib/localstack/bin/ffmpeg"\n' \
+cp /opt/static-ffmpeg/ffmpeg  /var/lib/localstack/bin/ffmpeg\n\
+cp /opt/static-ffmpeg/ffprobe /var/lib/localstack/bin/ffprobe\n\
+chmod +x /var/lib/localstack/bin/ffmpeg /var/lib/localstack/bin/ffprobe\n\
+echo "[init] static ffmpeg/ffprobe ready at /var/lib/localstack/bin/"\n' \
     > /etc/localstack/init/ready.d/01-ffmpeg.sh && \
     chmod +x /etc/localstack/init/ready.d/01-ffmpeg.sh

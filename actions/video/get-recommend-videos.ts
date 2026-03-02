@@ -6,7 +6,8 @@ export async function getRecommendation() {
   const videos = await prisma.video.findMany({
     where: {
       deletedAt: null,
-      visibility: "PUBLIC"
+      visibility: "PUBLIC",
+      processingStatus: "READY",
     },
     select: {
       id: true,

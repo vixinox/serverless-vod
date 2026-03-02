@@ -62,9 +62,16 @@ const lambdaEnv = {
   LOCALSTACK_ENDPOINT:   lambdaLocalstackEndpoint,
   VOD_RAW_BUCKET:        process.env.VOD_RAW_BUCKET        ?? "vod-raw",
   VOD_HLS_BUCKET:        process.env.VOD_HLS_BUCKET        ?? "vod-hls",
+  VOD_IMAGE_BUCKET:      process.env.VOD_IMAGE_BUCKET      ?? "vod-image",
   // Lambda 容器通过 --volumes-from=localstack 访问 localstack_data 卷，
   // ready.d init hook 已将静态 ffmpeg 复制到该路径
   FFMPEG_BIN:            process.env.FFMPEG_BIN            ?? "/var/lib/localstack/bin/ffmpeg",
+  // ffprobe 与 ffmpeg 通常在同一目录
+  FFPROBE_BIN:           process.env.FFPROBE_BIN           ?? "/var/lib/localstack/bin/ffprobe",
+  // 编码线程数限制，防止宿主机 CPU 被打满（默认 2）
+  FFMPEG_THREADS:        process.env.FFMPEG_THREADS        ?? "2",
+  // EventBridge 自定义事件总线名称
+  VOD_EVENT_BUS:         process.env.VOD_EVENT_BUS         ?? "vod-events",
 };
 
 const lambda = new LambdaClient({
@@ -331,12 +338,15 @@ async function main() {
       (es) => es.map((e) => ({ ...e, name: `_shared/${e.name}` })),
     );
 
-    // transcode Lambda 依赖 @aws-sdk/client-s3；
+    // transcode Lambda 依赖 @aws-sdk/client-s3 与 @aws-sdk/client-eventbridge；
+    // extract-metadata Lambda 依赖 @aws-sdk/client-eventbridge（发布阶段事件）；
     // 在 Lambda 容器中无法复用宿主 node_modules，因此把依赖闭包打进 ZIP。
     const runtimeDeps =
       dir === "transcode"
-        ? await collectNodeModulesEntries(["@aws-sdk/client-s3"])
-        : [];
+        ? await collectNodeModulesEntries(["@aws-sdk/client-s3", "@aws-sdk/client-eventbridge"])
+        : dir === "extract-metadata"
+          ? await collectNodeModulesEntries(["@aws-sdk/client-eventbridge"])
+          : [];
 
     const allEntries = [...funcEntries, ...sharedEntries, ...runtimeDeps];
     const zipBuffer  = buildZip(allEntries);

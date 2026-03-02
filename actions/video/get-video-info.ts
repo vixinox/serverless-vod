@@ -1,10 +1,15 @@
 'use server'
 
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 export async function getVideoInfo(shortCode: string) {
   if (!shortCode) notFound();
+
+  const session = await auth.api.getSession({ headers: await headers() });
+  const currentUserId = session?.user?.id ?? null;
 
   const video = await prisma.video.findUnique({
     where: { shortCode },
@@ -19,6 +24,8 @@ export async function getVideoInfo(shortCode: string) {
       createdAt: true,
       deletedAt: true,
       visibility: true,
+      processingStatus: true,
+      userId: true,
       channel: {
         select: {
           id: true,
@@ -34,11 +41,31 @@ export async function getVideoInfo(shortCode: string) {
       },
     },
   });
-  if (!video || video.deletedAt || video.visibility !== "PUBLIC") notFound();
+
+  if (!video || video.deletedAt) notFound();
+
+  const isOwner = currentUserId === video.userId;
+
+  // 基于 Visibility 的访问控制（参考 YouTube）
+  switch (video.visibility) {
+    case "PUBLIC":
+    case "UNLISTED":
+      // 非所有者只能访问已处理完成的视频
+      if (!isOwner && video.processingStatus !== "READY") notFound();
+      break;
+    case "PRIVATE":
+    case "DRAFT":
+      // 仅所有者可访问；未登录时重定向登录页（避免泄露视频存在性，返回 404）
+      if (!isOwner) {
+        if (!currentUserId) redirect(`/login?callbackUrl=/watch/${shortCode}`);
+        notFound();
+      }
+      break;
+  }
 
   let prevReaction = undefined
 
-  const { channel, ...v } = video;
+  const { channel, userId: _userId, ...v } = video;
 
   return {
     videoData: {
@@ -55,6 +82,7 @@ export async function getVideoInfo(shortCode: string) {
       subscribersCount: channel.subscribersCount,
       owner: channel.owner,
     },
+    isOwner,
   };
 }
 

@@ -1,20 +1,18 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { fetch as undiciFetch, ProxyAgent } from "undici";
 import prisma from "./prisma";
 
-const oauthProxyUrl = process.env.OAUTH_HTTP_PROXY ?? "http://127.0.0.1:10808";
-const oauthProxyEnabled = process.env.NODE_ENV !== "production" && process.env.OAUTH_HTTP_PROXY_ENABLED !== "false";
-const oauthProxyHosts = new Set([
-  "oauth2.googleapis.com",
-  "accounts.google.com",
-  "api.github.com",
-  "github.com",
-]);
-
-if (oauthProxyEnabled) {
-  const proxyAgent = new ProxyAgent(oauthProxyUrl);
+if (process.env.OAUTH_HTTP_PROXY) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { fetch: undiciFetch, ProxyAgent } = require("undici");
+  const oauthProxyHosts = new Set([
+    "oauth2.googleapis.com",
+    "accounts.google.com",
+    "api.github.com",
+    "github.com",
+  ]);
+  const proxyAgent = new ProxyAgent(process.env.OAUTH_HTTP_PROXY);
   const originalFetch = globalThis.fetch.bind(globalThis);
 
   globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
@@ -28,7 +26,7 @@ if (oauthProxyEnabled) {
     try {
       const hostname = new URL(targetUrl).hostname;
       if (oauthProxyHosts.has(hostname)) {
-        return (undiciFetch as any)(targetUrl, {
+        return undiciFetch(targetUrl, {
           ...init,
           dispatcher: proxyAgent,
         });
@@ -80,9 +78,16 @@ const getGoogleAvatar = (profile: unknown) => {
 };
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  trustedOrigins: [
+    // OAuth 提供商回调注册用 localhost，必须保留
+    "http://localhost:3000",
+    // 允许通过 127.0.0.1 直接访问时 OAuth 回调不被拒绝
+    "http://127.0.0.1:3000",
+  ],
   emailAndPassword: {
     enabled: true,
   },

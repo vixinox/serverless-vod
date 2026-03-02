@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Dialog, DialogContent, DialogTrigger, } from "@/components/ui/dialog"
+import { Dialog, DialogTrigger, } from "@/components/ui/dialog"
 import { ArrowLeft, ChartColumn, LayoutGrid, ListVideo, LogOut, Settings } from "lucide-react"
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -88,8 +88,7 @@ export const StudioSidebar = () => {
         <SidebarHeader className="flex items-center justify-center gap-0">
           {/^\/studio\/contents\/.+/.test(pathname) &&
            <SidebarMenuButton
-             className="h-12 mt-4 hover:bg-hover-dark cursor-pointer flex
-               group-data-[collapsible=icon]:w-full! group-data-[collapsible=icon]:h-full!"
+             className="h-12 mt-4 hover:bg-hover-dark cursor-pointer flex"
              onClick={() => router.back()}
            >
              <div className="flex h-full items-center justify-center aspect-square">
@@ -137,8 +136,7 @@ export const StudioSidebar = () => {
                     <SidebarMenuButton
                       tooltip={item.title}
                       className={cn(
-                        "h-full hover:bg-hover-dark " +
-                        "group-data-[collapsible=icon]:w-full! group-data-[collapsible=icon]:h-full!",
+                        "h-full hover:bg-hover-dark ",
                         pathname === item.url ? "bg-hover-dark" : "",
                       )}
                     >
@@ -168,10 +166,7 @@ export const StudioSidebar = () => {
                     <DialogTrigger asChild>
                       <SidebarMenuButton
                         tooltip="设置"
-                        className={cn(
-                          "h-full hover:bg-primary/15 " +
-                          "group-data-[collapsible=icon]:w-full! group-data-[collapsible=icon]:h-full!",
-                        )}
+                        className="h-full hover:bg-primary/15"
                       >
                         <div className="flex h-full items-center justify-center">
                           <Settings strokeWidth={1.25} size={24}/>
@@ -183,9 +178,6 @@ export const StudioSidebar = () => {
                       </SidebarMenuButton>
                     </DialogTrigger>
                   </SidebarMenuItem>
-                  <DialogContent className="sm:max-w-106">
-
-                  </DialogContent>
                 </form>
               </Dialog>
             </SidebarMenu>

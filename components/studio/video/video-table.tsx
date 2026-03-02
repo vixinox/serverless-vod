@@ -1,6 +1,6 @@
 "use client";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChartColumn, MessageSquareText, Pencil, RotateCw, ThumbsDown, ThumbsUp, TvMinimalPlay } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -189,7 +189,7 @@ export const VideoTable = () => {
   };
 
   return (
-    <div className="relative overflow-y-auto w-full max-h-screen">
+    <div className="relative overflow-auto w-full max-h-screen">
       <div className="flex items-center w-full h-12 sticky top-0 z-20 border-y bg-studio-background">
         {loading && (
           <div className="absolute top-0 left-0 w-full h-0.5 overflow-hidden">
@@ -214,7 +214,7 @@ export const VideoTable = () => {
         />
       </div>
 
-      <Table className="border-b">
+      <table className="w-full caption-bottom text-sm border-b">
         <TableHeader className="h-12 sticky top-12 z-10 bg-studio-background">
           <TableRow>
             <TableHead className="pl-6 w-1/3 text-muted-foreground">视频</TableHead>
@@ -298,7 +298,7 @@ export const VideoTable = () => {
             );
           })}
         </TableBody>
-      </Table>
+      </table>
 
       {totalPages > 1 && (
         <div className="mt-4">

@@ -16,10 +16,14 @@ VOD_RAW_BUCKET=vod-raw
 VOD_HLS_BUCKET=vod-hls
 VOD_IMAGE_BUCKET=vod-image
 VOD_HLS_PUBLIC_READ=true
+VOD_IMAGE_PUBLIC_READ=true
 VOD_S3_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 # 运行 localstack:setup 后自动输出，复制到此处：
 VOD_SFN_STATE_MACHINE_ARN=arn:aws:states:us-east-1:000000000000:stateMachine:vod-transcode
+
+# 生产环境可选：封面图 CDN 域名，未配置时回退到 LocalStack 直连 URL
+# VIDEO_IMAGE_CDN_DOMAIN=your-cloudfront-domain.cloudfront.net
 
 # Windows 可选：如果 ffmpeg 不在 PATH
 # FFMPEG_BIN=C:\tools\ffmpeg\bin\ffmpeg.exe
@@ -32,8 +36,12 @@ VOD_SFN_STATE_MACHINE_ARN=arn:aws:states:us-east-1:000000000000:stateMachine:vod
    complete API
         SFN StartExecution
              Lambda: vod-extract-metadata   标记 TranscodeJob RUNNING / Video PROCESSING
+                                            发布 pipeline.stage { stage: "job_started" }
              Lambda: vod-transcode          ffmpeg 转码 + 上传 vod-hls（重试 3 次）
-             Lambda: vod-finalize           写 VideoAsset / 标记 READY
+                                            + ffmpeg 截取封面缩略图 + 上传 vod-image
+                                            每个阶段发布 pipeline.stage 事件
+             Lambda: vod-finalize           写 VideoAsset(HLS_MASTER + THUMBNAIL)
+                                            更新 Video.thumbnail / 标记 READY
                    (任意步骤失败)
                    Lambda: vod-mark-failed  标记 FAILED
 ```
@@ -45,9 +53,37 @@ S3 路径约定：
 | `vod-raw` | `{shortCode}/source.mp4` | 上传的原始视频 |
 | `vod-hls` | `{shortCode}/master.m3u8` | HLS 主清单 |
 | `vod-hls` | `{shortCode}/{variant}/seg_*.ts` | 切片（LONG 视频含 source/720p 两个子目录）|
-| `vod-image` | `thumbnails/{shortCode}/thumbnail.{ext}` | 缩略图 |
+| `vod-image` | `thumbnails/{shortCode}/thumbnail.jpg` | ffmpeg 截取的封面缩略图 |
 
-## 3. 启动顺序
+## 3. 流水线阶段事件
+
+`vod-transcode` Lambda 在每个关键里程碑处向 EventBridge（`vod-events` 总线）发布
+`pipeline.stage` 事件，并回调 `/api/internal/vod/stage` 写入 `TranscodeJob.pipelineStage`。
+
+| stage 值 | 含义 |
+|----------|------|
+| `job_started` | extract-metadata：TranscodeJob 置为 RUNNING |
+| `downloading` | transcode：开始从 S3 下载源视频 |
+| `probing` | transcode：ffprobe 探测元数据（时长、分辨率）|
+| `transcoding` | transcode：ffmpeg 开始编码 |
+| `uploading_segments` | transcode：HLS 切片上传到 vod-hls |
+| `thumbnail_extracting` | transcode：ffmpeg 截取封面帧 |
+| `thumbnail_uploading` | transcode：封面图上传到 vod-image |
+
+> 注意：不再使用实时百分比进度（`progressPct`），`TranscodeJob.progressPct` 字段
+> 已从 schema 移除，替换为 `pipelineStage String?`。
+
+## 4. 元数据采集
+
+- **时长**：ffprobe 从 `vod-raw/{shortCode}/source.mp4` 提取，优先读取视频流 `duration`，
+  回退到容器格式 `format.duration`，写入 `Video.duration`（秒）。
+- **分辨率**：宽高写入 `VideoAsset(HLS_MASTER)` 的 `width/height` 字段。
+- **封面缩略图**：ffmpeg 在视频时长 5% 处（最少 1 秒，最多 30 秒）截取一帧 JPEG，
+  最大宽度缩放到 1280px，上传至 `vod-image/thumbnails/{shortCode}/thumbnail.jpg`。
+  截图路径写入 `VideoAsset(THUMBNAIL)` 并更新 `Video.thumbnail` URL。
+  截图失败时以 `console.warn` 记录并继续，**不阻断**转码主流程。
+
+## 5. 启动顺序
 
 ```bash
 # 1. 启动 Docker 服务
@@ -65,7 +101,7 @@ npm run dev
 
 上传视频后，complete API 直接触发 Step Functions，无需额外进程。
 
-## 4. 分步部署命令
+## 6. 分步部署命令
 
 ```bash
 npm run localstack:bootstrap      # 仅初始化 S3 桶 + IAM 角色
@@ -76,17 +112,37 @@ npm run localstack:setup          # 上述三步一次完成
 
 修改 Lambda 代码后只需重新运行 `localstack:deploy-lambda`；修改状态机流程后运行 `localstack:deploy-sfn`。
 
-## 5. 查询转码状态
+## 7. 内部 API 端点
 
-前端轮询：
+| 端点 | 说明 |
+|------|------|
+| `POST /api/internal/vod/update-metadata` | extract-metadata 回调：置 RUNNING/PROCESSING |
+| `POST /api/internal/vod/stage` | transcode 各阶段回调：写 `pipelineStage` |
+| `POST /api/internal/vod/finalize` | finalize 回调：写 VideoAsset / 置 READY |
+| `POST /api/internal/vod/mark-failed` | mark-failed 回调：置 FAILED |
 
+## 8. 查询转码状态
+
+前端轮询 `getPipelineStatus(shortCode)` Server Action，返回：
+
+```typescript
+type PipelineStatus = {
+  processingStatus: string;   // UPLOADING | PROCESSING | READY | FAILED
+  jobStatus: string | null;   // QUEUED | RUNNING | SUCCEEDED | FAILED
+  pipelineStage: string | null; // 当前阶段（见上表），RUNNING 时有意义
+  // ...其他字段
+};
 ```
-GET /api/videos/status/shortcode/:shortCode
-```
 
-当 `processingStatus === "READY"` 时返回 `playbackUrl`（HLS 地址）。
+当 `processingStatus === "READY"` 时可通过 `Video.thumbnail` 获取封面 URL，
+通过 VideoAsset(HLS_MASTER) 获取播放地址。
 
-## 6. 前端播放器地址策略
+## 9. 前端播放器地址策略
 
 - 设置了 `VIDEO_CLOUDFRONT_DOMAIN`：`https://<domain>/<shortCode>/master.m3u8`
 - 未设置时（本地开发）：`http://127.0.0.1:4566/vod-hls/<shortCode>/master.m3u8`
+
+封面图地址策略：
+
+- 设置了 `VIDEO_IMAGE_CDN_DOMAIN`：`https://<domain>/thumbnails/<shortCode>/thumbnail.jpg`
+- 未设置时（本地开发）：`http://127.0.0.1:4566/vod-image/thumbnails/<shortCode>/thumbnail.jpg`

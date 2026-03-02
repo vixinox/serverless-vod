@@ -354,6 +354,8 @@ model TranscodeJob {
   status         TranscodeJobStatus @default(QUEUED)
   attempt        Int                @default(0)
   maxAttempts    Int                @default(3)
+  /// 当前流水线阶段标识，例如 "downloading" / "transcoding" / "uploading_segments" / "thumbnail_extracting" 等
+  pipelineStage  String?
   lastError      String?
   queuedAt       DateTime           @default(now())
   startedAt      DateTime?
