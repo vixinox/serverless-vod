@@ -83,10 +83,7 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   trustedOrigins: [
-    // OAuth 提供商回调注册用 localhost，必须保留
     "http://localhost:3000",
-    // 允许通过 127.0.0.1 直接访问时 OAuth 回调不被拒绝
-    "http://127.0.0.1:3000",
   ],
   emailAndPassword: {
     enabled: true,

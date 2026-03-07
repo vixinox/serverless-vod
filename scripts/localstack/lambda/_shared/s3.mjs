@@ -1,5 +1,8 @@
 /**
- * 共享 S3 客户端
+ * 共享 S3 客户端与文件传输工具。
+ *
+ * 提供下载对象、上传单文件/目录、清理前缀对象等能力，
+ * 供 transcode Lambda 在各阶段复用。
  */
 import {
   S3Client,
@@ -8,11 +11,14 @@ import {
   DeleteObjectCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
-import { readFile } from "node:fs/promises";
+import { createReadStream, createWriteStream } from "node:fs";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { join } from "node:path";
 
 const region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
-const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 
 export const s3 = new S3Client({
   region,
@@ -39,9 +45,27 @@ export async function streamToBuffer(body) {
   return Buffer.from([]);
 }
 
+function toReadableStream(body) {
+  if (!body) return null;
+  if (body instanceof Readable) return body;
+  if (typeof body.pipe === "function") return body;
+  if (
+    typeof Readable.fromWeb === "function" &&
+    typeof body.transformToWebStream === "function"
+  ) {
+    return Readable.fromWeb(body.transformToWebStream());
+  }
+  return null;
+}
+
 export async function downloadObject(bucket, key, targetPath) {
-  const { writeFile } = await import("node:fs/promises");
   const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  const bodyStream = toReadableStream(obj.Body);
+  if (bodyStream) {
+    await pipeline(bodyStream, createWriteStream(targetPath));
+    return;
+  }
+
   const buffer = await streamToBuffer(obj.Body);
   await writeFile(targetPath, buffer);
 }
@@ -54,32 +78,34 @@ export async function downloadObject(bucket, key, targetPath) {
  * @param {string} [base]  - 递归时保持相对路径基准
  */
 export async function uploadDirectory(bucket, prefix, dir, base) {
-  const { readdir, stat, readFile } = await import("node:fs/promises");
-  const { join } = await import("node:path");
-
   const root = base ?? dir;
-  const entries = await readdir(dir);
+  const normalizedPrefix = prefix.replace(/\/+$/, "");
+  const files = [];
+  await collectFiles(dir, files);
+  if (!files.length) return;
 
-  for (const entry of entries) {
-    const fullPath = join(dir, entry);
-    const info = await stat(fullPath);
+  const concurrency = resolveUploadConcurrency();
+  const workerCount = Math.min(concurrency, files.length);
+  let fileIndex = 0;
 
-    if (info.isDirectory()) {
-      await uploadDirectory(bucket, prefix, fullPath, root);
-    } else {
-      const relativePath = fullPath.slice(root.length).replace(/\\/g, "/").replace(/^\//, "");
-      const key = `${prefix}/${relativePath}`;
-      const body = await readFile(fullPath);
+  async function worker() {
+    while (fileIndex < files.length) {
+      const currentIndex = fileIndex++;
+      const fullPath = files[currentIndex];
+      const relativePath = fullPath.slice(root.length).replace(/\\/g, "/").replace(/^\/+/, "");
+      const key = normalizedPrefix ? `${normalizedPrefix}/${relativePath}` : relativePath;
       await s3.send(
         new PutObjectCommand({
           Bucket: bucket,
           Key: key,
-          Body: body,
-          ContentType: guessMime(entry),
+          Body: createReadStream(fullPath),
+          ContentType: guessMime(fullPath),
         }),
       );
     }
   }
+
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
 }
 
 /**
@@ -99,6 +125,27 @@ export async function uploadFile(bucket, key, filePath, contentType) {
       ContentType: contentType ?? guessMime(key),
     }),
   );
+}
+
+async function collectFiles(dir, files) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await collectFiles(fullPath, files);
+      continue;
+    }
+    if (entry.isFile()) {
+      files.push(fullPath);
+    }
+  }
+}
+
+function resolveUploadConcurrency() {
+  const raw = process.env.UPLOAD_CONCURRENCY ?? "8";
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 8;
+  return Math.min(parsed, 32);
 }
 
 export async function clearPrefix(bucket, prefix) {

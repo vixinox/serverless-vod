@@ -11,7 +11,7 @@ import { join, relative } from "node:path";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 const region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
-const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 const rawBucket = process.env.VOD_RAW_BUCKET ?? "vod-raw";
 const hlsBucket = process.env.VOD_HLS_BUCKET ?? "vod-hls";
 const imageBucket = process.env.VOD_IMAGE_BUCKET ?? "vod-image";

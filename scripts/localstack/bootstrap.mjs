@@ -33,7 +33,7 @@ import { resolve } from "node:path";
 
 const here     = import.meta.dirname;
 const region   = process.env.AWS_DEFAULT_REGION  ?? "us-east-1";
-const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 
 const rawBucket     = process.env.VOD_RAW_BUCKET    ?? "vod-raw";
 const hlsBucket     = process.env.VOD_HLS_BUCKET    ?? "vod-hls";

@@ -19,8 +19,9 @@ export const HomeNavbar = () => {
   }, [])
 
   return (
-    <nav className={`flex h-14 justify-center top-0 px-4 w-full sticky z-50 transition-all duration-150 
+    <nav className={`flex h-14 justify-between top-0 px-4 w-full sticky z-50 transition-all duration-150 
       ${isAtTop ? 'bg-transparent' : 'bg-background'}`}>
+        <div/>
       <div className='w-160 shrink-0 flex items-center'>
         <Input
           type='text'
@@ -35,7 +36,7 @@ export const HomeNavbar = () => {
           <Search className="size-5!"/>
         </Button>
       </div>
-      <div className="flex-1 flex justify-end items-center mr-8">
+      <div className="flex items-center mr-8">
         <AuthButton/>
       </div>
     </nav>

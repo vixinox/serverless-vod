@@ -24,7 +24,7 @@ function checkAuth(req: Request): boolean {
 function buildThumbnailUrl(bucket: string, key: string): string {
   const cdnDomain = process.env.VIDEO_IMAGE_CDN_DOMAIN;
   if (cdnDomain) return `https://${cdnDomain}/${key}`;
-  const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+  const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
   return `${endpoint}/${bucket}/${key}`;
 }
 

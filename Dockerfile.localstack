@@ -4,21 +4,6 @@ FROM mwader/static-ffmpeg:latest AS static-ffmpeg
 # ── Stage 2: LocalStack 主镜像 ─────────────────────────────────────────────
 FROM localstack/localstack:latest
 
-ARG APT_MIRROR=deb.debian.org
-
-RUN set -eux; \
-    if [ -f /etc/apt/sources.list ]; then \
-        sed -i "s|http://deb.debian.org/debian|http://${APT_MIRROR}/debian|g" /etc/apt/sources.list; \
-    fi; \
-    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
-        sed -i "s|http://deb.debian.org/debian|http://${APT_MIRROR}/debian|g" /etc/apt/sources.list.d/debian.sources; \
-    fi; \
-    printf 'Acquire::Retries "5";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' > /etc/apt/apt.conf.d/99-retries; \
-    apt-get update -y; \
-    apt-get install -y --no-install-recommends ffmpeg; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/*
-
 # 将静态 ffmpeg 和 ffprobe 放到镜像文件系统（不在 volume 路径下），供 init hook 使用
 COPY --from=static-ffmpeg /ffmpeg  /opt/static-ffmpeg/ffmpeg
 COPY --from=static-ffmpeg /ffprobe /opt/static-ffmpeg/ffprobe

@@ -12,7 +12,7 @@
 import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
 
 const region   = process.env.AWS_DEFAULT_REGION  ?? "us-east-1";
-const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 const eventBus = process.env.VOD_EVENT_BUS       ?? "vod-events";
 
 const client = new EventBridgeClient({

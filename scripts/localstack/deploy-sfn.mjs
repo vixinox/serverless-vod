@@ -1,15 +1,10 @@
 /**
  * deploy-sfn.mjs
  *
- * 读取 .lambda-arns.json，渲染 ASL 状态机定义，
- * 在 LocalStack 中创建或更新 Standard Workflow 状态机。
+ * 创建或更新 LocalStack Step Functions 状态机。
  *
- * 成功后将状态机 ARN 追加写入 .sfn-arn.txt（方便 .env.local 配置）。
- *
- * 状态机流程：
- *   ExtractMetadata → Transcode (Retry×3) → Finalize
- *         │                │                     │
- *         └────────────────┴──── Catch ──→ MarkFailed
+ * 流程为：ExtractMetadata -> Transcode -> Finalize，
+ * 任一步骤失败时通过 Catch 分支路由到 MarkFailed。
  */
 
 import {
@@ -17,21 +12,27 @@ import {
   CreateStateMachineCommand,
   UpdateStateMachineCommand,
   ListStateMachinesCommand,
+  DescribeStateMachineCommand,
 } from "@aws-sdk/client-sfn";
-import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { LambdaClient, GetFunctionCommand } from "@aws-sdk/client-lambda";
 
 // ── 配置 ─────────────────────────────────────────────────────────────────
 
 const region       = process.env.AWS_DEFAULT_REGION  ?? "us-east-1";
-const endpoint     = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+const endpoint     = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 const accountId    = process.env.AWS_ACCOUNT_ID      ?? "000000000000";
 const smName       = process.env.VOD_SFN_NAME        ?? "vod-transcode";
 
-const arnFile    = resolve(import.meta.dirname, ".lambda-arns.json");
-const arnOutFile = resolve(import.meta.dirname, ".sfn-arn.txt");
-
 const sfn = new SFNClient({
+  region,
+  endpoint,
+  credentials: {
+    accessKeyId:     process.env.AWS_ACCESS_KEY_ID     ?? "test",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "test",
+  },
+});
+
+const lambda = new LambdaClient({
   region,
   endpoint,
   credentials: {
@@ -43,22 +44,7 @@ const sfn = new SFNClient({
 // ── ASL 定义构建 ─────────────────────────────────────────────────────────
 
 function buildDefinition(arns) {
-  /**
-   * MarkFailed 需要原始的 jobId/videoId（来自 execution input），
-   * 以及 Step Functions 捕获的 Error/Cause。
-   *
-   * Catch 使用 ResultPath: "$.errorInfo"，Step Functions 将错误信息
-   * 写入 $.errorInfo.Error 和 $.errorInfo.Cause，原始输入字段保留在根层。
-   * Parameters 必须从 $.errorInfo.Error/Cause 读取，而非 $.Error/$.Cause，
-   * 否则 Step Functions 会抛出 NoSuchJsonPathError（根节点不存在该字段）。
-   */
-  const markFailedParams = {
-    "jobId.$":   "$$.Execution.Input.jobId",
-    "videoId.$": "$$.Execution.Input.videoId",
-    "error.$":   "$.errorInfo.Error",
-    "cause.$":   "$.errorInfo.Cause",
-  };
-
+  // Route any task failure to MarkFailed while preserving state input.
   const catchToMarkFailed = [
     {
       ErrorEquals: ["States.ALL"],
@@ -68,21 +54,21 @@ function buildDefinition(arns) {
   ];
 
   return {
-    Comment: "VOD 视频转码管道 — ExtractMetadata → Transcode → Finalize",
+    Comment: "VOD transcode pipeline: ExtractMetadata -> Transcode -> Finalize",
     StartAt: "ExtractMetadata",
     States:  {
       ExtractMetadata: {
         Type:       "Task",
         Resource:   arns["extract-metadata"],
-        Comment:    "标记任务为 RUNNING，视频为 PROCESSING",
-        ResultPath: null,   // 输入原样透传给下一步
+        Comment:    "Set TranscodeJob to RUNNING and Video to PROCESSING",
+        ResultPath: null,   // Keep input shape unchanged for next step
         Next:       "Transcode",
         Catch:      catchToMarkFailed,
       },
       Transcode: {
         Type:     "Task",
         Resource: arns["transcode"],
-        Comment:  "下载源视频，ffmpeg 转码，上传 HLS",
+        Comment:  "Download source video, transcode with ffmpeg, upload HLS",
         Retry: [
           {
             ErrorEquals:     ["States.TaskFailed"],
@@ -97,15 +83,22 @@ function buildDefinition(arns) {
       Finalize: {
         Type:     "Task",
         Resource: arns["finalize"],
-        Comment:  "写入 VideoAsset，标记 READY",
+        Comment:  "Write VideoAsset metadata and set READY",
         End:      true,
         Catch:    catchToMarkFailed,
       },
       MarkFailed: {
         Type:       "Task",
         Resource:   arns["mark-failed"],
-        Comment:    "标记任务和视频为 FAILED",
-        Parameters: markFailedParams,
+        Comment:    "Set job and video to FAILED",
+        Retry: [
+          {
+            ErrorEquals:     ["States.ALL"],
+            IntervalSeconds: 3,
+            MaxAttempts:     5,
+            BackoffRate:     2.0,
+          },
+        ],
         End:        true,
       },
     },
@@ -127,25 +120,51 @@ async function findExistingArn(name) {
   return null;
 }
 
-// ── 主流程 ──────────────────────────────────────────────────────────────
+function lambdaArnFor(suffix) {
+  return `arn:aws:lambda:${region}:${accountId}:function:vod-${suffix}`;
+}
+
+function normalizeJsonString(text) {
+  try {
+    return JSON.stringify(JSON.parse(text));
+  } catch {
+    return text;
+  }
+}
+
+async function assertFunctionExists(functionName) {
+  try {
+    await lambda.send(new GetFunctionCommand({ FunctionName: functionName }));
+  } catch {
+    throw new Error(`Missing Lambda: ${functionName}, run npm run localstack:deploy-lambda first`);
+  }
+}
+
+async function buildLambdaArnMap() {
+  const mapping = {
+    "extract-metadata": "extract-metadata",
+    transcode: "transcode",
+    finalize: "finalize",
+    "mark-failed": "mark-failed",
+  };
+
+  for (const suffix of Object.values(mapping)) {
+    await assertFunctionExists(`vod-${suffix}`);
+  }
+
+  return {
+    "extract-metadata": lambdaArnFor(mapping["extract-metadata"]),
+    transcode: lambdaArnFor(mapping.transcode),
+    finalize: lambdaArnFor(mapping.finalize),
+    "mark-failed": lambdaArnFor(mapping["mark-failed"]),
+  };
+}
+
+// Main flow
 
 async function main() {
-  // 读取各 Lambda ARN
-  let arns;
-  try {
-    arns = JSON.parse(await readFile(arnFile, "utf8"));
-  } catch {
-    throw new Error(
-      ".lambda-arns.json 不存在，请先运行 npm run localstack:deploy-lambda",
-    );
-  }
-
-  const required = ["extract-metadata", "transcode", "finalize", "mark-failed"];
-  for (const key of required) {
-    if (!arns[key]) {
-      throw new Error(`缺少 Lambda ARN: ${key}，请先运行 deploy-lambdas.mjs`);
-    }
-  }
+  const startedAt = Date.now();
+  const arns = await buildLambdaArnMap();
 
   const definition = JSON.stringify(buildDefinition(arns));
   const roleArn    = `arn:aws:iam::${accountId}:role/sfn-role`;
@@ -154,16 +173,25 @@ async function main() {
 
   let stateMachineArn;
   if (existingArn) {
-    console.log(`[update] 状态机 ${smName}`);
-    await sfn.send(
-      new UpdateStateMachineCommand({
-        stateMachineArn: existingArn,
-        definition,
-      }),
+    console.log(`[update] state machine ${smName}`);
+    const current = await sfn.send(
+      new DescribeStateMachineCommand({ stateMachineArn: existingArn }),
     );
+    const currentDefinition = current.definition ?? "";
+
+    if (normalizeJsonString(currentDefinition) === normalizeJsonString(definition)) {
+      console.log(`[skip] state machine definition unchanged: ${smName}`);
+    } else {
+      await sfn.send(
+        new UpdateStateMachineCommand({
+          stateMachineArn: existingArn,
+          definition,
+        }),
+      );
+    }
     stateMachineArn = existingArn;
   } else {
-    console.log(`[create] 状态机 ${smName}`);
+    console.log(`[create] state machine ${smName}`);
     const res = await sfn.send(
       new CreateStateMachineCommand({
         name:           smName,
@@ -177,10 +205,8 @@ async function main() {
   }
 
   console.log(`[ok] stateMachineArn=${stateMachineArn}`);
-
-  // 写出 ARN 文件，方便复制到 .env.local
-  await writeFile(arnOutFile, stateMachineArn);
-  console.log(`\n请将以下内容添加到 .env.local：`);
+  console.log(`[timing] deploy-sfn duration=${Date.now() - startedAt}ms`);
+  console.log("\nAdd this to .env.local:");
   console.log(`VOD_SFN_STATE_MACHINE_ARN=${stateMachineArn}`);
 }
 

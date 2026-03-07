@@ -1,5 +1,5 @@
 /**
- * Lambda: vod-finalize  (Thin Client)
+ * Lambda：`vod-finalize`（轻客户端）
  *
  * 状态机第三步（成功路径）：
  * 通过调用 Next.js 内部 API 写入 VideoAsset 并将任务/视频标记为完成。

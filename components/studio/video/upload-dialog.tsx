@@ -110,7 +110,7 @@ function deriveStages(state: UploadState): Stage[] {
   const enrichedQueue: Stage = {
     ...queueStage,
     detail: arnName ? (
-      <span className="font-mono text-[10px] text-neutral-600 truncate block max-w-[32ch]">
+      <span className="font-mono text-[12px] text-neutral-500 truncate block max-w-[34ch]">
         {arnName}
       </span>
     ) : undefined,
@@ -127,7 +127,7 @@ function deriveStages(state: UploadState): Stage[] {
     sublabel: "函数计算",
     status: extractStatus,
     detail: p.inputKey ? (
-      <span className="font-mono text-[10px] text-neutral-600 break-all">{p.inputKey}</span>
+      <span className="font-mono text-[12px] text-neutral-500 break-all">{p.inputKey}</span>
     ) : undefined,
   };
 
@@ -154,8 +154,8 @@ function deriveStages(state: UploadState): Stage[] {
     detail: (p.attempt > 0 || p.jobError) ? (
       <div className="space-y-1.5 mt-0.5">
         {p.attempt > 0 && (
-          <p className="text-[10px] text-neutral-600 font-mono">
-            重试 {p.attempt}/{p.maxAttempts} 次
+          <p className="text-[12px] text-neutral-500 font-mono">
+            尝试 {p.attempt}/{p.maxAttempts} 次
             {p.startedAt && (
               <span className="ml-2 opacity-50">
                 开始于 {new Date(p.startedAt).toLocaleTimeString()}
@@ -164,7 +164,7 @@ function deriveStages(state: UploadState): Stage[] {
           </p>
         )}
         {p.jobError && (
-          <div className="rounded-md bg-red-500/8 border border-red-500/15 px-2.5 py-2 text-[10px] text-red-400 font-mono leading-relaxed break-all">
+          <div className="text-[12px] text-red-300 font-mono leading-relaxed break-all">
             {p.jobError}
           </div>
         )}
@@ -234,7 +234,7 @@ function DeployBadge({ state }: { state: UploadState }) {
     label === "就绪"   ? "bg-[#50e3c2]" : "bg-red-400";
 
   return (
-    <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border", ring)}>
+    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium border", ring)}>
       <span className={cn("size-1.5 rounded-full shrink-0", dot)} />
       {label}
     </span>
@@ -289,8 +289,9 @@ function StageRow({ stage }: { stage: Stage }) {
 
   return (
     <div className={cn(
-      "px-5 py-3.5 border-b border-neutral-800/60 last:border-0 transition-opacity",
+      "px-5 py-3.5 border-b border-neutral-800/60 last:border-0 transition-opacity hover:bg-neutral-900/30",
       stage.status === "idle" && "opacity-35",
+      stage.status === "failed" && "border-l-2 border-l-red-500/60 bg-red-500/5",
     )}>
       {/* Main row */}
       <div className="flex items-center gap-3">
@@ -299,7 +300,7 @@ function StageRow({ stage }: { stage: Stage }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span className={cn(
-              "text-[13px] font-medium leading-none",
+              "text-[14px] font-medium leading-none",
               stage.status === "done"    && "text-neutral-200",
               stage.status === "running" && "text-white",
               stage.status === "failed"  && "text-red-400",
@@ -308,7 +309,7 @@ function StageRow({ stage }: { stage: Stage }) {
               {stage.label}
             </span>
             {stage.sublabel && (
-              <span className="text-[10px] text-neutral-700 font-mono truncate hidden sm:block">
+              <span className="text-[12px] text-neutral-600 font-mono truncate hidden sm:block">
                 {stage.sublabel}
               </span>
             )}
@@ -317,7 +318,7 @@ function StageRow({ stage }: { stage: Stage }) {
 
         <div className="flex items-center gap-2 shrink-0">
           {stage.elapsed && (
-            <span className="text-[10px] text-neutral-700 font-mono tabular-nums">
+            <span className="text-[12px] text-neutral-600 font-mono tabular-nums">
               {stage.elapsed}
             </span>
           )}
@@ -339,7 +340,7 @@ function StageRow({ stage }: { stage: Stage }) {
         <div className="pl-8">
           <ProgressBar value={stage.progress} status={stage.status} />
           {stage.status === "running" && stage.progress > 0 && (
-            <p className="text-[10px] text-neutral-700 font-mono tabular-nums mt-0.5">
+            <p className="text-[12px] text-neutral-600 font-mono tabular-nums mt-1">
               {stage.progress}%
             </p>
           )}
@@ -460,7 +461,7 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
   });
 
   const dialogTitle =
-    isDone ? "任务完成" : isActive ? "执行中…" : "上传视频";
+    isDone ? "视频已处理完成" : isActive ? "正在处理视频…" : "上传视频";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -472,7 +473,7 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
       >
         {/* ── Top bar ── */}
         <DialogHeader className="relative shrink-0 flex-row items-center h-12 border-b border-neutral-800 px-5">
-          <DialogTitle className="text-sm font-medium text-neutral-300 leading-none">
+          <DialogTitle className="text-base font-medium text-neutral-200 leading-none">
             {dialogTitle}
           </DialogTitle>
           <DialogClose asChild>
@@ -491,19 +492,19 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
             <div className="flex items-center gap-2.5 min-w-0">
               <DeployBadge state={state} />
               {filename && (
-                <span className="text-[11px] text-neutral-600 font-mono truncate">
+                <span className="text-[12px] text-neutral-500 font-mono truncate">
                   {filename}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
               {shortCode && (
-                <span className="text-[10px] text-neutral-700 font-mono select-all">
+                <span className="text-[12px] text-neutral-600 font-mono select-all">
                   {shortCode}
                 </span>
               )}
               {totalElapsed && (
-                <span className="text-[10px] text-neutral-700 font-mono tabular-nums">
+                <span className="text-[12px] text-neutral-600 font-mono tabular-nums">
                   {totalElapsed}
                 </span>
               )}
@@ -530,14 +531,14 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
               <Upload className="size-10 text-neutral-600" strokeWidth={1.5} />
             </div>
             <div className="text-center space-y-1.5">
-              <p className="text-sm font-medium text-neutral-200">将视频拖放至此处</p>
-              <p className="text-xs text-neutral-600">MP4 格式 · 发布前处于私享状态</p>
+              <p className="text-base font-medium text-neutral-200">将视频拖放到此处</p>
+              <p className="text-sm text-neutral-500">支持 MP4 · 上传后默认仅自己可见</p>
             </div>
             <Button
               onClick={openFilePicker}
-              className="h-8 px-4 rounded-full text-xs font-medium bg-white text-black hover:bg-neutral-200"
+              className="h-9 px-4 rounded-full text-sm font-medium bg-white text-black hover:bg-neutral-200"
             >
-              选择文件
+              选择视频
             </Button>
           </div>
         )}
@@ -551,8 +552,8 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
 
             {/* Top-level error message */}
             {state.status === "error" && (
-              <div className="px-5 py-3">
-                <div className="rounded-lg bg-red-500/8 border border-red-500/15 px-3 py-2.5 text-xs text-red-400 font-mono leading-relaxed">
+              <div className="px-5 py-3 border-t border-red-500/30 bg-red-500/5">
+                <div className="text-sm text-red-300 font-mono leading-relaxed break-all">
                   {state.message}
                 </div>
               </div>
@@ -585,10 +586,10 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold text-[#50e3c2] leading-none mb-1">处理完成</p>
+                  <p className="text-[13px] font-semibold text-[#50e3c2] leading-none mb-1">视频已准备就绪</p>
                   <button
                     onClick={copyShortCode}
-                    className="flex items-center gap-1 text-[10px] text-neutral-500 hover:text-neutral-300 transition font-mono cursor-pointer"
+                    className="flex items-center gap-1 text-[12px] text-neutral-500 hover:text-neutral-300 transition font-mono cursor-pointer"
                   >
                     <span className="truncate">{shortCode}</span>
                     <Copy className="size-2.5 shrink-0" />
@@ -601,16 +602,16 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
                 <Button
                   variant="ghost" size="sm"
                   onClick={handleDoneClose}
-                  className="h-7 px-3 rounded-full text-xs text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-full text-sm text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
                 >
-                  再上传
+                  继续上传
                 </Button>
                 <Button
                   size="sm"
                   onClick={goToContents}
-                  className="h-7 px-3 rounded-full text-xs font-medium bg-white text-black hover:bg-neutral-200 gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-full text-sm font-medium bg-white text-black hover:bg-neutral-200 gap-1.5 cursor-pointer"
                 >
-                  内容管理
+                  前往内容
                   <ArrowRight className="size-3" />
                 </Button>
               </div>
@@ -622,14 +623,14 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
         {isActive && (
           <div className="shrink-0 border-t border-neutral-800 px-5 py-3 flex items-center justify-between">
             <p className={cn(
-              "text-[11px] text-neutral-700 transition-opacity",
+              "text-sm text-neutral-500 transition-opacity",
               state.status === "transcoding" &&
               !isTranscodeFailed &&
               state.pipeline.processingStatus !== "READY"
                 ? "opacity-100 animate-pulse"
                 : "opacity-0 pointer-events-none",
             )}>
-              转码完成后自动更新
+              处理完成后会自动刷新状态
             </p>
 
             <div className="flex items-center gap-2">
@@ -637,10 +638,10 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
                 <Button
                   variant="ghost" size="sm"
                   onClick={handleDoneClose}
-                  className="h-7 px-3 rounded-full text-xs text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-full text-sm text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
                 >
                   <RotateCcw className="size-3" />
-                  重新上传
+                  重新选择视频
                 </Button>
               )}
               {state.status === "transcoding" &&
@@ -649,9 +650,9 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
                 <Button
                   variant="ghost" size="sm"
                   onClick={proceedToEdit}
-                  className="h-7 px-3 rounded-full text-xs text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-full text-sm text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
                 >
-                  跳过等待
+                  去填写详情
                   <ArrowRight className="size-3" />
                 </Button>
               )}
@@ -661,8 +662,8 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
 
         {/* ── Idle footer ── */}
         {isIdle && (
-          <p className="shrink-0 text-center text-[11px] text-neutral-800 py-3 border-t border-neutral-800">
-            提交即表示你同意服务条款和社区准则
+          <p className="shrink-0 text-center text-sm text-neutral-700 py-3 border-t border-neutral-800">
+            上传即表示你同意平台服务条款与社区准则
           </p>
         )}
       </DialogContent>

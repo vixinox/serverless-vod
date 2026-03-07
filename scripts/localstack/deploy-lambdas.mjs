@@ -4,7 +4,7 @@
  * 将 scripts/localstack/lambda/ 下的每个子目录打包成 ZIP，
  * 通过 LocalStack Lambda API 创建或更新函数。
  *
- * 执行后写出 .lambda-arns.json 供 deploy-sfn.mjs 使用。
+ * 执行后打印各函数 ARN（deploy-sfn.mjs 将按固定命名直接解析 ARN）。
  *
  * 函数环境变量说明：
  *   NODE_PATH 指向项目根目录的 node_modules，
@@ -19,21 +19,27 @@ import {
   GetFunctionCommand,
   waitUntilFunctionUpdated,
 } from "@aws-sdk/client-lambda";
-import { readdir, readFile, stat, mkdir, writeFile, rm, copyFile } from "node:fs/promises";
-import { createWriteStream } from "node:fs";
-import { join, resolve, relative } from "node:path";
-import { tmpdir } from "node:os";
+import { readdir, readFile, stat, mkdir, writeFile, access } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { join, resolve, relative, dirname } from "node:path";
 
 // ── 配置 ─────────────────────────────────────────────────────────────────
 
 const region    = process.env.AWS_DEFAULT_REGION    ?? "us-east-1";
-const endpoint  = process.env.LOCALSTACK_ENDPOINT   ?? "http://127.0.0.1:4566";
+const endpoint  = process.env.LOCALSTACK_ENDPOINT   ?? "http://localhost:4566";
 const accountId = process.env.AWS_ACCOUNT_ID        ?? "000000000000";
 
 const lambdaSrcDir = resolve(import.meta.dirname, "lambda");
-const arnOutputFile = resolve(import.meta.dirname, ".lambda-arns.json");
 const projectRoot = resolve(import.meta.dirname, "../..");
 const nodeModulesDir = resolve(projectRoot, "node_modules");
+const deployCacheFile = resolve(projectRoot, ".cache", "localstack-lambda-deploy.json");
+const lockFiles = [
+  resolve(projectRoot, "bun.lock"),
+  resolve(projectRoot, "bun.lockb"),
+  resolve(projectRoot, "package-lock.json"),
+  resolve(projectRoot, "pnpm-lock.yaml"),
+  resolve(projectRoot, "yarn.lock"),
+];
 
 // Lambda 在 LocalStack 容器（Linux）内执行，node_modules 通过 volume 挂载到 /opt/node_modules。
 // 新架构下 Lambda 为纯 HTTP Thin Client，不再直接访问数据库。
@@ -43,7 +49,7 @@ const nextApiBaseUrl = (process.env.NEXT_API_BASE_URL ?? "http://host.docker.int
   "host.docker.internal",
 );
 
-// Lambda 在独立容器中运行，localhost/127.0.0.1 会回环到 Lambda 自身。
+// Lambda 在独立容器中运行，localhost 会回环到 Lambda 自身。
 // 因此传给 Lambda runtime 的 LocalStack endpoint 也必须改写为 host.docker.internal。
 const lambdaLocalstackEndpoint = endpoint.replace(
   /\b(localhost|127\.0\.0\.1)\b/g,
@@ -82,6 +88,94 @@ const lambda = new LambdaClient({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "test",
   },
 });
+
+function nowMs() {
+  return Date.now();
+}
+
+function fmtMs(ms) {
+  return `${ms}ms`;
+}
+
+function sha256(input) {
+  return createHash("sha256").update(input).digest("hex");
+}
+
+function sortedObject(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).sort(([a], [b]) => a.localeCompare(b)),
+  );
+}
+
+const lambdaEnvHash = sha256(JSON.stringify(sortedObject(lambdaEnv)));
+
+async function loadDeployCache() {
+  try {
+    const raw = await readFile(deployCacheFile, "utf8");
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function saveDeployCache(cache) {
+  await mkdir(dirname(deployCacheFile), { recursive: true });
+  await writeFile(deployCacheFile, JSON.stringify(cache, null, 2), "utf8");
+}
+
+async function firstExistingFile(paths) {
+  for (const p of paths) {
+    try {
+      await access(p);
+      return p;
+    } catch {
+      // continue
+    }
+  }
+  return null;
+}
+
+async function hashEntries(entries) {
+  const hasher = createHash("sha256");
+  const sorted = [...entries].sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of sorted) {
+    hasher.update(entry.name);
+    hasher.update("\0");
+    hasher.update(entry.data);
+    hasher.update("\0");
+  }
+  return hasher.digest("hex");
+}
+
+async function hashFileContent(filePath) {
+  const content = await readFile(filePath);
+  return sha256(content);
+}
+
+async function computeRuntimeDepsSignature(dir) {
+  const deps =
+    dir === "transcode"
+      ? ["@aws-sdk/client-s3", "@aws-sdk/client-eventbridge"]
+      : dir === "extract-metadata"
+        ? ["@aws-sdk/client-eventbridge"]
+        : [];
+
+  if (deps.length === 0) return "no-runtime-deps";
+
+  const lockPath = await firstExistingFile(lockFiles);
+  if (lockPath) {
+    return `lock:${lockPath}:${await hashFileContent(lockPath)}:${deps.sort().join(",")}`;
+  }
+
+  // 回退：没有锁文件时，哈希依赖包 package.json，避免误判。
+  const pairs = [];
+  for (const dep of deps) {
+    const depPkgPath = join(packageDirByName(dep), "package.json");
+    pairs.push(`${dep}:${await hashFileContent(depPkgPath)}`);
+  }
+  return `pkg:${pairs.join("|")}`;
+}
 
 // ── 最小 ZIP 构建（纯 Node.js，无外部依赖）─────────────────────────────────
 
@@ -280,31 +374,78 @@ async function functionExists(name) {
   }
 }
 
-async function deployFunction(name, zipBuffer, handlerPath) {
+async function deployFunction(name, zipBuffer, handlerPath, previousCacheEntry, existingState) {
+  const startedAt = nowMs();
   const ZipFile = zipBuffer;
+  const codeHash = ZipFile ? sha256(ZipFile) : (previousCacheEntry?.codeHash ?? "");
+  const envHash = lambdaEnvHash;
+  const codeChanged = previousCacheEntry?.codeHash !== codeHash;
+  const envChanged = previousCacheEntry?.envHash !== envHash;
 
-  if (await functionExists(name)) {
-    console.log(`[update] ${name}`);
-    await lambda.send(
-      new UpdateFunctionCodeCommand({ FunctionName: name, ZipFile }),
-    );
-    await waitUntilFunctionUpdated(
-      { client: lambda, maxWaitTime: 60 },
-      { FunctionName: name },
-    );
-    // 同步更新环境变量（UpdateFunctionCodeCommand 不会更新 env）
-    await lambda.send(
-      new UpdateFunctionConfigurationCommand({
-        FunctionName: name,
-        Environment: { Variables: lambdaEnv },
-      }),
-    );
-    await waitUntilFunctionUpdated(
-      { client: lambda, maxWaitTime: 60 },
-      { FunctionName: name },
-    );
+  const metrics = {
+    existsCheckMs: 0,
+    updateCodeMs: 0,
+    waitAfterCodeMs: 0,
+    updateConfigMs: 0,
+    waitAfterConfigMs: 0,
+    createMs: 0,
+    totalDeployMs: 0,
+  };
+
+  const existsCheckStart = nowMs();
+  const exists = typeof existingState === "boolean" ? existingState : await functionExists(name);
+  metrics.existsCheckMs = nowMs() - existsCheckStart;
+
+  if (exists) {
+    if (!codeChanged && !envChanged) {
+      console.log(`[skip] ${name} unchanged`);
+      metrics.totalDeployMs = nowMs() - startedAt;
+      console.log(`[timing] ${name} exists=${fmtMs(metrics.existsCheckMs)} deploy=${fmtMs(metrics.totalDeployMs)}`);
+      return { codeHash, envHash, metrics };
+    }
+
+    if (codeChanged) {
+      if (!ZipFile) throw new Error(`${name} 代码已变化但缺少 ZIP 内容`);
+      console.log(`[update:code] ${name}`);
+      const updateCodeStart = nowMs();
+      await lambda.send(
+        new UpdateFunctionCodeCommand({ FunctionName: name, ZipFile }),
+      );
+      metrics.updateCodeMs = nowMs() - updateCodeStart;
+
+      const waitAfterCodeStart = nowMs();
+      await waitUntilFunctionUpdated(
+        { client: lambda, maxWaitTime: 60 },
+        { FunctionName: name },
+      );
+      metrics.waitAfterCodeMs = nowMs() - waitAfterCodeStart;
+    } else {
+      console.log(`[skip:code] ${name}`);
+    }
+
+    if (envChanged) {
+      const updateConfigStart = nowMs();
+      await lambda.send(
+        new UpdateFunctionConfigurationCommand({
+          FunctionName: name,
+          Environment: { Variables: lambdaEnv },
+        }),
+      );
+      metrics.updateConfigMs = nowMs() - updateConfigStart;
+
+      const waitAfterConfigStart = nowMs();
+      await waitUntilFunctionUpdated(
+        { client: lambda, maxWaitTime: 60 },
+        { FunctionName: name },
+      );
+      metrics.waitAfterConfigMs = nowMs() - waitAfterConfigStart;
+      console.log(`[update:config] ${name}`);
+    } else {
+      console.log(`[skip:config] ${name}`);
+    }
   } else {
     console.log(`[create] ${name}`);
+    const createStart = nowMs();
     await lambda.send(
       new CreateFunctionCommand({
         FunctionName: name,
@@ -317,50 +458,127 @@ async function deployFunction(name, zipBuffer, handlerPath) {
         Environment:  { Variables: lambdaEnv },
       }),
     );
+    metrics.createMs = nowMs() - createStart;
   }
+
+  metrics.totalDeployMs = nowMs() - startedAt;
+  console.log(
+    `[timing] ${name} exists=${fmtMs(metrics.existsCheckMs)} ` +
+    `updateCode=${fmtMs(metrics.updateCodeMs)} waitCode=${fmtMs(metrics.waitAfterCodeMs)} ` +
+    `updateConfig=${fmtMs(metrics.updateConfigMs)} waitConfig=${fmtMs(metrics.waitAfterConfigMs)} ` +
+    `create=${fmtMs(metrics.createMs)} deploy=${fmtMs(metrics.totalDeployMs)}`,
+  );
+
+  return { codeHash, envHash, metrics };
 }
 
 // ── 主流程 ──────────────────────────────────────────────────────────────
 
 async function main() {
+  const globalStart = nowMs();
+  const deployCache = await loadDeployCache();
+
   // 读取 lambda/ 下的所有函数目录（排除 _shared）
   const dirs = (await readdir(lambdaSrcDir)).filter((d) => !d.startsWith("_"));
-  const arns = {};
 
-  for (const dir of dirs) {
+  const deployResults = await Promise.all(dirs.map(async (dir) => {
     const funcDir = join(lambdaSrcDir, dir);
     const info = await stat(funcDir);
-    if (!info.isDirectory()) continue;
-
-    // 收集该函数目录 + _shared 目录的文件
-    const funcEntries   = await collectEntries(funcDir);
-    const sharedEntries = await collectEntries(join(lambdaSrcDir, "_shared")).then(
-      (es) => es.map((e) => ({ ...e, name: `_shared/${e.name}` })),
-    );
-
-    // transcode Lambda 依赖 @aws-sdk/client-s3 与 @aws-sdk/client-eventbridge；
-    // extract-metadata Lambda 依赖 @aws-sdk/client-eventbridge（发布阶段事件）；
-    // 在 Lambda 容器中无法复用宿主 node_modules，因此把依赖闭包打进 ZIP。
-    const runtimeDeps =
-      dir === "transcode"
-        ? await collectNodeModulesEntries(["@aws-sdk/client-s3", "@aws-sdk/client-eventbridge"])
-        : dir === "extract-metadata"
-          ? await collectNodeModulesEntries(["@aws-sdk/client-eventbridge"])
-          : [];
-
-    const allEntries = [...funcEntries, ...sharedEntries, ...runtimeDeps];
-    const zipBuffer  = buildZip(allEntries);
+    if (!info.isDirectory()) return null;
 
     const funcName   = `vod-${dir}`;   // e.g. vod-transcode
     const handlerKey = "index.handler";
 
-    await deployFunction(funcName, zipBuffer, handlerKey);
-    arns[dir] = `arn:aws:lambda:${region}:${accountId}:function:${funcName}`;
-    console.log(`[ok] ${funcName} → ${arns[dir]}`);
-  }
+    const hashStart = nowMs();
+    const funcEntriesForHash   = await collectEntries(funcDir);
+    const sharedEntriesForHash = await collectEntries(join(lambdaSrcDir, "_shared")).then(
+      (es) => es.map((e) => ({ ...e, name: `_shared/${e.name}` })),
+    );
+    const runtimeDepsSignature = await computeRuntimeDepsSignature(dir);
+    const sourceHash = sha256(
+      JSON.stringify({
+        code: await hashEntries([...funcEntriesForHash, ...sharedEntriesForHash]),
+        runtimeDepsSignature,
+      }),
+    );
+    const hashMs = nowMs() - hashStart;
 
-  await writeFile(arnOutputFile, JSON.stringify(arns, null, 2));
-  console.log(`\n[ok] ARNs written to ${arnOutputFile}`);
+    const previous = deployCache[funcName];
+    const sourceUnchanged = previous?.sourceHash === sourceHash;
+
+    let zipBuffer;
+    let packMs = 0;
+    let zipBytes = 0;
+    let existingState;
+
+    if (sourceUnchanged && previous?.codeHash) {
+      existingState = await functionExists(funcName);
+      if (existingState) {
+        console.log(`[pack:skip] ${funcName} source unchanged (hash=${fmtMs(hashMs)})`);
+      }
+    }
+
+    if (!sourceUnchanged || !previous?.codeHash || existingState === false) {
+      const packStart = nowMs();
+
+      // transcode Lambda 依赖 @aws-sdk/client-s3 与 @aws-sdk/client-eventbridge；
+      // extract-metadata Lambda 依赖 @aws-sdk/client-eventbridge（发布阶段事件）；
+      // 在 Lambda 容器中无法复用宿主 node_modules，因此把依赖闭包打进 ZIP。
+      const runtimeDeps =
+        dir === "transcode"
+          ? await collectNodeModulesEntries(["@aws-sdk/client-s3", "@aws-sdk/client-eventbridge"])
+          : dir === "extract-metadata"
+            ? await collectNodeModulesEntries(["@aws-sdk/client-eventbridge"])
+            : [];
+
+      const allEntries = [...funcEntriesForHash, ...sharedEntriesForHash, ...runtimeDeps];
+      zipBuffer = buildZip(allEntries);
+      packMs = nowMs() - packStart;
+      zipBytes = zipBuffer.length;
+      console.log(
+        `[pack] ${funcName} entries=${allEntries.length} zipBytes=${zipBytes} duration=${fmtMs(packMs)} hash=${fmtMs(hashMs)}`,
+      );
+    }
+
+    const cacheEntry = await deployFunction(
+      funcName,
+      zipBuffer,
+      handlerKey,
+      previous,
+      existingState,
+    );
+    const arn = `arn:aws:lambda:${region}:${accountId}:function:${funcName}`;
+    console.log(`[ok] ${funcName} → ${arn}`);
+
+    return { funcName, cacheEntry: { ...cacheEntry, sourceHash }, packMs, zipBytes };
+  }));
+
+  const nextCache = { ...deployCache };
+  for (const item of deployResults) {
+    if (!item) continue;
+    nextCache[item.funcName] = item.cacheEntry;
+  }
+  await saveDeployCache(nextCache);
+
+  const totalMs = nowMs() - globalStart;
+  console.log(`\n[timing] total lambda deploy=${fmtMs(totalMs)}`);
+
+  const ranked = deployResults
+    .filter(Boolean)
+    .map((item) => {
+      const deployMs = item.cacheEntry?.metrics?.totalDeployMs ?? 0;
+      return { name: item.funcName, packMs: item.packMs, deployMs, totalMs: item.packMs + deployMs, zipBytes: item.zipBytes };
+    })
+    .sort((a, b) => b.totalMs - a.totalMs);
+
+  if (ranked.length > 0) {
+    console.log("[timing] per-function (slowest first)");
+    for (const row of ranked) {
+      console.log(
+        `  - ${row.name}: pack=${fmtMs(row.packMs)} deploy=${fmtMs(row.deployMs)} total=${fmtMs(row.totalMs)} zipBytes=${row.zipBytes}`,
+      );
+    }
+  }
 }
 
 main().catch((err) => {

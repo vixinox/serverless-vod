@@ -1,5 +1,5 @@
 /**
- * Lambda: vod-extract-metadata  (Thin Client)
+ * Lambda：`vod-extract-metadata`（轻客户端）
  *
  * 状态机第一步：
  * 通过调用 Next.js 内部 API 将 TranscodeJob 标记为 RUNNING，Video 标记为 PROCESSING，

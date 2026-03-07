@@ -1,11 +1,9 @@
 'use client'
 
 import Link from "next/link";
-import Image from "next/image";
 import { CopyButton } from "@/components/copy-button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { VideoIcon } from "lucide-react";
 
 interface VideoInfoCardProps {
   filename?: string | null;
@@ -15,27 +13,12 @@ interface VideoInfoCardProps {
 
 export function VideoInfoCard({ filename, shortCode, thumbnail }: VideoInfoCardProps) {
   const presets = ["1080p", "720p", "360p"];
-  // 使用浏览器 origin，避免硬编码 localhost:3000
   const appOrigin =
     typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
   const videoUrl = `${appOrigin}/watch/${shortCode}`;
 
   return (
     <Card className="p-0 overflow-hidden gap-0">
-      {/* ── 缩略图预览 ── */}
-      <CardContent className="w-full aspect-video p-0 overflow-hidden bg-muted flex items-center justify-center">
-        {thumbnail ? (
-          <Image
-            src={thumbnail}
-            alt="缩略图预览"
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        ) : (
-          <VideoIcon className="size-10 text-muted-foreground opacity-40" />
-        )}
-      </CardContent>
 
       {/* ── 视频链接 ── */}
       <div className="p-4 flex justify-between items-center gap-2">

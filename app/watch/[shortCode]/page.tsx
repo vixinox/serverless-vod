@@ -27,12 +27,10 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
   const { shortCode } = await params;
   const { videoData, channelData, isOwner } = await getVideoInfo(shortCode);
   const cloudfrontDomain = process.env.VIDEO_CLOUDFRONT_DOMAIN ?? "";
-  const localstackEndpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
-  const hlsBucket = process.env.VOD_HLS_BUCKET ?? "vod-hls";
 
   const playbackUrl = cloudfrontDomain.trim()
     ? `https://${cloudfrontDomain.trim()}/${shortCode}/master.m3u8`
-    : `${localstackEndpoint.replace(/\/$/, "")}/${hlsBucket}/${shortCode}/master.m3u8`;
+    : `/api/hls/${encodeURIComponent(shortCode)}/master.m3u8`;
 
   // 所有者查看限制可见性视频时展示的横幅
   const visibilityBanner = isOwner && videoData.visibility !== "PUBLIC"
@@ -43,9 +41,9 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
   const isProcessing = isOwner && videoData.processingStatus !== "READY";
 
   return (
-    <div className="flex-1 px-6 bg-background">
+    <div className="flex-1 px-3 sm:px-4 lg:px-6 bg-background">
       {visibilityBanner && (
-        <div className={`flex items-center gap-2 mt-4 px-4 py-2 rounded-md text-sm font-medium ${visibilityBanner.className}`}>
+        <div className={`flex items-center gap-2 mt-4 px-4 py-2 rounded-md text-sm font-medium w-fit ${visibilityBanner.className}`}>
           {visibilityBanner.icon}
           <span>{visibilityBanner.text}</span>
         </div>
@@ -56,13 +54,15 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
           <span>视频仍在处理中（{videoData.processingStatus}），处理完成后将向符合权限的用户开放</span>
         </div>
       )}
-      <div className="flex h-full w-full mt-6">
-        <div className="bg-background flex flex-col gap-6 w-[70%] lg:w-[75%] xl:w-[81%] pr-4">
+      <div className="mt-4 sm:mt-6 flex h-full w-full flex-col gap-6 xl:flex-row xl:gap-4">
+        <div className="bg-background flex min-w-0 flex-col gap-6 w-full xl:w-[75%] 2xl:w-[81%] xl:pr-2">
           <VideoPlayer src={playbackUrl} thumbnail={videoData.thumbnail} />
           <VideoInfo videoData={videoData} channelData={channelData}/>
           <CommentArea shortCode={shortCode}/>
         </div>
-        {/* <RecommendationList/> */}
+        <div className="w-full xl:w-[25%] 2xl:w-[19%]">
+          <RecommendationList/>
+        </div>
       </div>
     </div>
   )

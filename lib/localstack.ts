@@ -7,12 +7,13 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   SFNClient,
+  StopExecutionCommand,
   StartExecutionCommand,
 } from "@aws-sdk/client-sfn";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
-const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://127.0.0.1:4566";
+const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 const forcePathStyle = process.env.S3_FORCE_PATH_STYLE !== "false";
 
 const rawBucket = process.env.VOD_RAW_BUCKET ?? "vod-raw";
@@ -137,4 +138,15 @@ export async function createPlaybackSignedUrl(params: {
   return getSignedUrl(s3Client, command, {
     expiresIn: params.expiresInSeconds ?? 900,
   });
+}
+
+export async function stopTranscodeExecution(executionArn: string, cause?: string) {
+  if (!executionArn) return;
+
+  await sfnClient.send(
+    new StopExecutionCommand({
+      executionArn,
+      cause: cause?.slice(0, 300) ?? "Canceled by user",
+    }),
+  );
 }

@@ -1,8 +1,10 @@
+import { HomeNavbar } from "@/components/home/home-navbar";
 import type { ReactNode } from "react";
 
 export default async function VideoLayout({ children }: { children: ReactNode }) {
   return (
     <div className="w-full h-full">
+      <HomeNavbar />
       <div className="flex">
         {children}
       </div>

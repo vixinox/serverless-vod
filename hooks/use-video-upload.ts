@@ -205,7 +205,7 @@ export function useVideoUpload() {
       initialPipeline = {
         processingStatus: "PROCESSING",
         jobId: null, jobStatus: "QUEUED", jobError: null,
-        attempt: 0, maxAttempts: 3, executionArn: null,
+        attempt: 0, maxAttempts: 3, pipelineStage: null, executionArn: null,
         inputKey: `${shortCode}/source.mp4`,
         queuedAt: new Date().toISOString(), startedAt: null, finishedAt: null,
       };
