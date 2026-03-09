@@ -22,6 +22,7 @@
         "clsx": "^2.1.1",
         "dotenv": "^17.3.1",
         "eslint": "^10",
+        "gsap": "^3.14.2",
         "hls.js": "^1.6.15",
         "lucide-react": "^0.577.0",
         "media-icons": "1.1.5",
@@ -1170,6 +1171,8 @@
     "graphmatch": ["graphmatch@1.1.1", "https://mirrors.cloud.tencent.com/npm/graphmatch/-/graphmatch-1.1.1.tgz", {}, "sha512-5ykVn/EXM1hF0XCaWh05VbYvEiOL2lY1kBxZtaYsyvjp7cmWOU1XsAdfQBwClraEofXDT197lFbXOEVMHpvQOg=="],
 
     "graphql": ["graphql@16.12.0", "https://mirrors.cloud.tencent.com/npm/graphql/-/graphql-16.12.0.tgz", {}, "sha512-DKKrynuQRne0PNpEbzuEdHlYOMksHSUI8Zc9Unei5gTsMNA2/vMpoMz/yKba50pejK56qj98qM0SjYxAKi13gQ=="],
+
+    "gsap": ["gsap@3.14.2", "https://mirrors.cloud.tencent.com/npm/gsap/-/gsap-3.14.2.tgz", {}, "sha512-P8/mMxVLU7o4+55+1TCnQrPmgjPKnwkzkXOK1asnR9Jg2lna4tEY5qBJjMmAaOBDDZWtlRjBXjLa0w53G/uBLA=="],
 
     "has-bigints": ["has-bigints@1.1.0", "https://mirrors.cloud.tencent.com/npm/has-bigints/-/has-bigints-1.1.0.tgz", {}, "sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg=="],
 

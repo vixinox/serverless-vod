@@ -71,6 +71,21 @@ enum PlaybackEventType {
   BUFFER_END
 }
 
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+model UserSettings {
+  userId    String          @id
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme     ThemePreference @default(SYSTEM)
+  updatedAt DateTime        @updatedAt
+
+  @@map("user_settings")
+}
+
 model User {
   id            String    @id
   name          String
@@ -91,6 +106,7 @@ model User {
   videos        Video[]
   playlistItems PlaylistItem[]
   playbackEvents VideoPlaybackEvent[]
+  settings      UserSettings?
 
   @@map("user")
 }

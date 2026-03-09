@@ -5,10 +5,9 @@ import prisma from "@/lib/prisma";
 type VideoKind = "LONG" | "SHORT";
 
 interface GetVideosInput {
-  longCursor?: string | null;
-  shortCursor?: string | null;
-  longLimit?: number;
-  shortLimit?: number;
+  cursor?: string | null;
+  limit?: number;
+  type?: VideoKind;
 }
 
 const DEFAULT_LIMIT = 12;
@@ -98,20 +97,15 @@ async function getVideosByType(type: VideoKind, cursor: string | null | undefine
 }
 
 export async function getVideos(input: GetVideosInput = {}) {
-  const longLimit = normalizeLimit(input.longLimit);
-  const shortLimit = normalizeLimit(input.shortLimit);
+  const limit = normalizeLimit(input.limit);
+  const type: VideoKind = input.type ?? "LONG";
 
-  const [longPage, shortPage] = await Promise.all([
-    getVideosByType("LONG", input.longCursor, longLimit),
-    getVideosByType("SHORT", input.shortCursor, shortLimit)
-  ]);
+  const page = await getVideosByType(type, input.cursor, limit);
 
   return {
-    long: longPage.items,
-    short: shortPage.items,
-    nextLongCursor: longPage.nextCursor,
-    nextShortCursor: shortPage.nextCursor
+    items: page.items,
+    nextCursor: page.nextCursor
   };
 }
 
-export type VideoData = Awaited<ReturnType<typeof getVideos>>["long"][number];
+export type VideoData = Awaited<ReturnType<typeof getVideos>>["items"][number];

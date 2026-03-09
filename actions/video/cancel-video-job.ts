@@ -22,7 +22,7 @@ export async function cancelVideoJob(shortCode: string) {
       userId: session.user.id,
       deletedAt: null,
     },
-    select: { id: true, shortCode: true },
+    select: { id: true, shortCode: true, processingStatus: true },
   });
   if (!video) throw new Error("视频不存在");
 
@@ -37,7 +37,17 @@ export async function cancelVideoJob(shortCode: string) {
       queueMessageId: true,
     },
   });
+
+  // 没有活跃 Job，但视频仍卡在中间态（例如 LocalStack 未启动导致上传初始化失败）
+  // 直接将视频收敛到 FAILED，让用户可以重新上传
   if (!activeJob) {
+    if (video.processingStatus === "UPLOADING" || video.processingStatus === "PROCESSING") {
+      await prisma.video.update({
+        where: { id: video.id },
+        data: { processingStatus: "FAILED", processingError: CANCEL_REASON },
+      });
+      return { shortCode: video.shortCode, jobId: null, status: "CANCELED" };
+    }
     throw new Error("未找到可取消的任务");
   }
 

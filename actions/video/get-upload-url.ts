@@ -40,6 +40,10 @@ export async function getVideoUploadUrl(
   const safeContentType = contentType.trim() || "video/mp4";
   const resolvedTitle = normalizeTitle(title ?? safeName.replace(/\.[^.]+$/, ""));
 
+  // 先验证存储桶可达，避免草稿已写入 DB 后因 LocalStack 未启动而产生
+  // processingStatus=UPLOADING 的孤儿记录
+  await ensureBucket(localstackConfig.rawBucket);
+
   const draft = await createUploadVideoDraft({
     userId: session.user.id,
     title: resolvedTitle,
@@ -48,7 +52,6 @@ export async function getVideoUploadUrl(
   });
 
   const objectKey = createRawVideoObjectKey(draft.shortCode);
-  await ensureBucket(localstackConfig.rawBucket);
 
   const presignedUrl = await createUploadPresignedUrl({
     bucket: localstackConfig.rawBucket,

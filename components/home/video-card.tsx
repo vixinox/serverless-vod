@@ -1,14 +1,16 @@
 'use client'
 
+import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatRelativeTime } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { VideoData } from "@/actions/video/get-videos";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SmartImage } from "../smart-image";
+import { usePageTransition } from "@/components/transition/transition-context";
 
 export function VideoCard({ data }: { data?: VideoData | undefined }) {
-  const router = useRouter();
+  const { startTransition } = usePageTransition();
+  const thumbRef = useRef<HTMLDivElement | null>(null);
 
   if (!data) return (
     <div className="relative flex-1">
@@ -26,10 +28,16 @@ export function VideoCard({ data }: { data?: VideoData | undefined }) {
     </div>
   );
 
+  const handleClick = () => {
+    const rect = thumbRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    startTransition(`/watch/${data.shortCode}`, data.thumbnail ?? "", rect);
+  };
+
   return (
     <div
       className="relative flex-1 cursor-pointer group"
-      onClick={() => router.push(`/watch/${data.shortCode}`)}
+      onClick={handleClick}
     >
       <div className="
         absolute inset-0 rounded-xl bg-transparent z-0
@@ -38,7 +46,7 @@ export function VideoCard({ data }: { data?: VideoData | undefined }) {
       "/>
 
       <div className="relative z-10">
-        <div className="w-full aspect-video rounded-xl overflow-hidden">
+        <div ref={thumbRef} className="w-full aspect-video rounded-xl overflow-hidden">
           <SmartImage src={data.thumbnail} alt=""/>
         </div>
         <div className="flex justify-start items-start w-full mt-2">

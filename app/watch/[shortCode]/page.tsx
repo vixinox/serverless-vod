@@ -3,6 +3,8 @@ import { CommentArea } from "@/components/comment/comment-area";
 import { VideoPlayer } from "@/components/player/video-player";
 import { RecommendationList } from "@/components/player/recommendation-list";
 import { VideoInfo } from "@/components/player/video-info";
+import { PageReadySignal } from "@/components/transition/page-ready-signal";
+import { PLAYER_COL_CLASSES } from "@/lib/layout-config";
 import { EyeOff, Link2, FileText, Loader2 } from "lucide-react";
 
 const VISIBILITY_BANNER: Record<string, { icon: React.ReactNode; text: string; className: string }> = {
@@ -32,16 +34,14 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
     ? `https://${cloudfrontDomain.trim()}/${shortCode}/master.m3u8`
     : `/api/hls/${encodeURIComponent(shortCode)}/master.m3u8`;
 
-  // 所有者查看限制可见性视频时展示的横幅
   const visibilityBanner = isOwner && videoData.visibility !== "PUBLIC"
     ? VISIBILITY_BANNER[videoData.visibility]
     : null;
 
-  // 所有者查看自己的视频但尚未处理完成
   const isProcessing = isOwner && videoData.processingStatus !== "READY";
 
   return (
-    <div className="flex-1 px-3 sm:px-4 lg:px-6 bg-background">
+    <div className="flex-1 w-screen h-full bg-background px-[5%]">
       {visibilityBanner && (
         <div className={`flex items-center gap-2 mt-4 px-4 py-2 rounded-md text-sm font-medium w-fit ${visibilityBanner.className}`}>
           {visibilityBanner.icon}
@@ -54,16 +54,17 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
           <span>视频仍在处理中（{videoData.processingStatus}），处理完成后将向符合权限的用户开放</span>
         </div>
       )}
-      <div className="mt-4 sm:mt-6 flex h-full w-full flex-col gap-6 xl:flex-row xl:gap-4">
-        <div className="bg-background flex min-w-0 flex-col gap-6 w-full xl:w-[75%] 2xl:w-[81%] xl:pr-2">
+      <div className="mt-4 flex h-full w-full flex-col gap-6 sm:flex-row xl:gap-4">
+        <div className={PLAYER_COL_CLASSES}>
           <VideoPlayer src={playbackUrl} thumbnail={videoData.thumbnail} />
           <VideoInfo videoData={videoData} channelData={channelData}/>
-          <CommentArea shortCode={shortCode}/>
+          {/* <CommentArea shortCode={shortCode}/> */}
         </div>
         <div className="w-full xl:w-[25%] 2xl:w-[19%]">
           <RecommendationList/>
         </div>
       </div>
+      <PageReadySignal />
     </div>
   )
 }

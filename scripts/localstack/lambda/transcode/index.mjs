@@ -194,7 +194,7 @@ function runFfmpeg(args, cwd) {
 /**
  * 从视频中截取一帧作为封面缩略图（JPEG）。
  * 抓帧位置：视频时长的 5%（最少 1 秒，最多 30 秒），兼顾片头黑场问题。
- * 输出宽度缩放到最大 1280px，高度等比缩放。
+ * 不做尺寸限制，尽可能保持原图分辨率。
  *
  * @param {string}      inputPath   源视频路径
  * @param {string}      outputPath  输出 JPEG 路径
@@ -213,8 +213,7 @@ function extractThumbnail(inputPath, outputPath, durationSec) {
         "-ss", String(seekSec),
         "-i", inputPath,
         "-vframes", "1",
-        "-vf", "scale='min(1280,iw)':-2",   // 最大宽 1280px，等比缩放
-        "-q:v", "2",                          // JPEG 质量（1=最优，31=最差）
+        "-q:v", "1",                          // JPEG 质量（1=最优，31=最差）
         outputPath,
       ],
       {

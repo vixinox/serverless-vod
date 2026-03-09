@@ -14,13 +14,13 @@ type SmartImageProps = {
 };
 
 export function SmartImage({
-                             src,
-                             alt,
-                             refreshKey,
-                             minLoadingMs = 300,
-                             className = "",
-                             autoRetry = false
-                           }: SmartImageProps) {
+  src,
+  alt,
+  refreshKey,
+  minLoadingMs = 300,
+  className = "",
+  autoRetry = false
+}: SmartImageProps) {
   const [status, setStatus] = useState<"loading" | "error" | "success">("loading");
   const [loadStartTime, setLoadStartTime] = useState(() => Date.now());
   const [attempt, setAttempt] = useState(0);
@@ -77,13 +77,13 @@ export function SmartImage({
 
       {status === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Spinner className="size-8 text-gray-400" strokeWidth="1.5"/>
+          <Spinner className="size-8 text-gray-400" strokeWidth="1.5" />
         </div>
       )}
 
       {(status === "error" || !cacheBustedSrc) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <ImageOff className="size-8 text-gray-400" strokeWidth="1.5"/>
+          <ImageOff className="size-8 text-gray-400" strokeWidth="1.5" />
         </div>
       )}
     </div>

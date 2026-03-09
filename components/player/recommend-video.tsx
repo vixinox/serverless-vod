@@ -2,14 +2,16 @@
 import { useState } from "react";
 import { SmartImage } from "@/components/smart-image";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePageTransition } from "@/components/transition/transition-context";
 import { Check, ClockPlus, ListVideo } from "lucide-react";
 import { VideoData } from "@/actions/video/get-recommend-videos";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function RecommendVideo({ data }: { data: VideoData }) {
   const [clickedButton, setClickedButton] = useState<string | null>(null);
-  const router = useRouter();
+  const pathname = usePathname();
+  const { startFadeTransition } = usePageTransition();
 
   if (!data) {
     return (
@@ -30,10 +32,16 @@ export function RecommendVideo({ data }: { data: VideoData }) {
     }, 1000);
   };
 
+  const handleCardClick = () => {
+    const href = `/watch/${data.shortCode}`;
+    if (pathname === href) return;
+    startFadeTransition(href, { maskMode: "keep-video" });
+  };
+
   return (
     <div
       className="flex items-start w-full cursor-pointer group"
-      onClick={() => router.push(`/watch/${data.shortCode}`)}
+      onClick={handleCardClick}
     >
       <div className="relative w-75 aspect-video rounded-lg overflow-hidden">
         <SmartImage src={data.thumbnail} alt="video" className="object-cover" autoRetry/>

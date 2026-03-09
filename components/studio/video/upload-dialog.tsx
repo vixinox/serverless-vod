@@ -18,6 +18,7 @@ import { useVideoUpload, type UploadState } from "@/hooks/use-video-upload";
 import type { PipelineStatus } from "@/actions/video/get-pipeline-status";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
@@ -172,7 +173,7 @@ function deriveStages(state: UploadState): Stage[] {
     ) : undefined,
   };
 
-  // 写入资产
+  // 保存视频
   const finalizeStatus: StageStatus =
     p.processingStatus === "READY"  ? "done" :
     p.processingStatus === "FAILED" ? "failed" :
@@ -180,7 +181,7 @@ function deriveStages(state: UploadState): Stage[] {
 
   const finalizeStage: Stage = {
     id: "finalize",
-    label: "写入资产",
+    label: "保存视频",
     sublabel: "函数计算 · 写入视频资产",
     status: finalizeStatus,
     elapsed: p.finishedAt ? new Date(p.finishedAt).toLocaleTimeString() : undefined,
@@ -220,24 +221,23 @@ function DeployBadge({ state }: { state: UploadState }) {
     state.status === "error" ||
     (state.status === "transcoding" && state.pipeline.processingStatus === "FAILED");
 
+  const variant =
+    state.status === "done" ? "default" :
+    isError ? "destructive" : "secondary";
+
   const label =
     state.status === "done" ? "就绪" :
     isError ? "错误" : "处理中";
-
-  const ring =
-    label === "就绪" ? "text-[#50e3c2] bg-[#50e3c2]/8 border-[#50e3c2]/20" :
-    label === "错误" ? "text-red-400 bg-red-500/8 border-red-500/20" :
-    "text-blue-400 bg-blue-500/8 border-blue-500/20";
 
   const dot =
     label === "处理中" ? "bg-blue-400 animate-pulse" :
     label === "就绪"   ? "bg-[#50e3c2]" : "bg-red-400";
 
   return (
-    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium border", ring)}>
+    <Badge variant={variant} className="gap-1.5 font-normal">
       <span className={cn("size-1.5 rounded-full shrink-0", dot)} />
       {label}
-    </span>
+    </Badge>
   );
 }
 
@@ -622,17 +622,6 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
         {/* ── Footer actions ── */}
         {isActive && (
           <div className="shrink-0 border-t border-neutral-800 px-5 py-3 flex items-center justify-between">
-            <p className={cn(
-              "text-sm text-neutral-500 transition-opacity",
-              state.status === "transcoding" &&
-              !isTranscodeFailed &&
-              state.pipeline.processingStatus !== "READY"
-                ? "opacity-100 animate-pulse"
-                : "opacity-0 pointer-events-none",
-            )}>
-              处理完成后会自动刷新状态
-            </p>
-
             <div className="flex items-center gap-2">
               {isError && (
                 <Button

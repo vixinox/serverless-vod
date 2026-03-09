@@ -36,11 +36,17 @@ import {
   ThumbsUp,
   TvMinimalPlay,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import Link from "next/link";
 import { toast } from "sonner";
 
 import { cancelVideoJob } from "@/actions/video/cancel-video-job";
 import { deleteVideo } from "@/actions/video/delete-video";
+import { editVideo } from "@/actions/video/edit-video";
 import {
   getVideoJobTimeline,
   type JobTimelineItem,
@@ -95,11 +101,18 @@ type VideoRow = Awaited<ReturnType<typeof listUserVideos>>["videos"][number];
 const PENDING_STATUSES = new Set(["UPLOADING", "PROCESSING"]);
 const POLL_INTERVAL_MS = 5000;
 
-const visibilityMap: Record<string, string> = {
-  PUBLIC: "公开",
-  PRIVATE: "私享",
-  UNLISTED: "不公开",
-  DRAFT: "草稿",
+type VisibilityKey = "PUBLIC" | "PRIVATE" | "UNLISTED" | "DRAFT";
+
+const VISIBILITY_OPTIONS: VisibilityKey[] = ["PUBLIC", "UNLISTED", "PRIVATE", "DRAFT"];
+
+const visibilityConfig: Record<
+  VisibilityKey,
+  { label: string; variant: "default" | "secondary" | "outline" | "destructive"; className: string; dotClass: string }
+> = {
+  PUBLIC:   { label: "公开",   variant: "secondary", className: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",   dotClass: "bg-green-500" },
+  UNLISTED: { label: "不公开", variant: "secondary", className: "bg-blue-50  text-blue-700  border-blue-200  dark:bg-blue-950  dark:text-blue-300  dark:border-blue-800",   dotClass: "bg-blue-500" },
+  PRIVATE:  { label: "私享",   variant: "secondary", className: "bg-yellow-50  text-yellow-700  border-yellow-200  dark:bg-yellow-950  dark:text-yellow-300  dark:border-yellow-800",   dotClass: "bg-yellow-500" },
+  DRAFT:    { label: "草稿",   variant: "secondary", className: "bg-zinc-50  text-zinc-500  border-zinc-200  dark:bg-zinc-900  dark:text-zinc-400  dark:border-zinc-700",   dotClass: "bg-zinc-400" },
 };
 
 const stageLabels: Record<string, string> = {
@@ -262,41 +275,117 @@ function TimelineDialog({
 
           {!loading && !error
             ? jobs.map((job) => (
-                <div key={job.id} className="rounded-sm border bg-background p-3">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate font-mono  text-muted-foreground">{job.id}</p>
-                      <p className="mt-1  text-muted-foreground">
-                        尝试 {job.attempt}/{job.maxAttempts}
-                      </p>
-                    </div>
-                    <JobStatusBadge status={job.status} />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2  text-muted-foreground md:grid-cols-3">
-                    <p>排队: {formatDateTime(job.queuedAt)}</p>
-                    <p>开始: {formatDateTime(job.startedAt)}</p>
-                    <p>结束: {formatDateTime(job.finishedAt)}</p>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2 ">
-                    <Badge variant="outline" className="rounded-sm">
-                      阶段: {job.pipelineStage ? stageLabels[job.pipelineStage] ?? job.pipelineStage : "—"}
-                    </Badge>
-                    <Badge variant="outline" className="rounded-sm">
-                      总耗时: {formatWallSeconds(job.wallSeconds)}
-                    </Badge>
-                  </div>
-                  {job.lastError ? (
-                    <p className="mt-2 break-all rounded-sm border border-destructive/30 bg-destructive/5 p-2  text-destructive">
-                      {job.lastError}
+              <div key={job.id} className="rounded-sm border bg-background p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono  text-muted-foreground">{job.id}</p>
+                    <p className="mt-1  text-muted-foreground">
+                      尝试 {job.attempt}/{job.maxAttempts}
                     </p>
-                  ) : null}
+                  </div>
+                  <JobStatusBadge status={job.status} />
                 </div>
-              ))
+
+                <div className="grid grid-cols-1 gap-2  text-muted-foreground md:grid-cols-3">
+                  <p>排队: {formatDateTime(job.queuedAt)}</p>
+                  <p>开始: {formatDateTime(job.startedAt)}</p>
+                  <p>结束: {formatDateTime(job.finishedAt)}</p>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 ">
+                  <Badge variant="outline" className="rounded-sm">
+                    阶段: {job.pipelineStage ? stageLabels[job.pipelineStage] ?? job.pipelineStage : "—"}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-sm">
+                    总耗时: {formatWallSeconds(job.wallSeconds)}
+                  </Badge>
+                </div>
+                {job.lastError ? (
+                  <p className="mt-2 break-all rounded-sm border border-destructive/30 bg-destructive/5 p-2  text-destructive">
+                    {job.lastError}
+                  </p>
+                ) : null}
+              </div>
+            ))
             : null}
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function VisibilityCell({
+  video,
+  onVisibilityChange,
+}: {
+  video: VideoRow;
+  onVisibilityChange: (shortCode: string, visibility: VisibilityKey) => void;
+}) {
+  const [current, setCurrent] = useState<VisibilityKey>(
+    (video.visibility as VisibilityKey) ?? "DRAFT",
+  );
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const cfg = visibilityConfig[current] ?? visibilityConfig.DRAFT;
+
+  const handleSelect = async (next: VisibilityKey) => {
+    if (next === current || saving) return;
+    setSaving(true);
+    const prev = current;
+    setCurrent(next); // optimistic
+    setOpen(false);
+    try {
+      await editVideo({ shortCode: video.shortCode, visibility: next as never });
+      onVisibilityChange(video.shortCode, next);
+    } catch {
+      setCurrent(prev);
+      toast.error("修改公开范围失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <div className="w-20">
+        <PopoverTrigger asChild>
+          <Badge
+            variant={cfg.variant}
+            className={`cursor-pointer select-none rounded-full px-1.5 gap-1.5 border ${cfg.className}`}
+          >
+            <span className="inline-flex size-3 items-center justify-center shrink-0">
+              {saving
+                ? <Loader2 className="size-3 animate-spin" />
+                : <span className={`inline-block size-1.5 rounded-full ${cfg.dotClass}`} />}
+            </span>
+            {cfg.label}
+          </Badge>
+        </PopoverTrigger>
+      </div>
+      <PopoverContent className="w-32 p-1">
+        <div className="flex flex-col">
+          {VISIBILITY_OPTIONS.map((v) => {
+            const c = visibilityConfig[v];
+            const isActive = v === current;
+            return (
+              <button
+                key={v}
+                onClick={() => handleSelect(v)}
+                disabled={isActive || saving}
+                className={`flex items-center gap-2 rounded-sm px-2.5 py-1.5 text-sm transition-colors ${
+                  isActive
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                } disabled:cursor-default`}
+              >
+                <span className={`inline-block size-2 shrink-0 rounded-full ${c.dotClass}`} />
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -308,9 +397,10 @@ function createColumns(
     onRetry: (video: VideoRow) => Promise<void>;
     onCancel: (video: VideoRow) => Promise<void>;
     onDelete: (video: VideoRow) => Promise<void>;
+    onVisibilityChange: (shortCode: string, visibility: VisibilityKey) => void;
   },
 ): ColumnDef<VideoRow>[] {
-  const { pendingShortCode, onOpenTimeline, onRetry, onCancel, onDelete } = options;
+  const { pendingShortCode, onOpenTimeline, onRetry, onCancel, onDelete, onVisibilityChange } = options;
 
   const getEffectiveStatus = (video: VideoRow) =>
     pollDetails[video.shortCode]?.processingStatus ?? video.processingStatus;
@@ -427,9 +517,10 @@ function createColumns(
           return <span className="text-muted-foreground ">—</span>;
         }
         return (
-          <Badge variant="outline" className="rounded-sm px-1.5 text-muted-foreground">
-            {visibilityMap[row.original.visibility] ?? row.original.visibility}
-          </Badge>
+          <VisibilityCell
+            video={row.original}
+            onVisibilityChange={onVisibilityChange}
+          />
         );
       },
     },
@@ -703,6 +794,17 @@ export const VideoTable = () => {
     }
   }, [fetchVideos]);
 
+  const handleVisibilityChange = useCallback(
+    (shortCode: string, visibility: VisibilityKey) => {
+      setVideos((prev) =>
+        prev.map((v) =>
+          v.shortCode === shortCode ? { ...v, visibility: visibility as VideoRow["visibility"] } : v,
+        ),
+      );
+    },
+    [],
+  );
+
   const columns = useMemo(
     () =>
       createColumns(pollDetails, {
@@ -711,8 +813,9 @@ export const VideoTable = () => {
         onRetry: runRetry,
         onCancel: runCancel,
         onDelete: runDelete,
+        onVisibilityChange: handleVisibilityChange,
       }),
-    [pollDetails, pendingActionShortCode, openTimeline, runRetry, runCancel, runDelete],
+    [pollDetails, pendingActionShortCode, openTimeline, runRetry, runCancel, runDelete, handleVisibilityChange],
   );
 
   useEffect(() => {

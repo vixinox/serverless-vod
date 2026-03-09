@@ -2,52 +2,85 @@
 
 import '@vidstack/react/player/styles/default/theme.css';
 import { useEffect, useRef, useState } from 'react';
-import { MediaPlayer, MediaProvider, Gesture } from '@vidstack/react';
+import { MediaPlayer, MediaProvider, Gesture, Poster } from '@vidstack/react';
 import { Pause, Play } from 'lucide-react';
+import gsap from 'gsap';
 import { YoutubeControls } from './player-controls';
 
-export function VideoPlayer({ src, thumbnail }: { src: string; thumbnail?: string | undefined }) {
+const FLASH_FEEDBACK_CONFIG = {
+  fromScale: 0.84,
+  enterScale: 1,
+  exitScale: 0.92,
+  enterDuration: 0.16,
+  holdDuration: 0.2,
+  exitDuration: 0.22,
+  ease: 'expo.out',
+} as const;
+
+export function VideoPlayer({ src, thumbnail, className }: { src: string; thumbnail?: string | undefined; className?: string }) {
   const [flashIcon, setFlashIcon] = useState<'play' | 'pause' | null>(null);
-  const [isFlashExiting, setIsFlashExiting] = useState(false);
-  const flashExitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flashCleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showInitialFlashIcon, setShowInitialFlashIcon] = useState(true);
+  const flashIconRef = useRef<HTMLDivElement | null>(null);
+  const flashTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const triggerFlashIcon = (type: 'play' | 'pause') => {
-    if (flashExitTimerRef.current) {
-      clearTimeout(flashExitTimerRef.current);
-      flashExitTimerRef.current = null;
-    }
-
-    if (flashCleanupTimerRef.current) {
-      clearTimeout(flashCleanupTimerRef.current);
-      flashCleanupTimerRef.current = null;
-    }
-
-    setIsFlashExiting(false);
+    setShowInitialFlashIcon(false);
     setFlashIcon(type);
-
-    // Keep icon visible for a short hold, then fade out to match YouTube-like feedback.
-    flashExitTimerRef.current = setTimeout(() => {
-      setIsFlashExiting(true);
-      flashExitTimerRef.current = null;
-    }, 720);
-
-    flashCleanupTimerRef.current = setTimeout(() => {
-      setFlashIcon(null);
-      setIsFlashExiting(false);
-      flashCleanupTimerRef.current = null;
-    }, 1000);
   };
 
   useEffect(() => {
-    return () => {
-      if (flashExitTimerRef.current) {
-        clearTimeout(flashExitTimerRef.current);
-      }
+    if (!flashIcon) {
+      return;
+    }
 
-      if (flashCleanupTimerRef.current) {
-        clearTimeout(flashCleanupTimerRef.current);
-      }
+    if (!flashIconRef.current) {
+      return;
+    }
+
+    flashTimelineRef.current?.kill();
+
+    flashTimelineRef.current = gsap.timeline({
+      onComplete: () => {
+        setFlashIcon(null);
+      },
+    });
+
+    flashTimelineRef.current
+      .set(flashIconRef.current, {
+        opacity: 0,
+        scale: FLASH_FEEDBACK_CONFIG.fromScale,
+      })
+      .to(flashIconRef.current, {
+        opacity: 1,
+        scale: FLASH_FEEDBACK_CONFIG.enterScale,
+        duration: FLASH_FEEDBACK_CONFIG.enterDuration,
+        ease: FLASH_FEEDBACK_CONFIG.ease,
+      })
+      .to(flashIconRef.current, {
+        opacity: 0,
+        scale: FLASH_FEEDBACK_CONFIG.exitScale,
+        duration: FLASH_FEEDBACK_CONFIG.exitDuration,
+        ease: FLASH_FEEDBACK_CONFIG.ease,
+        delay: FLASH_FEEDBACK_CONFIG.holdDuration,
+      });
+
+    return () => {
+      flashTimelineRef.current?.kill();
+      flashTimelineRef.current = null;
+    };
+  }, [flashIcon]);
+
+  useEffect(() => {
+    flashTimelineRef.current?.kill();
+    flashTimelineRef.current = null;
+    setFlashIcon(null);
+    setShowInitialFlashIcon(true);
+  }, [src]);
+
+  useEffect(() => {
+    return () => {
+      flashTimelineRef.current?.kill();
+      flashTimelineRef.current = null;
     };
   }, []);
 
@@ -64,23 +97,48 @@ export function VideoPlayer({ src, thumbnail }: { src: string; thumbnail?: strin
       title="Video Player"
       src={src}
       poster={thumbnail}
+      data-transition-keep-visible="video"
       aspectRatio="16 / 9"
       playsInline
-      onPlay={() => triggerFlashIcon('play')}
-      onPause={() => triggerFlashIcon('pause')}
-      className="group/player relative w-full aspect-video overflow-hidden rounded-lg bg-black text-white ring-media-focus data-focus:ring-4 sm:rounded-xl"
-    >
-      <MediaProvider />
+      onPlay={() => {
+        // Initial center play hint should disappear immediately on first play.
+        if (showInitialFlashIcon) {
+          setShowInitialFlashIcon(false);
+          return;
+        }
 
-      {flashIcon && (
+        triggerFlashIcon('play');
+      }}
+      onPause={() => {
+        if (showInitialFlashIcon) {
+          return;
+        }
+
+        setShowInitialFlashIcon(false);
+        triggerFlashIcon('pause');
+      }}
+      className={`group/player relative w-full aspect-video overflow-hidden rounded-xl text-white ring-media-focus data-focus:ring-4 ${className}`}
+    >
+      <MediaProvider>
+        <Poster
+          src={thumbnail}
+          alt="视频封面"
+          className="absolute inset-0 z-0 block h-full w-full bg-black opacity-0 transition-opacity data-visible:opacity-100 [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
+        />
+      </MediaProvider>
+
+      {(showInitialFlashIcon || flashIcon) && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <div
-            className={`rounded-full bg-black/65 p-4 backdrop-blur-sm transition-all duration-300 ${isFlashExiting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            ref={flashIconRef}
+            className={`rounded-full p-4 backdrop-blur-sm ${showInitialFlashIcon ? 'bg-black/55 transition-colors duration-300 group-hover/player:bg-black/70' : 'bg-black/65'}`}
           >
-            {flashIcon === 'play' ? (
-              <Play className="size-10 fill-white text-white" />
+            {(showInitialFlashIcon || flashIcon === 'play') ? (
+              <Play
+                className={`size-14 text-white transition-colors duration-200 ${showInitialFlashIcon ? 'fill-transparent group-hover/player:fill-white' : 'fill-white'}`}
+              />
             ) : (
-              <Pause className="size-10 fill-white text-white" />
+              <Pause className="size-14 fill-white text-white" />
             )}
           </div>
         </div>
