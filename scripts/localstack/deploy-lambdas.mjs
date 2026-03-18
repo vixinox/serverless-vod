@@ -17,6 +17,7 @@ import {
   UpdateFunctionCodeCommand,
   UpdateFunctionConfigurationCommand,
   GetFunctionCommand,
+  waitUntilFunctionActiveV2,
   waitUntilFunctionUpdated,
 } from "@aws-sdk/client-lambda";
 import { readdir, readFile, stat, mkdir, writeFile, access } from "node:fs/promises";
@@ -389,6 +390,7 @@ async function deployFunction(name, zipBuffer, handlerPath, previousCacheEntry, 
     updateConfigMs: 0,
     waitAfterConfigMs: 0,
     createMs: 0,
+    waitAfterCreateMs: 0,
     totalDeployMs: 0,
   };
 
@@ -459,6 +461,13 @@ async function deployFunction(name, zipBuffer, handlerPath, previousCacheEntry, 
       }),
     );
     metrics.createMs = nowMs() - createStart;
+
+    const waitAfterCreateStart = nowMs();
+    await waitUntilFunctionActiveV2(
+      { client: lambda, maxWaitTime: 60 },
+      { FunctionName: name },
+    );
+    metrics.waitAfterCreateMs = nowMs() - waitAfterCreateStart;
   }
 
   metrics.totalDeployMs = nowMs() - startedAt;
@@ -466,7 +475,8 @@ async function deployFunction(name, zipBuffer, handlerPath, previousCacheEntry, 
     `[timing] ${name} exists=${fmtMs(metrics.existsCheckMs)} ` +
     `updateCode=${fmtMs(metrics.updateCodeMs)} waitCode=${fmtMs(metrics.waitAfterCodeMs)} ` +
     `updateConfig=${fmtMs(metrics.updateConfigMs)} waitConfig=${fmtMs(metrics.waitAfterConfigMs)} ` +
-    `create=${fmtMs(metrics.createMs)} deploy=${fmtMs(metrics.totalDeployMs)}`,
+    `create=${fmtMs(metrics.createMs)} waitCreate=${fmtMs(metrics.waitAfterCreateMs)} ` +
+    `deploy=${fmtMs(metrics.totalDeployMs)}`,
   );
 
   return { codeHash, envHash, metrics };

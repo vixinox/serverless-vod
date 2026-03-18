@@ -5,5 +5,15 @@ export default async function VideoEditPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const video = await getVideoDetails(id);
 
-  return <VideoForm video={video}/>;
+  return (
+    <VideoForm
+      video={{
+        title: video.title,
+        description: video.description ?? undefined,
+        thumbnail: video.thumbnail ?? undefined,
+        visibility: video.visibility,
+        shortCode: video.shortCode,
+      }}
+    />
+  );
 }

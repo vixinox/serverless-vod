@@ -31,7 +31,12 @@ export function VideoCard({ data }: { data?: VideoData | undefined }) {
   const handleClick = () => {
     const rect = thumbRef.current?.getBoundingClientRect();
     if (!rect) return;
-    startTransition(`/watch/${data.shortCode}`, data.thumbnail ?? "", rect);
+
+    const renderedImg = thumbRef.current?.querySelector("img");
+    const transitionThumbnailUrl =
+      renderedImg?.currentSrc || renderedImg?.getAttribute("src") || data.thumbnail || "";
+
+    startTransition(`/watch/${data.shortCode}`, transitionThumbnailUrl, rect);
   };
 
   return (

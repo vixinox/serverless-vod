@@ -4,14 +4,14 @@ import Link from "next/link";
 import { CopyButton } from "@/components/copy-button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { VideoPlayer } from "@/components/player/video-player";
 
 interface VideoInfoCardProps {
-  filename?: string | null;
   shortCode: string;
-  thumbnail: string | null;
+  thumbnail: string | undefined;
 }
 
-export function VideoInfoCard({ filename, shortCode, thumbnail }: VideoInfoCardProps) {
+export function VideoInfoCard({ shortCode, thumbnail }: VideoInfoCardProps) {
   const presets = ["1080p", "720p", "360p"];
   const appOrigin =
     typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
@@ -19,7 +19,6 @@ export function VideoInfoCard({ filename, shortCode, thumbnail }: VideoInfoCardP
 
   return (
     <Card className="p-0 overflow-hidden gap-0">
-
       {/* ── 视频链接 ── */}
       <div className="p-4 flex justify-between items-center gap-2">
         <div className="min-w-0">
@@ -34,12 +33,6 @@ export function VideoInfoCard({ filename, shortCode, thumbnail }: VideoInfoCardP
           </Link>
         </div>
         <CopyButton title="复制视频链接" content={videoUrl} />
-      </div>
-
-      {/* ── 文件名 ── */}
-      <div className="px-4 pb-4">
-        <p className="text-xs text-muted-foreground">文件名</p>
-        <p className="text-sm truncate">{filename ?? "—"}</p>
       </div>
 
       {/* ── 视频画质 ── */}

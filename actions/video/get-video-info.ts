@@ -1,9 +1,14 @@
 'use server'
 
+import { ReactionType } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
+import {
+  QUICK_SAVE_PLAYLIST_DESCRIPTION,
+  QUICK_SAVE_PLAYLIST_TITLE,
+} from "@/lib/system-playlists";
 
 export async function getVideoInfo(shortCode: string) {
   if (!shortCode) notFound();
@@ -63,7 +68,54 @@ export async function getVideoInfo(shortCode: string) {
       break;
   }
 
-  let prevReaction = undefined
+  let prevReaction: ReactionType | undefined = undefined;
+  let isSubscribed = false;
+  let isSaved = false;
+
+  if (currentUserId) {
+    const [reaction, subscription, savedItem] = await Promise.all([
+      prisma.videoReaction.findUnique({
+        where: {
+          userId_videoId: {
+            userId: currentUserId,
+            videoId: video.id,
+          },
+        },
+        select: {
+          reactionType: true,
+        },
+      }),
+      prisma.subscription.findUnique({
+        where: {
+          subscriberId_channelId: {
+            subscriberId: currentUserId,
+            channelId: video.channel.id,
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+      prisma.playlistItem.findFirst({
+        where: {
+          videoId: video.id,
+          playlist: {
+            ownerId: currentUserId,
+            title: QUICK_SAVE_PLAYLIST_TITLE,
+            description: QUICK_SAVE_PLAYLIST_DESCRIPTION,
+            isPublic: false,
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+    ]);
+
+    prevReaction = reaction?.reactionType;
+    isSubscribed = Boolean(subscription);
+    isSaved = Boolean(savedItem);
+  }
 
   const { channel, userId: _userId, ...v } = video;
 
@@ -75,12 +127,14 @@ export async function getVideoInfo(shortCode: string) {
       likesCount: v.likesCount,
       commentsCount: v.commentsCount,
       prevReaction,
+      isSaved,
     },
     channelData: {
       id: channel.id,
       name: channel.name,
       subscribersCount: channel.subscribersCount,
       owner: channel.owner,
+      isSubscribed,
     },
     isOwner,
   };

@@ -19,6 +19,10 @@ import {
 
 const REVEAL_TIMEOUT_MS = 5000;
 const THUMBNAIL_FADE_TEST_DELAY_S = 0.5;
+const REVEAL_OVERLAY_FADE_DURATION_S = 0.35;
+const EXPAND_OVERLAY_FADE_IN_DURATION_S = 0.18;
+const FADE_ONLY_COVER_DURATION_S = 0.25;
+const EXPAND_THUMBNAIL_DURATION_S = 0.46;
 
 interface Props {
   children: ReactNode;
@@ -168,13 +172,13 @@ export function TransitionProvider({ children }: Props) {
     revealTimelineRef.current = gsap.timeline({ onComplete: finishTransition });
     revealTimelineRef.current.to(
       overlayRef.current,
-      { opacity: 0, duration: 0.35, ease: "power2.inOut" },
+      { opacity: 0, duration: REVEAL_OVERLAY_FADE_DURATION_S, ease: "power2.inOut" },
       0
     );
     if (thumbRef.current) {
       revealTimelineRef.current.to(
         thumbRef.current,
-        { opacity: 0, duration: 0.35, ease: "power2.inOut" },
+        { opacity: 0, duration: REVEAL_OVERLAY_FADE_DURATION_S, ease: "power2.inOut" },
         THUMBNAIL_FADE_TEST_DELAY_S
       );
     }
@@ -272,7 +276,7 @@ export function TransitionProvider({ children }: Props) {
       { opacity: 0 },
       {
         opacity: 1,
-        duration: 0.25,
+        duration: FADE_ONLY_COVER_DURATION_S,
         ease: "power2.inOut",
         onComplete: () => {
           router.push(href, { scroll: false });
@@ -296,8 +300,9 @@ export function TransitionProvider({ children }: Props) {
     const sx = originRect.width / target.width;
     const sy = originRect.height / target.height;
 
-    // Keep overlay fully opaque during expand to avoid pre-reveal flicker.
-    gsap.set(overlayRef.current, { opacity: 1 });
+    // Fade overlay in quickly during expand so surrounding area doesn't
+    // get covered in a single frame.
+    gsap.set(overlayRef.current, { opacity: 0 });
 
     // FLIP: place thumb at final rect and animate transform back to identity.
     gsap.set(thumbRef.current, {
@@ -323,6 +328,16 @@ export function TransitionProvider({ children }: Props) {
       },
     });
 
+    expandTimelineRef.current.to(
+      overlayRef.current,
+      {
+        opacity: 1,
+        duration: EXPAND_OVERLAY_FADE_IN_DURATION_S,
+        ease: "power2.out",
+      },
+      0
+    );
+
     // Thumbnail expands to destination
     expandTimelineRef.current.to(
       thumbRef.current,
@@ -331,7 +346,7 @@ export function TransitionProvider({ children }: Props) {
         y: 0,
         scaleX: 1,
         scaleY: 1,
-        duration: 0.46,
+        duration: EXPAND_THUMBNAIL_DURATION_S,
         ease: "expo.out",
       },
       0

@@ -286,6 +286,7 @@ model Playlist {
 
   @@index([ownerId])
   @@index([ownerId, createdAt])
+  @@index([ownerId, isPublic, updatedAt])
 }
 
 model PlaylistItem {

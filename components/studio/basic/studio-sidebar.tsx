@@ -6,20 +6,22 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import { Dialog, DialogTrigger, } from "@/components/ui/dialog"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { ArrowLeft, ChartColumn, LayoutGrid, ListVideo, LogOut, Settings } from "lucide-react"
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { useEffect, useRef } from "react";
-import { authClient } from "@/lib/auth-client";
+import Link from "next/link"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+import { authClient } from "@/lib/auth-client"
+import { SettingsDialogContent } from "@/components/settings/settings-dialog-content"
+import { useSettings } from "@/hooks/use-settings"
 
 const studioItems = [
   {
@@ -45,146 +47,96 @@ const studioItems = [
 ]
 
 export const StudioSidebar = () => {
-  const pathname = usePathname();
-  const { state, isMobile, toggleSidebar } = useSidebar()
-  const prevWidthRef = useRef(0);
-  const router = useRouter();
-  const session = authClient.useSession().data;
-  const user = session?.user;
+  const pathname = usePathname()
+  const router = useRouter()
+  const session = authClient.useSession().data
+  const user = session?.user
+  const { flushToDB } = useSettings()
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
-  useEffect(() => {
-    if (isMobile) return;
+  const isDetailPage = /^\/studio\/contents\/.+/.test(pathname)
 
-    function handleResize() {
-      const prevWidth = prevWidthRef.current;
-      const currentWidth = window.innerWidth;
-      if (
-        prevWidth < 1200 &&
-        currentWidth >= 1200 &&
-        state === 'collapsed'
-      ) toggleSidebar();
+  const navItems = studioItems
 
-      if (
-        prevWidth >= 1200 &&
-        currentWidth < 1200 &&
-        state === 'expanded'
-      ) toggleSidebar();
-
-      prevWidthRef.current = currentWidth;
-    }
-
-    window.addEventListener('resize', handleResize);
-    prevWidthRef.current = window.innerWidth;
-    handleResize();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [state, isMobile, toggleSidebar]);
+  const isItemActive = (url: string) => {
+    if (url === "/") return false
+    return pathname === url || pathname.startsWith(`${url}/`)
+  }
 
   return (
-    <Sidebar collapsible="icon" className="ease-out">
-      <SidebarContent className="mt-15 px-1 gap-0 bg-studio-background">
-        <SidebarHeader className="flex items-center justify-center gap-0">
-          {/^\/studio\/contents\/.+/.test(pathname) &&
-           <SidebarMenuButton
-             className="h-12 mt-4 hover:bg-hover-dark cursor-pointer flex"
-             onClick={() => router.back()}
-           >
-             <div className="flex h-full items-center justify-center aspect-square">
-               <ArrowLeft/>
-             </div>
-             <span className={cn(
-               "text-base font-medium ml-3 whitespace-nowrap transition-all ",
-               state === "expanded" ? "opacity-100" : "opacity-0 block")}>
-                返回
-                </span>
-           </SidebarMenuButton>
-          }
-          <Link href="#" className="mt-5 transition-all flex items-center rounded-full justify-center">
-            <Avatar className={cn(
-              "size-full hover:opacity-20 border-2 transition-all",
-              state === "expanded" || isMobile ? "size-28" : "size-10"
-            )}>
-              <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""}/>
-              <AvatarFallback
-                className={cn("transition-all bg-[#33691e]", state === "expanded" || isMobile ? "text-6xl" : "text-xl")}>
-                {user?.name ? user.name[0] : ""}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-
-          <div
-            className={cn(
-              "transition-all overflow-hidden flex flex-col items-center",
-              state === "expanded"
-                ? "opacity-100 max-h-24"
-                : "opacity-0 max-h-0"
+    <Dialog
+      open={settingsOpen}
+      onOpenChange={(open) => {
+        setSettingsOpen(open)
+        if (!open) flushToDB()
+      }}
+    >
+      <Sidebar collapsible="icon" className="border-r border-sidebar-border/70">
+        <SidebarHeader>
+          <SidebarMenu>
+            {isDetailPage && (
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => router.back()} tooltip="返回">
+                  <ArrowLeft strokeWidth={1.75} />
+                  <span>返回</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             )}
-          >
-            <p className="text-sm font-medium whitespace-nowrap mt-2">我的频道</p>
-            <p className="text-xs text-muted-foreground mt-1">{user?.name ?? "user"}</p>
-          </div>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild size="lg" tooltip={user?.name ?? "我的频道"}>
+                <Link href="#">
+                  <Avatar className="h-8 w-8 rounded-lg border border-sidebar-border/80">
+                    <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
+                    <AvatarFallback className="rounded-lg bg-[#33691e] text-sidebar-primary-foreground">
+                      {user?.name ? user.name[0] : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">我的频道</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.name ?? "user"}</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {studioItems.map((item) => (
-                <Link href={item.url} key={item.title}>
-                  <SidebarMenuItem className="h-12">
-                    <SidebarMenuButton
-                      tooltip={item.title}
-                      className={cn(
-                        "h-full hover:bg-hover-dark ",
-                        pathname === item.url ? "bg-hover-dark" : "",
-                      )}
-                    >
-                      <div className="flex h-full items-center justify-center aspect-square">
-                        <item.icon strokeWidth={1.25} size={24}/>
-                      </div>
-                      <span className={cn(
-                        "text-base font-medium ml-3 whitespace-nowrap transition-all ",
-                        state === "expanded" ? "opacity-100" : "opacity-0 block"
-                      )}>{item.title}</span>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Studio</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isItemActive(item.url)} tooltip={item.title}>
+                      <Link href={item.url}>
+                        <item.icon strokeWidth={1.5} />
+                        <span>{item.title}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                </Link>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <SidebarFooter className="bg-studio-background">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <Dialog>
-                <form>
-                  <SidebarMenuItem className="h-12">
-                    <DialogTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip="设置"
-                        className="h-full hover:bg-primary/15"
-                      >
-                        <div className="flex h-full items-center justify-center">
-                          <Settings strokeWidth={1.25} size={24}/>
-                        </div>
-                        <span className={cn(
-                          "text-base font-medium ml-3 whitespace-nowrap transition-all ",
-                          state === "expanded" ? "opacity-100" : "opacity-0 block"
-                        )}>设置</span>
-                      </SidebarMenuButton>
-                    </DialogTrigger>
-                  </SidebarMenuItem>
-                </form>
-              </Dialog>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-      </SidebarFooter>
-    </Sidebar>
-  );
-};
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DialogTrigger asChild>
+                <SidebarMenuButton tooltip="设置">
+                  <Settings strokeWidth={1.5} />
+                  <span>设置</span>
+                </SidebarMenuButton>
+              </DialogTrigger>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+      <SettingsDialogContent />
+    </Dialog>
+  )
+}

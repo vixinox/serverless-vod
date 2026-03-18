@@ -5,26 +5,34 @@ import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import { AuthButton } from "@/components/auth-button";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePageTransition } from "@/components/transition/transition-context";
 
 export const HomeNavbar = () => {
-  const [isAtTop, setisAtTop] = useState(true)
+  const [query, setQuery] = useState("");
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { startFadeTransition } = usePageTransition();
+
+  useEffect(() => {
+    setQuery(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   const handleBrandClick = () => {
     if (pathname !== '/') startFadeTransition('/', { maskMode: 'keep-home-navbar' });
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setisAtTop(window.scrollY === 0)
+  const submitSearch = () => {
+    const nextQuery = query.trim();
+
+    if (!nextQuery) {
+      router.push('/');
+      return;
     }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    router.push(`/search?q=${encodeURIComponent(nextQuery)}`);
+  };
 
   return (
     <nav
@@ -38,16 +46,25 @@ export const HomeNavbar = () => {
         >
           VOD
         </button>
-      <div className='w-160 shrink-0 flex items-center'>
+      <div className='w-130 shrink-0 relative flex items-center mt-2 mb-2'>
         <Input
           type='text'
-          className='rounded-l-full h-10 focus:border-blue-500'
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              submitSearch();
+            }
+          }}
+          className='w-full h-11 rounded-full pr-14 bg-muted/70 border-2 border-border/60 hover:bg-muted hover:border-border transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-[0_0_0_3px_hsl(var(--border)/0.45)]'
           placeholder=' 搜索'
         />
         <Button
-          className='rounded-r-full w-14 h-10 border bg-foreground/20 cursor-pointer'
+          className='absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full cursor-pointer'
           variant={'ghost'}
           type='submit'
+          onClick={submitSearch}
         >
           <Search className="size-5!"/>
         </Button>

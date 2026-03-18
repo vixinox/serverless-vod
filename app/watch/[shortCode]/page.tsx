@@ -1,13 +1,17 @@
+import type { ReactNode } from "react";
+import { getWatchSidebarData } from "@/actions/video/get-watch-sidebar-data";
 import { getVideoInfo } from "@/actions/video/get-video-info";
 import { CommentArea } from "@/components/comment/comment-area";
+import { PlaylistPanel } from "@/components/player/playlist-panel";
 import { VideoPlayer } from "@/components/player/video-player";
 import { RecommendationList } from "@/components/player/recommendation-list";
 import { VideoInfo } from "@/components/player/video-info";
 import { PageReadySignal } from "@/components/transition/page-ready-signal";
 import { PLAYER_COL_CLASSES } from "@/lib/layout-config";
+import { cn } from "@/lib/utils";
 import { EyeOff, Link2, FileText, Loader2 } from "lucide-react";
 
-const VISIBILITY_BANNER: Record<string, { icon: React.ReactNode; text: string; className: string }> = {
+const VISIBILITY_BANNER: Record<string, { icon: ReactNode; text: string; className: string }> = {
   PRIVATE: {
     icon: <EyeOff className="w-4 h-4" />,
     text: "私享视频 — 仅您可见",
@@ -27,8 +31,12 @@ const VISIBILITY_BANNER: Record<string, { icon: React.ReactNode; text: string; c
 
 export default async function VideoPage({ params }: { params: Promise<{ shortCode: string }> }) {
   const { shortCode } = await params;
-  const { videoData, channelData, isOwner } = await getVideoInfo(shortCode);
+  const [{ videoData, channelData, isOwner }, sidebarData] = await Promise.all([
+    getVideoInfo(shortCode),
+    getWatchSidebarData(shortCode),
+  ]);
   const cloudfrontDomain = process.env.VIDEO_CLOUDFRONT_DOMAIN ?? "";
+  const playlist = sidebarData.playlist;
 
   const playbackUrl = cloudfrontDomain.trim()
     ? `https://${cloudfrontDomain.trim()}/${shortCode}/master.m3u8`
@@ -55,13 +63,14 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
         </div>
       )}
       <div className="mt-4 flex h-full w-full flex-col gap-6 sm:flex-row xl:gap-4">
-        <div className={PLAYER_COL_CLASSES}>
-          <VideoPlayer src={playbackUrl} thumbnail={videoData.thumbnail} />
-          <VideoInfo videoData={videoData} channelData={channelData}/>
-          {/* <CommentArea shortCode={shortCode}/> */}
+        <div className={cn(PLAYER_COL_CLASSES, !playlist && "xl:w-full 2xl:w-full xl:pr-0")}>
+          <VideoPlayer videoId={videoData.id} src={playbackUrl} thumbnail={videoData.thumbnail} />
+          <VideoInfo videoData={videoData} channelData={channelData} isOwner={isOwner} />
+          <CommentArea shortCode={shortCode}/>
         </div>
-        <div className="w-full xl:w-[25%] 2xl:w-[19%]">
-          <RecommendationList/>
+        <div className="w-full space-y-4 xl:w-[25%] 2xl:w-[19%]">
+          {playlist ? <PlaylistPanel shortCode={shortCode} playlist={playlist} /> : null}
+          <RecommendationList shortCode={shortCode} excludeShortCodes={[shortCode]} />
         </div>
       </div>
       <PageReadySignal />

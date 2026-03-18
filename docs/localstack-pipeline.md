@@ -119,15 +119,103 @@ npm run dev
 ## 6. 分步部署命令
 
 ```bash
-npm run localstack:bootstrap      # 仅初始化 S3 桶 + IAM 角色
-npm run localstack:deploy-lambda  # 仅部署/更新 4 个 Lambda 函数
-npm run localstack:deploy-sfn     # 仅更新状态机定义
-npm run localstack:reconcile-stale # 手动执行僵尸任务纠偏
-npm run localstack:benchmark      # 输出 SHORT/LONG 最近成功任务基线耗时
-npm run localstack:setup          # 上述三步一次完成
+npm run localstack:setup          # 初始化 S3 + IAM + Lambda + Step Functions
 ```
 
-修改 Lambda 代码后只需重新运行 `localstack:deploy-lambda`；修改状态机流程后运行 `localstack:deploy-sfn`。
+需要分步调试时可直接运行 `scripts/localstack/` 下对应脚本。
+
+## 6.1 Seed 阶段1（仅切片，不上传）
+
+阶段1目标：将 `seed/videos_1080p/{shortCode}` 下的 `mp4 + jpg` 产出为标准化本地切片文件，
+并生成阶段2可消费的 manifest。阶段1不会上传任何 S3 对象。
+
+```bash
+# 全量执行（默认：已切片完成的视频会复用并跳过）
+npm run seed:slice
+
+# 仅处理指定 shortCode（逗号分隔）
+node scripts/seed/slice.mjs --codes=09L5c3MOyJp,0CBwcyOlsxT
+
+# 从偏移开始处理并限制数量
+node scripts/seed/slice.mjs --from=100 --limit=20
+
+# 强制重切（忽略本地已完成产物）
+node scripts/seed/slice.mjs --force
+
+# 试运行：只生成 manifest，不执行 ffmpeg 与文件复制
+node scripts/seed/slice.mjs --dry-run
+```
+
+阶段1产物：
+
+| 路径 | 说明 |
+|------|------|
+| `seed/hls-videos/{shortCode}/master.m3u8` | HLS 主清单 |
+| `seed/hls-videos/{shortCode}/seg_*.ts` | HLS 切片 |
+| `seed/images/thumbnails/{shortCode}/thumbnail.jpg` | 封面图（复用源 jpg） |
+| `seed/manifests/stage1-slices.json` | 阶段2交接清单（含 uploaderHint 预留字段） |
+
+`stage1-slices.json` 中会预留 `hints.uploaderHint`，供阶段2按上传者补齐并执行上传/入库。
+
+## 6.2 Seed 阶段2（按 manifest 建用户并入库）
+
+阶段2读取 `seed/manifests/stage1-slices.json`，批量创建上传者用户与频道，
+并将 `ready` 视频关联到这些上传者，写入模拟业务数据（Video、VideoAsset、TranscodeJob、UploadSession、VideoDailyStat、评论与点赞）。
+
+```bash
+# 默认执行：创建 12 个 seed 用户并处理全部 ready 视频
+npm run seed:db
+
+# 自定义用户数量和视频范围
+node scripts/seed/seed-db.mjs --users=20 --from=0 --limit=50
+
+# 仅处理指定 shortCode
+node scripts/seed/seed-db.mjs --codes=09L5c3MOyJp,0CBwcyOlsxT
+
+# 试运行（不写数据库，仅回写 manifest 的 dry-run 标记）
+node scripts/seed/seed-db.mjs --dry-run
+```
+
+脚本会回写 `stage1-slices.json`：
+
+| 字段 | 说明 |
+|------|------|
+| `hints.uploaderHint` | 关联到的上传者 userId |
+| `hints.titleHint` | 若为空则自动补默认标题 |
+| `hints.videoTypeHint` | 若为空则自动补 LONG/SHORT |
+| `stage2.status` | `seeded` 或 `dry_run` |
+
+这样后续上传或其他流程可以直接按 manifest 的 uploader 维度继续处理。
+
+## 6.3 Seed 阶段3（按 manifest 上传 S3）
+
+阶段3读取 `stage1-slices.json`，仅上传满足 `stage1.status=ready` 且 `stage2.status=seeded` 的条目。
+默认上传 HLS 和封面，`--upload-raw` 时额外上传 raw 源视频。
+
+```bash
+# 默认：上传 hls + thumbnail（跳过已存在对象）
+npm run seed:s3
+
+# 强制重传（忽略 HeadObject 存在检查）
+node scripts/seed/seed-s3.mjs --force
+
+# 连 raw/source.mp4 一起上传
+node scripts/seed/seed-s3.mjs --upload-raw
+
+# 试运行：只回写 stage3=dry_run，不执行上传
+node scripts/seed/seed-s3.mjs --dry-run
+```
+
+上传状态会回写到 manifest：
+
+| 字段 | 说明 |
+|------|------|
+| `item.stage3.status` | `uploaded` / `failed` / `dry_run` |
+| `item.stage3.uploaded` | 本条目新上传对象数 |
+| `item.stage3.skipped` | 已存在而跳过的对象数 |
+| `manifest.stage3.*` | 本次执行汇总 |
+
+一键全流程：`npm run seed:all`。
 
 ## 7. 内部 API 端点
 

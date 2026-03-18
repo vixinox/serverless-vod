@@ -23,17 +23,17 @@ import { getCdnDomains } from "@/actions/video/get-cdn-domains";
 import { SmartImage } from "@/components/smart-image";
 import { deleteVideo } from "@/actions/video/delete-video";
 import { useRouter } from "next/navigation";
+import { VideoPlayer } from "@/components/player/video-player";
 
 interface VideoFormProps {
   isInDialog?: boolean;
   onComplete?: () => void;
   video: {
     title: string;
-    description: string | null;
-    thumbnail: string | null;
+    description: string | undefined;
+    thumbnail: string | undefined;
     visibility: Visibility;
     shortCode: string;
-    filename?: string | null;
   };
 }
 
@@ -77,6 +77,7 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
   });
 
   const visibility = form.watch("visibility");
+  const previewSrc = `/api/hls/${encodeURIComponent(video.shortCode)}/master.m3u8`;
 
   function handleThumbnailSelect(file?: File) {
     if (!file) return;
@@ -270,8 +271,8 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
           )}
 
           <div className="space-y-4">
+            <VideoPlayer src={previewSrc} thumbnail={video.thumbnail} compact/>
             <VideoInfoCard
-              filename={video.filename}
               shortCode={video.shortCode}
               thumbnail={video.thumbnail}
             />

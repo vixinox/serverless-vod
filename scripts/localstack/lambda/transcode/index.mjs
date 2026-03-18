@@ -8,7 +8,7 @@
  *    - 速度优先：先尝试 stream copy（免转码），失败再回退到单路重编码
  *    - 通过 -threads 限制 CPU 占用（默认 2，由 FFMPEG_THREADS 控制）
  * 4. 将 HLS 切片和 manifest 上传至 vod-hls
- * 5. 用 ffmpeg 从源视频截取封面缩略图，上传至 vod-image
+ * 5. 优先复用视频内嵌封面（attached_pic）；若无则在局部时间窗口内用 thumbnail 选代表帧，上传至 vod-image
  * 6. 返回元数据（durationSeconds / width / height / thumbnailKey）供 Finalize 步骤存库
  *
  * 进度通知方式：阶段性里程碑事件（回调 /api/internal/vod/stage + EventBridge），
@@ -76,7 +76,17 @@ async function emitStage(jobId, videoId, shortCode, stage) {
  * 失败时返回 null，不阻塞主流程。
  *
  * @param {string} inputPath
- * @returns {Promise<{ durationSeconds: number|null, width: number|null, height: number|null }|null>}
+ * @returns {Promise<{
+ *   durationSeconds: number|null,
+ *   width: number|null,
+ *   height: number|null,
+ *   coverArt: {
+ *     streamIndex: number,
+ *     codecName: string,
+ *     extension: string,
+ *     contentType: string,
+ *   }|null,
+ * }|null>}
  */
 function resolveStderrTailChars() {
   const raw = process.env.FFMPEG_STDERR_TAIL_CHARS ?? "12000";
@@ -99,8 +109,7 @@ function probeVideo(inputPath) {
         "-v", "quiet",
         "-print_format", "json",
         "-show_streams",
-        "-show_format",           // 额外获取 format.duration，作为 stream.duration 缺失时的回退
-        "-select_streams", "v:0",
+        "-show_format",
         inputPath,
       ],
       { stdio: ["ignore", "pipe", "pipe"] },
@@ -123,31 +132,59 @@ function probeVideo(inputPath) {
       }
       try {
         const info = JSON.parse(stdout);
-        const vs = info.streams?.[0];
+        const streams = Array.isArray(info.streams) ? info.streams : [];
+        const mainVideoStream = streams.find(
+          (stream) =>
+            stream?.codec_type === "video" &&
+            Number(stream?.disposition?.attached_pic ?? 0) !== 1,
+        );
+        const coverStream = streams.find(
+          (stream) =>
+            stream?.codec_type === "video" &&
+            Number(stream?.disposition?.attached_pic ?? 0) === 1,
+        );
+
+        const coverCodec = String(coverStream?.codec_name ?? "").toLowerCase();
+        const coverFormat =
+          coverCodec === "png"
+            ? { extension: "png", contentType: "image/png" }
+            : coverCodec === "webp"
+              ? { extension: "webp", contentType: "image/webp" }
+              : { extension: "jpg", contentType: "image/jpeg" };
+        const coverArt = Number.isInteger(coverStream?.index)
+          ? {
+              streamIndex: coverStream.index,
+              codecName: coverCodec || "mjpeg",
+              extension: coverFormat.extension,
+              contentType: coverFormat.contentType,
+            }
+          : null;
 
         // ── 诊断日志：打印 ffprobe 返回的关键字段 ──
         console.log(
           `[transcode] ffprobe raw: ` +
-          `stream.duration=${JSON.stringify(vs?.duration)} ` +
+          `stream.duration=${JSON.stringify(mainVideoStream?.duration)} ` +
           `format.duration=${JSON.stringify(info.format?.duration)} ` +
-          `coded_width=${vs?.coded_width} width=${vs?.width} ` +
-          `coded_height=${vs?.coded_height} height=${vs?.height}`
+          `coded_width=${mainVideoStream?.coded_width} width=${mainVideoStream?.width} ` +
+          `coded_height=${mainVideoStream?.coded_height} height=${mainVideoStream?.height} ` +
+          `cover.streamIndex=${coverArt?.streamIndex ?? "none"} cover.codec=${coverArt?.codecName ?? "none"}`
         );
 
-        if (!vs) return resolve(null);
+        if (!mainVideoStream) return resolve(null);
 
         // 优先取视频流自身的 duration；部分 MP4 容器流级别无此字段，
         // 回退到 format.duration（几乎所有封装格式都有此值）
         const rawDuration =
-          parseFloat(vs.duration ?? "0") ||
+          parseFloat(mainVideoStream.duration ?? "0") ||
           parseFloat(info.format?.duration ?? "0");
 
         const result = {
           durationSeconds: (isFinite(rawDuration) && rawDuration > 0)
             ? Math.round(rawDuration)
             : null,
-          width:  vs.coded_width  ?? vs.width  ?? null,
-          height: vs.coded_height ?? vs.height ?? null,
+          width:  mainVideoStream.coded_width  ?? mainVideoStream.width  ?? null,
+          height: mainVideoStream.coded_height ?? mainVideoStream.height ?? null,
+          coverArt,
         };
         console.log(`[transcode] ffprobe parsed: rawDuration=${rawDuration} → durationSeconds=${result.durationSeconds}`);
         resolve(result);
@@ -192,9 +229,10 @@ function runFfmpeg(args, cwd) {
 // ── 封面缩略图提取 ────────────────────────────────────────────────────────
 
 /**
- * 从视频中截取一帧作为封面缩略图（JPEG）。
- * 抓帧位置：视频时长的 5%（最少 1 秒，最多 30 秒），兼顾片头黑场问题。
- * 不做尺寸限制，尽可能保持原图分辨率。
+ * 从视频中提取封面缩略图（JPEG）。
+ * 策略：优先在 5s-15s 的局部窗口内用 thumbnail 选代表帧，
+ * 避免全片逐帧分析带来的 CPU/IO 开销。
+ * 若窗口采样失败，回退到单点抓帧。
  *
  * @param {string}      inputPath   源视频路径
  * @param {string}      outputPath  输出 JPEG 路径
@@ -203,17 +241,88 @@ function runFfmpeg(args, cwd) {
  */
 function extractThumbnail(inputPath, outputPath, durationSec) {
   return new Promise((resolve, reject) => {
-    const seekSec = Math.max(1, Math.min(30, Math.round((durationSec ?? 20) * 0.05)));
-    console.log(`[transcode] thumbnail seek=${seekSec}s`);
+    const total = Number.isFinite(durationSec) ? Math.max(1, Number(durationSec)) : null;
+    const preferredStart = 5;
+    const preferredEnd = 15;
+    const windowStart = total
+      ? (total <= preferredStart ? 0 : Math.min(preferredStart, Math.max(0, total - 1)))
+      : preferredStart;
+    const windowEnd = total
+      ? (total <= preferredStart ? total : Math.min(preferredEnd, total))
+      : preferredEnd;
+    const windowLength = Math.max(1, windowEnd - windowStart);
+    const thumbnailN = 240;
+    const fallbackSeek = total
+      ? Math.max(
+          windowStart,
+          Math.min(windowEnd, windowStart + windowLength / 2),
+        )
+      : (preferredStart + preferredEnd) / 2;
+    console.log(
+      `[transcode] thumbnail window start=${windowStart}s length=${windowLength}s n=${thumbnailN} fallbackSeek=${fallbackSeek}s`,
+    );
+
     const child = spawn(
       ffmpegBin,
       [
         "-y",
         "-v", "warning",
-        "-ss", String(seekSec),
+        "-ss", String(windowStart),
+        "-t", String(windowLength),
         "-i", inputPath,
-        "-vframes", "1",
-        "-q:v", "1",                          // JPEG 质量（1=最优，31=最差）
+        "-vf", `thumbnail=${thumbnailN}`,
+        "-frames:v", "1",
+        "-q:v", "1",
+        outputPath,
+      ],
+      {
+        shell: process.platform === "win32",
+        stdio: ["ignore", "ignore", "pipe"],
+      },
+    );
+    let stderr = "";
+    child.stderr.on("data", (d) => {
+      stderr = appendTail(stderr, d);
+    });
+    child.on("error", reject);
+    child.on("close", async (code) => {
+      if (code === 0) return resolve();
+
+      console.warn(
+        `[transcode] thumbnail window strategy failed (${code}), fallback to single seek=${fallbackSeek}s`,
+      );
+      try {
+        await runFfmpeg(
+          [
+            "-y",
+            "-v", "warning",
+            "-ss", String(fallbackSeek),
+            "-i", inputPath,
+            "-vframes", "1",
+            "-q:v", "1",
+            outputPath,
+          ],
+          process.cwd(),
+        );
+        resolve();
+      } catch (fallbackErr) {
+        reject(new Error(`ffmpeg thumbnail failed (${code}): ${stderr.slice(-500)}; fallback failed: ${fallbackErr.message}`));
+      }
+    });
+  });
+}
+
+function extractEmbeddedCoverArt(inputPath, outputPath, streamIndex) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      ffmpegBin,
+      [
+        "-y",
+        "-v", "warning",
+        "-i", inputPath,
+        "-map", `0:${streamIndex}`,
+        "-frames:v", "1",
+        "-c", "copy",
         outputPath,
       ],
       {
@@ -228,7 +337,7 @@ function extractThumbnail(inputPath, outputPath, durationSec) {
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`ffmpeg thumbnail failed (${code}): ${stderr.slice(-500)}`));
+      else reject(new Error(`ffmpeg cover copy failed (${code}): ${stderr.slice(-500)}`));
     });
   });
 }
@@ -330,23 +439,54 @@ export const handler = async (event) => {
 
     // ── 5. 截取封面缩略图 ───────────────────────────────────────────────
     await emitStage(jobId, videoId, shortCode, "thumbnail_extracting");
-    const thumbnailLocalPath = join(workDir, "thumbnail.jpg");
+    const coverArt = meta?.coverArt ?? null;
+    const thumbnailExt = coverArt?.extension ?? "jpg";
+    const thumbnailContentType = coverArt?.contentType ?? "image/jpeg";
+    const thumbnailLocalPath = join(workDir, `thumbnail.${thumbnailExt}`);
     let thumbnailKey = null;
 
     try {
-      await extractThumbnail(sourcePath, thumbnailLocalPath, meta?.durationSeconds ?? null);
-      console.log(`[transcode] job=${jobId} thumbnail extracted`);
+      if (coverArt) {
+        console.log(
+          `[transcode] job=${jobId} embedded cover found: stream=${coverArt.streamIndex} codec=${coverArt.codecName}`,
+        );
+        await extractEmbeddedCoverArt(sourcePath, thumbnailLocalPath, coverArt.streamIndex);
+        console.log(`[transcode] job=${jobId} thumbnail reused from embedded cover`);
+      } else {
+        await extractThumbnail(sourcePath, thumbnailLocalPath, meta?.durationSeconds ?? null);
+        console.log(`[transcode] job=${jobId} thumbnail extracted from video frame`);
+      }
 
       // ── 6. 上传缩略图 ─────────────────────────────────────────────────
       await emitStage(jobId, videoId, shortCode, "thumbnail_uploading");
-      thumbnailKey = `thumbnails/${shortCode}/thumbnail.jpg`;
-      await uploadFile(imageBucket, thumbnailKey, thumbnailLocalPath, "image/jpeg");
+      thumbnailKey = `thumbnails/${shortCode}/thumbnail.${thumbnailExt}`;
+      await uploadFile(imageBucket, thumbnailKey, thumbnailLocalPath, thumbnailContentType);
       console.log(
         `[transcode] job=${jobId} thumbnail uploaded → s3://${imageBucket}/${thumbnailKey}`,
       );
     } catch (thumbErr) {
-      // 缩略图失败不阻断主流程，仅记录警告
-      console.warn(`[transcode] job=${jobId} ⚠ thumbnail failed (non-fatal): ${thumbErr.message}`);
+      if (coverArt) {
+        console.warn(
+          `[transcode] job=${jobId} embedded cover reuse failed, fallback to frame capture: ${thumbErr.message}`,
+        );
+        try {
+          const fallbackPath = join(workDir, "thumbnail.jpg");
+          await extractThumbnail(sourcePath, fallbackPath, meta?.durationSeconds ?? null);
+          await emitStage(jobId, videoId, shortCode, "thumbnail_uploading");
+          thumbnailKey = `thumbnails/${shortCode}/thumbnail.jpg`;
+          await uploadFile(imageBucket, thumbnailKey, fallbackPath, "image/jpeg");
+          console.log(
+            `[transcode] job=${jobId} thumbnail uploaded from fallback frame → s3://${imageBucket}/${thumbnailKey}`,
+          );
+        } catch (fallbackErr) {
+          console.warn(
+            `[transcode] job=${jobId} ⚠ thumbnail fallback failed (non-fatal): ${fallbackErr.message}`,
+          );
+        }
+      } else {
+        // 缩略图失败不阻断主流程，仅记录警告
+        console.warn(`[transcode] job=${jobId} ⚠ thumbnail failed (non-fatal): ${thumbErr.message}`);
+      }
     }
 
     console.log(`[transcode] job=${jobId} ✓ all done`);

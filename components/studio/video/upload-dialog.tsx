@@ -70,10 +70,10 @@ function deriveStages(state: UploadState): Stage[] {
     progress: state.status === "uploading" ? state.progress : 100,
   };
 
-  // 触发任务流
+  // 开始转码任务
   const queueStage: Stage = {
     id: "queue",
-    label: "触发任务流",
+    label: "开始转码任务",
     sublabel: "状态机调度",
     status:
       state.status === "uploading"  ? "idle" :
@@ -182,7 +182,7 @@ function deriveStages(state: UploadState): Stage[] {
   const finalizeStage: Stage = {
     id: "finalize",
     label: "保存视频",
-    sublabel: "函数计算 · 写入视频资产",
+    sublabel: "函数计算 · 写入视频库",
     status: finalizeStatus,
     elapsed: p.finishedAt ? new Date(p.finishedAt).toLocaleTimeString() : undefined,
   };

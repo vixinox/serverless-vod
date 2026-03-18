@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 interface VideoDescriptionCardProps {
   description?: string | null;
-  children: ReactNode;
+  children?: ReactNode;
   views: bigint;
   createdAt: Date;
 }
@@ -42,9 +42,11 @@ export function VideoDescriptionCard({ description, children, views, createdAt }
 
       {open && (
         <>
-          <div className="mt-6">
-            {children}
-          </div>
+          {children && (
+            <div className="mt-6">
+              {children}
+            </div>
+          )}
           <p
             onClick={(e) => {
               e.stopPropagation();

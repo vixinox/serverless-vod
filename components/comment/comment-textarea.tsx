@@ -57,8 +57,8 @@ export const CommentTextarea = memo(function CommentTextarea({
   };
 
   useEffect(() => {
-    if (visible) textareaRef.current?.focus();
-  }, [visible]);
+    if (visible && mode === 'reply') textareaRef.current?.focus();
+  }, [mode, visible]);
 
   const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);

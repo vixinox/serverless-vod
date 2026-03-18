@@ -1,34 +1,26 @@
 "use client"
 
-import { useSidebar } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { AlignJustify, Clapperboard } from "lucide-react";
-import { AuthButton } from "@/components/auth-button";
-import { VideoUploadDialog } from "@/components/studio/video/upload-dialog";
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { Clapperboard } from "lucide-react"
+import { AuthButton } from "@/components/auth-button"
+import { VideoUploadDialog } from "@/components/studio/video/upload-dialog"
 
 export function StudioNavbar() {
-  const { toggleSidebar } = useSidebar()
-
   return (
-    <nav className="flex justify-center w-full p-2 fixed z-50 drop-shadow-lg bg-studio-background">
-      <div className="flex-1 flex justify-start items-center gap-4 ml-2">
-        <Button
-          variant={'ghost'}
-          className='rounded-full h-full aspect-square hover:bg-primary/15 cursor-pointer'
-          onClick={toggleSidebar}
-        >
-          <AlignJustify className="size-full" strokeWidth={1.5}/>
-        </Button>
-      </div>
+    <nav className="bg-studio-background/95 sticky top-0 z-40 border-b border-sidebar-border/70 backdrop-blur-sm">
+      <div className="flex h-16 items-center gap-3 px-3 md:px-4">
+        <SidebarTrigger className="size-9 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
 
-      <div className="flex-1 flex justify-end items-center gap-4">
-        <VideoUploadDialog>
-          <Button variant="outline" className="rounded-full border hover:bg-primary/15 cursor-pointer">
-            <Clapperboard/>
-            创建
-          </Button>
-        </VideoUploadDialog>
-        <AuthButton/>
+        <div className="ml-auto flex items-center gap-2">
+          <VideoUploadDialog>
+            <Button variant="outline" className="h-9 rounded-md border-sidebar-border/80 px-3">
+              <Clapperboard />
+              创建
+            </Button>
+          </VideoUploadDialog>
+          <AuthButton />
+        </div>
       </div>
     </nav>
   )

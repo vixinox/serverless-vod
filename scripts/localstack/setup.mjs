@@ -1,5 +1,4 @@
 /**
- * bootstrap-all.mjs  （原 bootstrap.mjs + bootstrap-all.mjs 合并）
  *
  * 一键初始化本地开发环境：
  *   1. 创建 S3 桶、配置 CORS/策略、IAM 角色、EventBridge 事件总线（本文件内联）
