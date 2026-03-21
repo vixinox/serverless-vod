@@ -23,7 +23,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Clock3,
   Columns3,
   Loader2,
   MessageSquareText,
@@ -44,30 +43,11 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { cancelVideoJob } from "@/actions/video/cancel-video-job";
-import { deleteVideo } from "@/actions/video/delete-video";
-import { editVideo } from "@/actions/video/edit-video";
-import {
-  getVideoJobTimeline,
-  type JobTimelineItem,
-} from "@/actions/video/get-video-job-timeline";
-import {
-  getProcessingStatuses,
-  type ProcessingStatusItem,
-} from "@/actions/video/get-processing-statuses";
-import { retryVideoJob } from "@/actions/video/retry-video-job";
-import { listUserVideos } from "@/actions/video/get-user-videos";
+import { apiRequest } from "@/lib/api-client";
 import { SmartImage } from "@/components/smart-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -94,9 +74,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
+import type {
+  ListUserVideosResult,
+  ProcessingStatusItem,
+} from "@/lib/server/videos";
 
-type VideoRow = Awaited<ReturnType<typeof listUserVideos>>["videos"][number];
+type VideoRow = ListUserVideosResult["videos"][number];
 
 const PENDING_STATUSES = new Set(["UPLOADING", "PROCESSING"]);
 const POLL_INTERVAL_MS = 5000;
@@ -172,7 +155,7 @@ function ProcessingStatusBadge({
         <TooltipTrigger asChild>
           <span className="cursor-help">{badgeEl}</span>
         </TooltipTrigger>
-        <TooltipContent className="max-w-52 break-words ">{error}</TooltipContent>
+        <TooltipContent className="max-w-52 wrap-break-word ">{error}</TooltipContent>
       </Tooltip>
     );
   }
@@ -215,104 +198,6 @@ function JobStatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className="rounded-sm">{status}</Badge>;
 }
 
-function TimelineDialog({
-  open,
-  onOpenChange,
-  shortCode,
-  processingStatus,
-  processingError,
-  jobs,
-  loading,
-  error,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  shortCode: string;
-  processingStatus: string;
-  processingError: string | null;
-  jobs: JobTimelineItem[];
-  loading: boolean;
-  error: string | null;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl rounded-sm p-0">
-        <DialogHeader className="border-b px-5 py-4">
-          <DialogTitle className="text-base">任务时间线</DialogTitle>
-          <DialogDescription className="">
-            shortCode: <span className="font-mono">{shortCode || "—"}</span>
-          </DialogDescription>
-          <div className="flex items-center gap-2 pt-1">
-            <Badge variant="outline" className="rounded-sm">
-              当前视频状态: {processingStatus || "—"}
-            </Badge>
-            {processingError ? (
-              <span className="max-w-[70%] truncate  text-destructive">{processingError}</span>
-            ) : null}
-          </div>
-        </DialogHeader>
-
-        <div className="max-h-[65svh] space-y-3 overflow-y-auto px-5 py-4">
-          {loading ? (
-            <>
-              <Skeleton className="h-20 rounded-sm" />
-              <Skeleton className="h-20 rounded-sm" />
-              <Skeleton className="h-20 rounded-sm" />
-            </>
-          ) : null}
-
-          {!loading && error ? (
-            <div className="rounded-sm border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          ) : null}
-
-          {!loading && !error && jobs.length === 0 ? (
-            <div className="rounded-sm border border-dashed p-8 text-center text-sm text-muted-foreground">
-              暂无任务记录
-            </div>
-          ) : null}
-
-          {!loading && !error
-            ? jobs.map((job) => (
-              <div key={job.id} className="rounded-sm border bg-background p-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-mono  text-muted-foreground">{job.id}</p>
-                    <p className="mt-1  text-muted-foreground">
-                      尝试 {job.attempt}/{job.maxAttempts}
-                    </p>
-                  </div>
-                  <JobStatusBadge status={job.status} />
-                </div>
-
-                <div className="grid grid-cols-1 gap-2  text-muted-foreground md:grid-cols-3">
-                  <p>排队: {formatDateTime(job.queuedAt)}</p>
-                  <p>开始: {formatDateTime(job.startedAt)}</p>
-                  <p>结束: {formatDateTime(job.finishedAt)}</p>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2 ">
-                  <Badge variant="outline" className="rounded-sm">
-                    阶段: {job.pipelineStage ? stageLabels[job.pipelineStage] ?? job.pipelineStage : "—"}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-sm">
-                    总耗时: {formatWallSeconds(job.wallSeconds)}
-                  </Badge>
-                </div>
-                {job.lastError ? (
-                  <p className="mt-2 break-all rounded-sm border border-destructive/30 bg-destructive/5 p-2  text-destructive">
-                    {job.lastError}
-                  </p>
-                ) : null}
-              </div>
-            ))
-            : null}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function VisibilityCell({
   video,
   onVisibilityChange,
@@ -335,7 +220,13 @@ function VisibilityCell({
     setCurrent(next); // optimistic
     setOpen(false);
     try {
-      await editVideo({ shortCode: video.shortCode, visibility: next as never });
+      await apiRequest(`/api/studio/videos/${video.shortCode}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ visibility: next }),
+      });
       onVisibilityChange(video.shortCode, next);
     } catch {
       setCurrent(prev);
@@ -393,14 +284,13 @@ function createColumns(
   pollDetails: Record<string, ProcessingStatusItem>,
   options: {
     pendingShortCode: string | null;
-    onOpenTimeline: (video: VideoRow) => void;
     onRetry: (video: VideoRow) => Promise<void>;
     onCancel: (video: VideoRow) => Promise<void>;
     onDelete: (video: VideoRow) => Promise<void>;
     onVisibilityChange: (shortCode: string, visibility: VisibilityKey) => void;
   },
 ): ColumnDef<VideoRow>[] {
-  const { pendingShortCode, onOpenTimeline, onRetry, onCancel, onDelete, onVisibilityChange } = options;
+  const { pendingShortCode, onRetry, onCancel, onDelete, onVisibilityChange } = options;
 
   const getEffectiveStatus = (video: VideoRow) =>
     pollDetails[video.shortCode]?.processingStatus ?? video.processingStatus;
@@ -585,6 +475,7 @@ function createColumns(
         const video = row.original;
         const status = getEffectiveStatus(video);
         const isPendingAction = pendingShortCode === video.shortCode;
+        const canWatch = status === "READY";
         const canRetry = status === "FAILED";
         const canCancel = PENDING_STATUSES.has(status);
 
@@ -604,20 +495,13 @@ function createColumns(
               <DropdownMenuItem asChild>
                 <Link href={`/studio/contents/video/${video.shortCode}`}>编辑</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/watch/${video.shortCode}`} target="_blank">
-                  观看
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={(event) => {
-                  event.preventDefault();
-                  onOpenTimeline(video);
-                }}
-              >
-                <Clock3 className="size-4" />
-                任务时间线
-              </DropdownMenuItem>
+              {canWatch ? (
+                <DropdownMenuItem asChild>
+                  <Link href={`/watch/${video.shortCode}`} target="_blank">
+                    观看
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
               {canRetry ? (
                 <DropdownMenuItem
                   disabled={isPendingAction}
@@ -670,13 +554,6 @@ export const VideoTable = () => {
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const [pollDetails, setPollDetails] = useState<Record<string, ProcessingStatusItem>>({});
   const [pendingActionShortCode, setPendingActionShortCode] = useState<string | null>(null);
-  const [timelineOpen, setTimelineOpen] = useState(false);
-  const [timelineLoading, setTimelineLoading] = useState(false);
-  const [timelineError, setTimelineError] = useState<string | null>(null);
-  const [timelineShortCode, setTimelineShortCode] = useState("");
-  const [timelineProcessingStatus, setTimelineProcessingStatus] = useState("");
-  const [timelineProcessingError, setTimelineProcessingError] = useState<string | null>(null);
-  const [timelineJobs, setTimelineJobs] = useState<JobTimelineItem[]>([]);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -684,7 +561,6 @@ export const VideoTable = () => {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const reqIdRef = useRef(0);
-  const timelineReqIdRef = useRef(0);
   const pageCount = Math.ceil(totalCount / pagination.pageSize) || 1;
 
   useEffect(() => {
@@ -699,11 +575,17 @@ export const VideoTable = () => {
     setLoading(true);
     const myReqId = ++reqIdRef.current;
     try {
-      const result = await listUserVideos({
-        page: pagination.pageIndex + 1,
-        pageSize: pagination.pageSize,
-        searchTerm: debouncedTerm,
+      const searchParams = new URLSearchParams({
+        page: String(pagination.pageIndex + 1),
+        pageSize: String(pagination.pageSize),
       });
+      if (debouncedTerm) {
+        searchParams.set("searchTerm", debouncedTerm);
+      }
+
+      const result = await apiRequest<ListUserVideosResult>(
+        `/api/studio/videos?${searchParams.toString()}`
+      );
       if (myReqId === reqIdRef.current) {
         setVideos(result.videos);
         setTotalCount(result.totalCount);
@@ -721,36 +603,12 @@ export const VideoTable = () => {
     }
   }, [pagination.pageIndex, pagination.pageSize, debouncedTerm]);
 
-  const openTimeline = useCallback(async (video: VideoRow) => {
-    setTimelineOpen(true);
-    setTimelineShortCode(video.shortCode);
-    setTimelineProcessingStatus(video.processingStatus);
-    setTimelineProcessingError(video.processingError);
-    setTimelineJobs([]);
-    setTimelineLoading(true);
-    setTimelineError(null);
-
-    const reqId = ++timelineReqIdRef.current;
-    try {
-      const timeline = await getVideoJobTimeline(video.shortCode, 8);
-      if (reqId !== timelineReqIdRef.current) return;
-      setTimelineShortCode(timeline.shortCode);
-      setTimelineProcessingStatus(timeline.processingStatus);
-      setTimelineProcessingError(timeline.processingError);
-      setTimelineJobs(timeline.jobs);
-    } catch (error) {
-      if (reqId !== timelineReqIdRef.current) return;
-      setTimelineError(error instanceof Error ? error.message : "读取任务时间线失败");
-      setTimelineJobs([]);
-    } finally {
-      if (reqId === timelineReqIdRef.current) setTimelineLoading(false);
-    }
-  }, []);
-
   const runRetry = useCallback(async (video: VideoRow) => {
     setPendingActionShortCode(video.shortCode);
     try {
-      await retryVideoJob(video.shortCode);
+      await apiRequest(`/api/studio/videos/${video.shortCode}/retry`, {
+        method: "POST",
+      });
       toast.success("已创建新的转码任务");
       await fetchVideos();
     } catch (error) {
@@ -763,7 +621,9 @@ export const VideoTable = () => {
   const runCancel = useCallback(async (video: VideoRow) => {
     setPendingActionShortCode(video.shortCode);
     try {
-      await cancelVideoJob(video.shortCode);
+      await apiRequest(`/api/studio/videos/${video.shortCode}/cancel`, {
+        method: "POST",
+      });
       toast.success("已取消当前任务");
       await fetchVideos();
     } catch (error) {
@@ -774,18 +634,20 @@ export const VideoTable = () => {
   }, [fetchVideos]);
 
   const runDelete = useCallback(async (video: VideoRow) => {
-    const confirmed = window.confirm(`确定删除视频「${video.title}」吗？该操作可在后台恢复。`);
+    const confirmed = window.confirm(`确定删除视频「${video.title}」吗？删除后将从内容列表中移除。`);
     if (!confirmed) return;
 
     setPendingActionShortCode(video.shortCode);
     try {
-      await deleteVideo(video.shortCode);
+      await apiRequest(`/api/studio/videos/${video.shortCode}`, {
+        method: "DELETE",
+      });
       setVideos((prev) => prev.filter((item) => item.shortCode !== video.shortCode));
       setPollDetails((prev) => {
         const { [video.shortCode]: _removed, ...rest } = prev;
         return rest;
       });
-      toast.success("视频已移至回收状态");
+      toast.success("视频已删除");
       await fetchVideos();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "删除失败");
@@ -809,13 +671,12 @@ export const VideoTable = () => {
     () =>
       createColumns(pollDetails, {
         pendingShortCode: pendingActionShortCode,
-        onOpenTimeline: openTimeline,
         onRetry: runRetry,
         onCancel: runCancel,
         onDelete: runDelete,
         onVisibilityChange: handleVisibilityChange,
       }),
-    [pollDetails, pendingActionShortCode, openTimeline, runRetry, runCancel, runDelete, handleVisibilityChange],
+    [pollDetails, pendingActionShortCode, runRetry, runCancel, runDelete, handleVisibilityChange],
   );
 
   useEffect(() => {
@@ -835,7 +696,13 @@ export const VideoTable = () => {
     const poll = async () => {
       if (cancelled) return;
       try {
-        const statuses = await getProcessingStatuses(pendingCodes);
+        const searchParams = new URLSearchParams();
+        pendingCodes.forEach((shortCode) => {
+          searchParams.append("shortCode", shortCode);
+        });
+        const statuses = await apiRequest<ProcessingStatusItem[]>(
+          `/api/studio/videos/processing-statuses?${searchParams.toString()}`
+        );
         if (cancelled) return;
 
         setPollDetails((prev) => {
@@ -858,7 +725,7 @@ export const VideoTable = () => {
             toast.success(`${readyCount} 个视频处理完成，已可发布`);
           if (failedCount > 0)
             toast.error(`${failedCount} 个视频转码失败`);
-          fetchVideos();
+          void fetchVideos();
         }
       } catch {
         // silently ignore transient polling errors
@@ -906,7 +773,7 @@ export const VideoTable = () => {
             <RotateCw className="size-4" strokeWidth={1.5} />
           </Button>
           <Input
-            placeholder="过滤条件"
+            placeholder="搜索"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="h-8 max-w-sm rounded-sm border-border/80 bg-background"
@@ -1070,17 +937,6 @@ export const VideoTable = () => {
           </div>
         </div>
       </div>
-
-      <TimelineDialog
-        open={timelineOpen}
-        onOpenChange={setTimelineOpen}
-        shortCode={timelineShortCode}
-        processingStatus={timelineProcessingStatus}
-        processingError={timelineProcessingError}
-        jobs={timelineJobs}
-        loading={timelineLoading}
-        error={timelineError}
-      />
     </div>
   );
 };

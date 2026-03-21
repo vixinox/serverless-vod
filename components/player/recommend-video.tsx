@@ -4,7 +4,7 @@ import { SmartImage } from "@/components/smart-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTransition } from "@/components/transition/transition-context";
 import { Check, ClockPlus, ListVideo } from "lucide-react";
-import { VideoData } from "@/actions/video/get-recommend-videos";
+import type { RecommendationVideoData as VideoData } from "@/lib/server/videos";
 import { usePathname } from "next/navigation";
 import { formatRelativeTime } from "@/lib/utils";
 

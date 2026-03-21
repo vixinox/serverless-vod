@@ -5,13 +5,12 @@ import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import { AuthButton } from "@/components/auth-button";
 import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { usePageTransition } from "@/components/transition/transition-context";
 
 export const HomeNavbar = () => {
   const [query, setQuery] = useState("");
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { startFadeTransition } = usePageTransition();
 
@@ -19,34 +18,50 @@ export const HomeNavbar = () => {
     setQuery(searchParams.get("q") ?? "");
   }, [searchParams]);
 
+  const getPreferredMaskMode = () => {
+    if (typeof document === "undefined") {
+      return "keep-home-navbar" as const;
+    }
+
+    const hasRail = Boolean(
+      document.querySelector('[data-transition-keep-visible="home-rail"]')
+    );
+
+    return hasRail ? "keep-home-rail" : "keep-home-navbar";
+  };
+
   const handleBrandClick = () => {
-    if (pathname !== '/') startFadeTransition('/', { maskMode: 'keep-home-navbar' });
+    if (pathname !== '/') {
+      startFadeTransition('/', { maskMode: getPreferredMaskMode() });
+    }
   };
 
   const submitSearch = () => {
     const nextQuery = query.trim();
 
     if (!nextQuery) {
-      router.push('/');
+      startFadeTransition('/', { maskMode: getPreferredMaskMode() });
       return;
     }
 
-    router.push(`/search?q=${encodeURIComponent(nextQuery)}`);
+    startFadeTransition(`/search?q=${encodeURIComponent(nextQuery)}`, {
+      maskMode: getPreferredMaskMode(),
+    });
   };
 
   return (
     <nav
       data-transition-keep-visible="home-navbar"
-      className={`flex h-14 justify-between top-0 px-4 w-full sticky z-10001 transition-all duration-150 bg-background`}
+      className="sticky top-0 z-10001 grid w-full grid-cols-[minmax(0,1fr)_minmax(0,34rem)_minmax(0,1fr)] items-center gap-3 bg-background px-4 py-1 transition-all duration-150"
     >
-        <button
-          onClick={handleBrandClick}
-          className="flex items-center font-bold text-base tracking-tight px-2 cursor-pointer select-none"
-          aria-label="返回首页"
-        >
-          VOD
-        </button>
-      <div className='w-130 shrink-0 relative flex items-center mt-2 mb-2'>
+      <button
+        onClick={handleBrandClick}
+        className="flex justify-self-start cursor-pointer items-center px-2 text-xl font-bold tracking-tight select-none"
+        aria-label="返回首页"
+      >
+        VOD
+      </button>
+      <div className="relative my-2 w-full items-center">
         <Input
           type='text'
           value={query}
@@ -66,11 +81,11 @@ export const HomeNavbar = () => {
           type='submit'
           onClick={submitSearch}
         >
-          <Search className="size-5!"/>
+          <Search className="size-5!" />
         </Button>
       </div>
-      <div className="flex items-center mr-8">
-        <AuthButton/>
+      <div className="flex justify-self-end shrink-0 items-center gap-2 pr-2 md:pr-6">
+        <AuthButton />
       </div>
     </nav>
   )

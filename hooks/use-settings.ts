@@ -1,16 +1,20 @@
 "use client";
 
 import useSWR from "swr";
-import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 import { authClient } from "@/lib/auth-client";
-import { getSettings, UserSettingsData } from "@/actions/settings/get-settings";
-import { updateSettings } from "@/actions/settings/update-settings";
 import { ThemePreference } from "@prisma/client";
+import { apiRequest } from "@/lib/api-client";
+import type { UserSettingsData } from "@/lib/server/settings";
 
 const LS_KEY = "user-settings";
 
 function readLocalStorage(): UserSettingsData | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return null;
@@ -21,6 +25,10 @@ function readLocalStorage(): UserSettingsData | null {
 }
 
 function writeLocalStorage(data: UserSettingsData) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   } catch {
@@ -32,18 +40,19 @@ export function useSettings() {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id ?? null;
   const { setTheme } = useTheme();
+  const inflightThemeRef = useRef<ThemePreference | null>(null);
 
   // SWR key is null when logged out — prevents any request
   const { data, mutate } = useSWR<UserSettingsData>(
     userId ? ["settings", userId] : null,
-    () => getSettings(),
+    () => apiRequest<UserSettingsData>("/api/settings"),
     {
       fallbackData: readLocalStorage() ?? { theme: ThemePreference.SYSTEM },
       revalidateOnFocus: false,
     }
   );
 
-  // Keep next-themes in sync with the resolved settings
+  // Keep the client theme in sync with the resolved settings.
   useEffect(() => {
     if (!data) return;
     const themeMap: Record<ThemePreference, string> = {
@@ -57,7 +66,7 @@ export function useSettings() {
 
   /**
    * Call this while the dialog is open.
-   * Immediately updates the UI (next-themes + SWR cache + localStorage).
+   * Immediately updates the UI (theme provider + SWR cache + localStorage).
    * Does NOT write to DB.
    */
   function applyLocalTheme(theme: ThemePreference) {
@@ -72,7 +81,21 @@ export function useSettings() {
    */
   async function flushToDB() {
     if (!userId || !data) return;
-    await updateSettings({ theme: data.theme });
+    if (inflightThemeRef.current === data.theme) return;
+
+    inflightThemeRef.current = data.theme;
+
+    try {
+      await apiRequest<{ success: true }>("/api/settings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ theme: data.theme }),
+      });
+    } finally {
+      inflightThemeRef.current = null;
+    }
   }
 
   return {

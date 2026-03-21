@@ -70,7 +70,9 @@ export function TransitionProvider({ children }: Props) {
       const selector =
         maskMode === "keep-video"
           ? '[data-transition-keep-visible="video"]'
-          : '[data-transition-keep-visible="home-navbar"]';
+          : maskMode === "keep-home-rail"
+            ? '[data-transition-keep-visible="home-rail"]'
+            : '[data-transition-keep-visible="home-navbar"]';
 
       const targetEl = document.querySelector<HTMLElement>(selector);
       if (!targetEl) return null;

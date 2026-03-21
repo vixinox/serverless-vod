@@ -16,7 +16,7 @@ export function StudioNavbar() {
           <VideoUploadDialog>
             <Button variant="outline" className="h-9 rounded-md border-sidebar-border/80 px-3">
               <Clapperboard />
-              创建
+              上传
             </Button>
           </VideoUploadDialog>
           <AuthButton />

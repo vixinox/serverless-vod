@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatRelativeTime } from "@/lib/utils";
-import { VideoData } from "@/actions/video/get-videos";
+import type { GalleryVideoData as VideoData } from "@/lib/server/videos";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SmartImage } from "../smart-image";
 import { usePageTransition } from "@/components/transition/transition-context";

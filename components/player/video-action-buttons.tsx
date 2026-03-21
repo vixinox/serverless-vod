@@ -4,20 +4,21 @@ import { ReactionType } from "@prisma/client";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ExternalLink, ListVideo, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ClockPlus, ListVideo, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
-import { putVideoReaction } from "@/actions/video/put-video-reaction";
-import { toggleVideoSave } from "@/actions/playlist/toggle-video-save";
+import { apiRequest } from "@/lib/api-client";
+import { SaveToPlaylistDialog } from "@/components/player/save-to-playlist-dialog";
+import { QUICK_SAVE_PLAYLIST_TITLE } from "@/lib/system-playlists";
 
 interface VideoActionButtonProps {
-  videoId: string;
+  shortCode: string;
   likesCount: number;
   prevReaction: ReactionType | undefined;
   isSaved: boolean;
 }
 
 export function VideoActionButtons({
-  videoId,
+  shortCode,
   likesCount,
   prevReaction,
   isSaved,
@@ -27,6 +28,7 @@ export function VideoActionButtons({
   const [saved, setSaved] = useState(isSaved);
   const [isReactionPending, startReactionTransition] = useTransition();
   const [isSavePending, startSaveTransition] = useTransition();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleReaction = (nextReaction: ReactionType) => {
     const previousReaction = reaction;
@@ -47,8 +49,18 @@ export function VideoActionButtons({
 
     startReactionTransition(async () => {
       try {
-        const result = await putVideoReaction(videoId, resolvedReaction);
+        const result = await apiRequest<{ reaction?: ReactionType; likesCount: number }>(
+          `/api/videos/${shortCode}/reaction`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ reactionType: resolvedReaction ?? null }),
+          },
+        );
         setReaction(result.reaction);
+        setLocalLikesCount(result.likesCount);
       } catch (error) {
         setReaction(previousReaction);
         setLocalLikesCount(previousLikesCount);
@@ -74,7 +86,12 @@ export function VideoActionButtons({
 
     startSaveTransition(async () => {
       try {
-        const result = await toggleVideoSave(videoId);
+        const result = await apiRequest<{ saved: boolean; playlistTitle: string }>(
+          `/api/videos/${shortCode}/save`,
+          {
+            method: "POST",
+          },
+        );
         setSaved(result.saved);
         toast.success(result.saved ? `已保存到${result.playlistTitle}` : "已从收藏中移除");
       } catch (error) {
@@ -85,58 +102,73 @@ export function VideoActionButtons({
   };
 
   return (
-    <div className="flex items-center">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            className="bg-[#2C2B2C] hover:bg-[#434243] text-foreground flex cursor-pointer rounded-l-full"
-            disabled={isReactionPending}
-            onClick={() => handleReaction("LIKE")}
-          >
-            <ThumbsUp fill={reaction === "LIKE" ? "currentColor" : undefined}/>
-            <p>
-              {localLikesCount != null
-                ? localLikesCount >= 10000
-                  ? (localLikesCount / 10000).toFixed(1) + '万'
-                  : localLikesCount
-                : 0}
-            </p>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">喜欢</TooltipContent>
-      </Tooltip>
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center overflow-hidden rounded-full bg-secondary text-secondary-foreground">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="rounded-none rounded-l-full shadow-none"
+                disabled={isReactionPending}
+                onClick={() => handleReaction("LIKE")}
+                variant="secondary"
+              >
+                <ThumbsUp fill={reaction === "LIKE" ? "currentColor" : undefined} />
+                <p>
+                  {localLikesCount != null
+                    ? localLikesCount >= 10000
+                      ? (localLikesCount / 10000).toFixed(1) + "万"
+                      : localLikesCount
+                    : 0}
+                </p>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">喜欢</TooltipContent>
+          </Tooltip>
 
-      <div className="w-px h-9 bg-foreground/30"/>
+          <div className="h-9 w-px bg-border" />
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            className="bg-[#2C2B2C] hover:bg-[#434243] text-foreground flex cursor-pointer rounded-r-full"
-            disabled={isReactionPending}
-            onClick={() => handleReaction("DISLIKE")}
-          >
-            <ThumbsDown fill={reaction === "DISLIKE" ? "currentColor" : undefined}/>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">不喜欢</TooltipContent>
-      </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="rounded-none rounded-r-full shadow-none"
+                disabled={isReactionPending}
+                onClick={() => handleReaction("DISLIKE")}
+                variant="secondary"
+              >
+                <ThumbsDown fill={reaction === "DISLIKE" ? "currentColor" : undefined} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">不喜欢</TooltipContent>
+          </Tooltip>
+        </div>
 
-      <Button
-        className="bg-[#2C2B2C] hover:bg-[#434243] text-foreground flex cursor-pointer rounded-full ml-3"
-        onClick={handleShare}
-      >
-        <ExternalLink/>
-        <p>分享</p>
-      </Button>
+        <Button className="rounded-full shadow-none" onClick={handleShare} variant="secondary">
+          <Share2 />
+          <p>分享</p>
+        </Button>
 
-      <Button
-        className="bg-[#2C2B2C] hover:bg-[#434243] text-foreground flex cursor-pointer rounded-full ml-3"
-        disabled={isSavePending}
-        onClick={handleSave}
-      >
-        <ListVideo/>
-        <p>{saved ? "已收藏" : "添加到"}</p>
-      </Button>
-    </div>
+        <Button
+          className="rounded-full shadow-none"
+          disabled={isSavePending}
+          onClick={handleSave}
+          variant={saved ? "default" : "secondary"}
+        >
+          <ClockPlus />
+          <p>{saved ? "已收藏" : QUICK_SAVE_PLAYLIST_TITLE}</p>
+        </Button>
+
+        <Button
+          className="rounded-full shadow-none"
+          onClick={() => setDialogOpen(true)}
+          variant="secondary"
+        >
+          <ListVideo />
+          <p>添加到</p>
+        </Button>
+      </div>
+
+      <SaveToPlaylistDialog open={dialogOpen} onOpenChange={setDialogOpen} shortCode={shortCode} />
+    </>
   );
 }

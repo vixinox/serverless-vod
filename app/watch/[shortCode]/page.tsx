@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { getWatchSidebarData } from "@/actions/video/get-watch-sidebar-data";
-import { getVideoInfo } from "@/actions/video/get-video-info";
+import { getWatchSidebarData, getVideoInfo } from "@/lib/server/videos";
 import { CommentArea } from "@/components/comment/comment-area";
 import { PlaylistPanel } from "@/components/player/playlist-panel";
 import { VideoPlayer } from "@/components/player/video-player";
@@ -64,13 +63,13 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
       )}
       <div className="mt-4 flex h-full w-full flex-col gap-6 sm:flex-row xl:gap-4">
         <div className={cn(PLAYER_COL_CLASSES, !playlist && "xl:w-full 2xl:w-full xl:pr-0")}>
-          <VideoPlayer videoId={videoData.id} src={playbackUrl} thumbnail={videoData.thumbnail} />
+          <VideoPlayer shortCode={videoData.shortCode} src={playbackUrl} thumbnail={videoData.thumbnail} />
           <VideoInfo videoData={videoData} channelData={channelData} isOwner={isOwner} />
           <CommentArea shortCode={shortCode}/>
         </div>
         <div className="w-full space-y-4 xl:w-[25%] 2xl:w-[19%]">
           {playlist ? <PlaylistPanel shortCode={shortCode} playlist={playlist} /> : null}
-          <RecommendationList shortCode={shortCode} excludeShortCodes={[shortCode]} />
+          <RecommendationList />
         </div>
       </div>
       <PageReadySignal />

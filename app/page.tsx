@@ -1,15 +1,12 @@
-import { HomeNavbar } from "@/components/home/home-navbar";
 import { VideoGallery } from "@/components/home/video-gallery"
-import { PageReadySignal } from "@/components/transition/page-ready-signal";
+import { BrowseShell } from "@/components/home/browse-shell";
 
 export default function Home() {
   return (
-    <div className="mx-auto min-h-screen w-full">
-      <HomeNavbar />
-      <main className="w-full h-full px-[5%]">
+    <BrowseShell mainClassName="w-full h-full px-[5%]">
+      <div data-home-animate>
         <VideoGallery />
-      </main>
-      <PageReadySignal />
-    </div>
+      </div>
+    </BrowseShell>
   )
 }

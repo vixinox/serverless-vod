@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { toggleSubscribe } from "@/actions/channel/toggle-subscribe";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/api-client";
+import { usePageTransition } from "@/components/transition/transition-context";
+import { cn } from "@/lib/utils";
 
 function formatSubscribersCount(count: number) {
   if (count >= 10000) {
@@ -21,6 +24,8 @@ export function ChannelInfo({
   subscribersCount,
   initialIsSubscribed,
   isOwner,
+  href,
+  size = "compact",
 }: {
   channelId: string;
   name: string;
@@ -28,10 +33,14 @@ export function ChannelInfo({
   subscribersCount: number;
   initialIsSubscribed: boolean;
   isOwner: boolean;
+  href?: string;
+  size?: "compact" | "hero";
 }) {
   const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
   const [localSubscribersCount, setLocalSubscribersCount] = useState(subscribersCount);
   const [isPending, startTransition] = useTransition();
+  const pathname = usePathname();
+  const { startFadeTransition } = usePageTransition();
 
   const handleSubscribe = () => {
     if (isOwner) {
@@ -51,8 +60,14 @@ export function ChannelInfo({
 
     startTransition(async () => {
       try {
-        const result = await toggleSubscribe(channelId);
+        const result = await apiRequest<{ isSubscribed: boolean; subscribersCount: number }>(
+          `/api/channels/${channelId}/subscription`,
+          {
+            method: "POST",
+          },
+        );
         setIsSubscribed(result.isSubscribed);
+        setLocalSubscribersCount(result.subscribersCount);
       } catch (error) {
         setIsSubscribed(previousSubscribed);
         setLocalSubscribersCount(previousSubscribersCount);
@@ -61,20 +76,60 @@ export function ChannelInfo({
     });
   };
 
+  const handleNavigate = () => {
+    if (!href || pathname === href) {
+      return;
+    }
+
+    startFadeTransition(href, { maskMode: "keep-video" });
+  };
+
+  const avatarSizeClass = size === "hero" ? "size-20 sm:size-24" : "size-10";
+  const titleClassName = size === "hero" ? "text-2xl sm:text-3xl" : "text-base";
+  const containerClassName =
+    size === "hero"
+      ? "flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      : "flex items-center gap-3";
+  const profileClassName =
+    size === "hero"
+      ? "flex items-center gap-4 text-left transition-opacity hover:opacity-90"
+      : "flex items-center gap-3 text-left transition-opacity hover:opacity-90";
+
   return (
-    <div className="flex items-center gap-3">
-      <Avatar className="size-10">
-        <AvatarImage src={image ?? undefined} />
-        <AvatarFallback className="bg-[#33691e] text-lg">{name.charAt(0) || "U"}</AvatarFallback>
-      </Avatar>
-      <div>
-        <p className="font-bold">{name}</p>
-        <p className="text-xs text-muted-foreground">
-          {formatSubscribersCount(localSubscribersCount)}
-        </p>
-      </div>
+    <div className={containerClassName}>
+      {href ? (
+        <button
+          type="button"
+          className={profileClassName}
+          onClick={handleNavigate}
+        >
+          <Avatar className={avatarSizeClass}>
+            <AvatarImage src={image ?? undefined} />
+            <AvatarFallback className="bg-[#33691e] text-lg">{name.charAt(0) || "U"}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className={cn("font-bold", titleClassName)}>{name}</p>
+            <p className={cn("text-muted-foreground", size === "hero" ? "text-sm sm:text-base" : "text-xs")}>
+              {formatSubscribersCount(localSubscribersCount)}
+            </p>
+          </div>
+        </button>
+      ) : (
+        <div className={size === "hero" ? "flex items-center gap-4" : "flex items-center gap-3"}>
+          <Avatar className={avatarSizeClass}>
+            <AvatarImage src={image ?? undefined} />
+            <AvatarFallback className="bg-[#33691e] text-lg">{name.charAt(0) || "U"}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className={cn("font-bold", titleClassName)}>{name}</p>
+            <p className={cn("text-muted-foreground", size === "hero" ? "text-sm sm:text-base" : "text-xs")}>
+              {formatSubscribersCount(localSubscribersCount)}
+            </p>
+          </div>
+        </div>
+      )}
       <Button
-        className="rounded-full cursor-pointer ml-6"
+        className={cn("cursor-pointer rounded-full", size === "hero" ? "w-fit" : "ml-6")}
         variant={isSubscribed ? "secondary" : "default"}
         disabled={isOwner || isPending}
         onClick={handleSubscribe}

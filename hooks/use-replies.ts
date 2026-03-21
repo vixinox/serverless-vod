@@ -1,10 +1,7 @@
 import useSWRInfinite from 'swr/infinite';
-import { getReplies, ReplyCursor, ReplyData } from "@/actions/comment/get-replies";
-import { addReply as addReplyAction } from '@/actions/comment/add-reply';
-import { deleteComment } from '@/actions/comment/delete-comment';
-import { updateComment } from '@/actions/comment/update-comment';
-import { toggleCommentReaction } from '@/actions/comment/toggle-reaction';
 import { ReactionType } from '@prisma/client';
+import { apiRequest } from "@/lib/api-client";
+import type { ReplyCursor, ReplyData } from "@/lib/server/comments";
 
 type RepliesPage = {
   replies: ReplyData[];
@@ -25,7 +22,29 @@ export function useReplies(commentId: string, enabled: boolean = true) {
   };
 
   const fetcher = async ([_, cId, cursor]: [string, string, ReplyCursor?]) => {
-    return await getReplies(cId, cursor);
+    const params = new URLSearchParams();
+
+    if (cursor) {
+      params.set("cursor", JSON.stringify(cursor));
+    }
+
+    const result = await apiRequest<RepliesPage>(
+      `/api/comments/${cId}/replies${params.size > 0 ? `?${params.toString()}` : ""}`
+    );
+
+    return {
+      ...result,
+      replies: result.replies.map((reply) => ({
+        ...reply,
+        createdAt: new Date(reply.createdAt),
+      })),
+      nextCursor: result.nextCursor
+        ? {
+            ...result.nextCursor,
+            createdAt: new Date(result.nextCursor.createdAt),
+          }
+        : null,
+    };
   };
 
   const { data, error, size, setSize, isLoading, isValidating, mutate } =
@@ -42,7 +61,17 @@ export function useReplies(commentId: string, enabled: boolean = true) {
   const hasMore = data ? data[data.length - 1]?.nextCursor !== null : false;
 
   const addReply = async (text: string) => {
-    const newReply = await addReplyAction(commentId, text);
+    const response = await apiRequest<ReplyData>(`/api/comments/${commentId}/replies`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: text }),
+    });
+    const newReply = {
+      ...response,
+      createdAt: new Date(response.createdAt),
+    };
     mutate((pages) => {
       if (!pages?.length) return [{ replies: [newReply], nextCursor: null }];
       const last = pages[pages.length - 1];
@@ -62,7 +91,9 @@ export function useReplies(commentId: string, enabled: boolean = true) {
       false,
     );
     try {
-      await deleteComment(replyId);
+      await apiRequest<{ success: true }>(`/api/comments/${replyId}`, {
+        method: "DELETE",
+      });
     } catch (e) {
       mutate();
       throw e;
@@ -80,7 +111,13 @@ export function useReplies(commentId: string, enabled: boolean = true) {
       false,
     );
     try {
-      await updateComment(replyId, newContent);
+      await apiRequest<{ success: true }>(`/api/comments/${replyId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: newContent }),
+      });
     } catch (e) {
       mutate();
       throw e;
@@ -103,7 +140,13 @@ export function useReplies(commentId: string, enabled: boolean = true) {
       false,
     );
     try {
-      await toggleCommentReaction(replyId, reactionType);
+      await apiRequest<{ success: true }>(`/api/comments/${replyId}/reaction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reactionType: reactionType ?? null }),
+      });
     } catch (e) {
       mutate();
       throw e;

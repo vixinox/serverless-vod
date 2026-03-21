@@ -24,8 +24,8 @@ services:
       context: .
       dockerfile: Dockerfile.localstack
       args:
-        APT_MIRROR: ${APT_MIRROR}
-    pull_policy: never
+        LOCALSTACK_IMAGE: ${LOCALSTACK_IMAGE:-localstack/localstack}
+        LOCALSTACK_TAG: ${LOCALSTACK_TAG:-2026.03.0}
     restart: unless-stopped
     stop_grace_period: 60s
     ports:
@@ -35,9 +35,12 @@ services:
     environment:
       DEBUG: ${LOCALSTACK_DEBUG:-0}
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?Set LOCALSTACK_AUTH_TOKEN before starting LocalStack}
+      PERSISTENCE: "1"
       LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT: "30"
-      SERVICES: s3,stepfunctions,lambda,iam,events
-      LAMBDA_DOCKER_FLAGS: -v localstack_data:/var/lib/localstack --add-host=host.docker.internal:host-gateway
+      LAMBDA_DOCKER_FLAGS: >-
+        -v localstack_data:/var/lib/localstack
+        --add-host=host.docker.internal:host-gateway
     volumes:
       - localstack_data:/var/lib/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"

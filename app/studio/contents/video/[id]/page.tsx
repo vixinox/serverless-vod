@@ -1,4 +1,4 @@
-import { getVideoDetails } from "@/actions/video/get-video-details";
+import { getVideoDetails } from "@/lib/server/videos";
 import { VideoForm } from "@/components/studio/video/video-form";
 
 export default async function VideoEditPage({ params }: { params: Promise<{ id: string }> }) {

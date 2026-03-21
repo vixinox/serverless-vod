@@ -31,7 +31,7 @@ export function CopyButton({ title, content }: CopyButtonProps) {
         >
           <Copy
             strokeWidth={1.5}
-            className={`absolute transition-opacity duration-300 
+            className={`absolute transition duration-300 
                     ${copied ? "opacity-0" : "opacity-100"}`}
           />
           <Check

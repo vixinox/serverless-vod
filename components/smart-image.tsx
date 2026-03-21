@@ -165,7 +165,7 @@ export function SmartImage({
           onLoad={handleSuccess}
           onError={handleError}
           className={cn(
-            "object-cover transition-opacity duration-500 ease-in-out",
+            "object-cover transition duration-500 ease-in-out",
             status === "success" ? "opacity-100" : "opacity-0",
             imageClassName
           )}
@@ -174,7 +174,7 @@ export function SmartImage({
 
       {/* Loading 机制保留你原有的 UI 设计语言 */}
       {status === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10 transition-opacity">
+        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10 transition">
           <Spinner className="size-8 text-gray-400" strokeWidth="1.5" />
         </div>
       )}

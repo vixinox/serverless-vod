@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Loader2, X, Clock, Copy } from "lucide-react";
-import type { PipelineStatus } from "@/actions/video/get-pipeline-status";
+import type { PipelineStatus } from "@/lib/server/videos";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

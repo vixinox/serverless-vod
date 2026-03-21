@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { ReplyData } from "./get-replies";
+import type { ReplyData } from "@/lib/server/comments";
 
 export async function addReply(
   commentId: string,

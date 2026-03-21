@@ -5,6 +5,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { ChangeEvent, useRef, useState } from "react";
 import clsx from "clsx";
 import { Button } from "@/components/ui/button";
+import { PLAYER_SEEK_EVENT, splitTextWithTimestamps, type PlayerSeekDetail } from "@/lib/player-timestamps";
 
 interface CommentHeaderProps {
   size?: "small" | "large";
@@ -31,12 +32,27 @@ export function CommentContent({
 }: CommentHeaderProps) {
   const [value, setValue] = useState(content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const segments = splitTextWithTimestamps(content);
 
   const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const el = e.target;
     setValue(el.value);
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
+  };
+
+  const handleTimestampClick = (seconds: number) => {
+    window.dispatchEvent(
+      new CustomEvent<PlayerSeekDetail>(PLAYER_SEEK_EVENT, {
+        detail: {
+          seconds,
+        },
+      }),
+    );
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -98,7 +114,22 @@ export function CommentContent({
               {formatRelativeTime(createdAt)}
             </p>
           </div>
-          <p className="text-sm mt-1">{content}</p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm">
+            {segments.map((segment, index) =>
+              segment.type === "timestamp" ? (
+                <button
+                  key={`${commentId}-${segment.value}-${index}`}
+                  type="button"
+                  className="cursor-pointer rounded-sm text-primary underline underline-offset-4 transition-opacity hover:opacity-80"
+                  onClick={() => handleTimestampClick(segment.seconds)}
+                >
+                  {segment.value}
+                </button>
+              ) : (
+                <span key={`${commentId}-text-${index}`}>{segment.value}</span>
+              ),
+            )}
+          </p>
         </div>
       )}
     </div>

@@ -12,7 +12,6 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import {
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -27,14 +26,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { addVideoToPlaylist } from "@/actions/playlist/add-video-to-playlist";
-import { createPlaylist } from "@/actions/playlist/create-playlist";
-import { deletePlaylist } from "@/actions/playlist/delete-playlist";
-import { listPlaylistItems } from "@/actions/playlist/list-playlist-items";
-import { listUserPlaylists } from "@/actions/playlist/list-user-playlists";
-import { listUserVideosForPlaylist } from "@/actions/playlist/list-user-videos-for-playlist";
-import { removeVideoFromPlaylist } from "@/actions/playlist/remove-video-from-playlist";
-import { updatePlaylist } from "@/actions/playlist/update-playlist";
+import { apiRequest } from "@/lib/api-client";
+import type {
+  ListUserPlaylistsResult,
+  PlaylistItemRow,
+  PlaylistListRow,
+  PlaylistVideoOption,
+} from "@/lib/server/playlists";
 import { SmartImage } from "@/components/smart-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,9 +69,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type PlaylistRow = Awaited<ReturnType<typeof listUserPlaylists>>["playlists"][number];
-type PlaylistItemRow = Awaited<ReturnType<typeof listPlaylistItems>>[number];
-type VideoOption = Awaited<ReturnType<typeof listUserVideosForPlaylist>>[number];
+type PlaylistRow = PlaylistListRow;
+type VideoOption = PlaylistVideoOption;
 
 function formatDate(value: string | Date) {
   return new Date(value).toLocaleString();
@@ -214,7 +211,7 @@ export const PlaylistTable = () => {
   const [managePlaylist, setManagePlaylist] = useState<PlaylistRow | null>(null);
   const [manageItems, setManageItems] = useState<PlaylistItemRow[]>([]);
   const [manageLoading, setManageLoading] = useState(false);
-  const [removingVideoId, setRemovingVideoId] = useState<string | null>(null);
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null);
 
   const reqIdRef = useRef(0);
   const pageCount = Math.ceil(totalCount / pagination.pageSize) || 1;
@@ -233,11 +230,17 @@ export const PlaylistTable = () => {
     const reqId = ++reqIdRef.current;
 
     try {
-      const result = await listUserPlaylists({
-        page: pagination.pageIndex + 1,
-        pageSize: pagination.pageSize,
-        searchTerm: debouncedTerm,
+      const searchParams = new URLSearchParams({
+        page: String(pagination.pageIndex + 1),
+        pageSize: String(pagination.pageSize),
       });
+      if (debouncedTerm) {
+        searchParams.set("searchTerm", debouncedTerm);
+      }
+
+      const result = await apiRequest<ListUserPlaylistsResult>(
+        `/api/studio/playlists?${searchParams.toString()}`
+      );
 
       if (reqId === reqIdRef.current) {
         setPlaylists(result.playlists);
@@ -280,18 +283,29 @@ export const PlaylistTable = () => {
     setSavingForm(true);
     try {
       if (editingPlaylist) {
-        await updatePlaylist({
-          playlistId: editingPlaylist.id,
-          title,
-          description: formDescription.trim() || undefined,
-          isPublic: formVisibility === "PUBLIC",
+        await apiRequest(`/api/studio/playlists/${editingPlaylist.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description: formDescription.trim() || undefined,
+            isPublic: formVisibility === "PUBLIC",
+          }),
         });
         toast.success("播放列表已更新");
       } else {
-        await createPlaylist({
-          title,
-          description: formDescription.trim() || undefined,
-          isPublic: formVisibility === "PUBLIC",
+        await apiRequest("/api/studio/playlists", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description: formDescription.trim() || undefined,
+            isPublic: formVisibility === "PUBLIC",
+          }),
         });
         toast.success("播放列表已创建");
       }
@@ -312,7 +326,9 @@ export const PlaylistTable = () => {
 
       setPendingPlaylistId(playlist.id);
       try {
-        await deletePlaylist(playlist.id);
+        await apiRequest(`/api/studio/playlists/${playlist.id}`, {
+          method: "DELETE",
+        });
         toast.success("播放列表已删除");
         await fetchPlaylists();
       } catch (error) {
@@ -327,7 +343,14 @@ export const PlaylistTable = () => {
   const fetchVideoOptions = useCallback(async () => {
     setVideoLoading(true);
     try {
-      const videos = await listUserVideosForPlaylist(videoSearchTerm.trim() || undefined);
+      const searchParams = new URLSearchParams();
+      if (videoSearchTerm.trim()) {
+        searchParams.set("searchTerm", videoSearchTerm.trim());
+      }
+      const suffix = searchParams.toString();
+      const videos = await apiRequest<VideoOption[]>(
+        `/api/studio/videos/for-playlist${suffix ? `?${suffix}` : ""}`
+      );
       setVideoOptions(videos);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "读取视频列表失败");
@@ -360,9 +383,14 @@ export const PlaylistTable = () => {
 
     setAddingVideo(true);
     try {
-      await addVideoToPlaylist({
-        playlistId: targetPlaylistId,
-        videoShortCode: targetVideoShortCode,
+      await apiRequest(`/api/studio/playlists/${targetPlaylistId}/items`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          videoShortCode: targetVideoShortCode,
+        }),
       });
       toast.success("已添加到播放列表");
       setAddVideoOpen(false);
@@ -381,7 +409,9 @@ export const PlaylistTable = () => {
     setManageItems([]);
 
     try {
-      const items = await listPlaylistItems(playlist.id);
+      const items = await apiRequest<PlaylistItemRow[]>(
+        `/api/studio/playlists/${playlist.id}/items`
+      );
       setManageItems(items);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "读取播放列表内容失败");
@@ -391,28 +421,32 @@ export const PlaylistTable = () => {
   }, []);
 
   const runRemoveVideo = useCallback(async () => {
-    if (!managePlaylist || !removingVideoId) return;
+    if (!managePlaylist || !removingItemId) return;
 
     try {
-      await removeVideoFromPlaylist({
-        playlistId: managePlaylist.id,
-        videoId: removingVideoId,
-      });
-      const items = await listPlaylistItems(managePlaylist.id);
+      await apiRequest(
+        `/api/studio/playlists/${managePlaylist.id}/items/${removingItemId}`,
+        {
+          method: "DELETE",
+        },
+      );
+      const items = await apiRequest<PlaylistItemRow[]>(
+        `/api/studio/playlists/${managePlaylist.id}/items`,
+      );
       setManageItems(items);
       await fetchPlaylists();
       toast.success("已从播放列表移除");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "移除失败");
     } finally {
-      setRemovingVideoId(null);
+      setRemovingItemId(null);
     }
-  }, [fetchPlaylists, managePlaylist, removingVideoId]);
+  }, [fetchPlaylists, managePlaylist, removingItemId]);
 
   useEffect(() => {
-    if (!removingVideoId) return;
+    if (!removingItemId) return;
     void runRemoveVideo();
-  }, [removingVideoId, runRemoveVideo]);
+  }, [removingItemId, runRemoveVideo]);
 
   const columns = useMemo(
     () =>
@@ -734,10 +768,10 @@ export const PlaylistTable = () => {
                       variant="outline"
                       size="sm"
                       className="rounded-sm"
-                      disabled={removingVideoId === item.video.id}
-                      onClick={() => setRemovingVideoId(item.video.id)}
+                      disabled={removingItemId === item.id}
+                      onClick={() => setRemovingItemId(item.id)}
                     >
-                      {removingVideoId === item.video.id ? <Loader2 className="size-4 animate-spin" /> : <Unlink className="size-4" />}
+                      {removingItemId === item.id ? <Loader2 className="size-4 animate-spin" /> : <Unlink className="size-4" />}
                       移除
                     </Button>
                   </div>

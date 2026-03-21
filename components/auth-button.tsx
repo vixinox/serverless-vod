@@ -8,23 +8,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, User, UserRound, UsersRound } from "lucide-react";
+import { LogOut, User, UserRound, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { SettingsDialogContent } from "@/components/settings/settings-dialog-content";
-import { useSettings } from "@/hooks/use-settings";
 import { useEffect, useRef, useState } from "react";
 
 export function AuthButton() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
-  const { flushToDB } = useSettings();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [avatarImageLoaded, setAvatarImageLoaded] = useState(false);
   const lastAvatarImageRef = useRef<string | null>(null);
 
@@ -42,7 +37,7 @@ export function AuthButton() {
   const avatarTrigger = (
     <div className="relative h-8 w-8">
       <Avatar
-        className={`absolute inset-0 z-10 h-8 w-8 transition-opacity duration-300 ${
+        className={`absolute inset-0 z-10 h-8 w-8 transition duration-300 ${
           user?.image && avatarImageLoaded ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -77,9 +72,6 @@ export function AuthButton() {
 
   return (
     <>
-      <Dialog open={settingsOpen} onOpenChange={(open) => { setSettingsOpen(open); if (!open) flushToDB(); }}>
-        <SettingsDialogContent />
-      </Dialog>
       <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
@@ -108,13 +100,6 @@ export function AuthButton() {
             <User className="text-foreground size-5.5 ml-2" strokeWidth="2" />
             <span className="text-sm ml-2">工作室</span>
           </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem className="rounded-none cursor-pointer h-11" onSelect={() => setSettingsOpen(true)}>
-          <div className="flex items-center gap-3">
-            <Settings className="text-foreground size-5.5 ml-2" strokeWidth="2" />
-            <span className="text-sm ml-2">设置</span>
-          </div>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

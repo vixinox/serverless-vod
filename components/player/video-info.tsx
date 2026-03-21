@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { VideoDescriptionCard } from "@/components/player/video-description-card";
-import { ChannelData, VideoData } from "@/actions/video/get-video-info";
+import type { ChannelInfoData as ChannelData, VideoInfoData as VideoData } from "@/lib/server/videos";
 import { VideoActionButtons } from "@/components/player/video-action-buttons";
 import { ChannelInfo } from "@/components/player/channel-info";
 
@@ -19,7 +19,7 @@ export function VideoInfo({ videoData, channelData, isOwner }: {
     <div className="w-full flex flex-col gap-2">
       <h1 className="text-xl font-bold">{videoData.title}</h1>
 
-      <div className="w-full flex justify-between">
+      <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <ChannelInfo
           channelId={channelData.id}
           name={channelData.name}
@@ -27,10 +27,11 @@ export function VideoInfo({ videoData, channelData, isOwner }: {
           subscribersCount={channelData.subscribersCount}
           initialIsSubscribed={channelData.isSubscribed}
           isOwner={Boolean(isOwner)}
+          href={`/channel/${encodeURIComponent(channelData.name)}`}
         />
 
         <VideoActionButtons
-          videoId={videoData.id}
+          shortCode={videoData.shortCode}
           likesCount={videoData.likesCount}
           prevReaction={videoData.prevReaction}
           isSaved={videoData.isSaved}

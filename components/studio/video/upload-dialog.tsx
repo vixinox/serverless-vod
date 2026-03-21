@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { type FileRejection, useDropzone } from "react-dropzone";
 import { useVideoUpload, type UploadState } from "@/hooks/use-video-upload";
-import type { PipelineStatus } from "@/actions/video/get-pipeline-status";
+import type { PipelineStatus } from "@/lib/server/videos";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -364,7 +364,7 @@ function StageRow({ stage }: { stage: Stage }) {
 
 export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
   const [open, setOpen]                          = useState(false);
-  const { state, upload, reset, proceedToEdit }  = useVideoUpload();
+  const { state, upload, reset }  = useVideoUpload();
   const filenameRef                              = useRef("");
   const router                                   = useRouter();
   const [successAnim, setSuccessAnim]            = useState(false);
@@ -403,6 +403,12 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
   function goToContents() {
     handleDoneClose();
     router.push("/studio/contents");
+  }
+
+  function goToEditPage() {
+    if (!shortCode) return;
+    handleDoneClose();
+    router.push(`/studio/contents/video/${shortCode}`);
   }
 
   function copyShortCode() {
@@ -638,7 +644,7 @@ export const VideoUploadDialog = ({ children }: { children: ReactNode }) => {
                state.pipeline.processingStatus !== "READY" && (
                 <Button
                   variant="ghost" size="sm"
-                  onClick={proceedToEdit}
+                  onClick={goToEditPage}
                   className="h-8 px-3 rounded-full text-sm text-neutral-500 hover:text-white gap-1.5 cursor-pointer"
                 >
                   去填写详情

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { WatchSidebarData } from "@/actions/video/get-watch-sidebar-data";
+import type { WatchSidebarData } from "@/lib/server/videos";
 import { SmartImage } from "@/components/smart-image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";

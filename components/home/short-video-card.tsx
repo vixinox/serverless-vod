@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from "next/navigation";
-import { VideoData } from "@/actions/video/get-videos";
+import type { GalleryVideoData as VideoData } from "@/lib/server/videos";
 import { formatRelativeTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SmartImage } from "../smart-image";

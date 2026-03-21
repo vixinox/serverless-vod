@@ -1,8 +1,11 @@
+ARG LOCALSTACK_IMAGE=localstack/localstack
+ARG LOCALSTACK_TAG=2026.03.0
+
 # ── Stage 1: 获取完全静态链接的 ffmpeg 二进制（无任何共享库依赖）──────────────
 FROM mwader/static-ffmpeg:latest AS static-ffmpeg
 
 # ── Stage 2: LocalStack 主镜像 ─────────────────────────────────────────────
-FROM localstack/localstack:latest
+FROM ${LOCALSTACK_IMAGE}:${LOCALSTACK_TAG}
 
 # 将静态 ffmpeg 和 ffprobe 放到镜像文件系统（不在 volume 路径下），供 init hook 使用
 COPY --from=static-ffmpeg /ffmpeg  /opt/static-ffmpeg/ffmpeg

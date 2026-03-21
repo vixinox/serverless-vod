@@ -1,12 +1,8 @@
 import useSWRInfinite from 'swr/infinite';
 import { mutate as globalMutate } from 'swr';
-import { CommentData, getComments, NextCursor } from '@/actions/comment/get-comments';
-import { addComment as addCommentAction } from '@/actions/comment/add-comment';
-import { deleteComment } from '@/actions/comment/delete-comment';
-import { updateComment as updateCommentAction } from '@/actions/comment/update-comment';
-import { toggleCommentReaction } from '@/actions/comment/toggle-reaction';
-import { addReply as addReplyAction } from '@/actions/comment/add-reply';
 import { ReactionType } from '@prisma/client';
+import { apiRequest } from "@/lib/api-client";
+import type { CommentData, NextCursor } from '@/lib/server/comments';
 
 type PageData = {
   comments: CommentData[];
@@ -33,12 +29,32 @@ export function useComments(
     useSWRInfinite<PageData>(
       getKey,
       async ([_, shortCode, order, limit, cursor]) => {
-        return await getComments(
-          shortCode as string,
-          order as 'POPULAR' | 'LATEST',
-          limit as number,
-          cursor as NextCursor
+        const params = new URLSearchParams({
+          order: order as string,
+          limit: String(limit),
+        });
+
+        if (cursor) {
+          params.set("cursor", JSON.stringify(cursor));
+        }
+
+        const result = await apiRequest<PageData>(
+          `/api/videos/${shortCode as string}/comments?${params.toString()}`
         );
+
+        return {
+          ...result,
+          comments: result.comments.map((comment) => ({
+            ...comment,
+            createdAt: new Date(comment.createdAt),
+          })),
+          nextCursor: result.nextCursor
+            ? {
+                ...result.nextCursor,
+                createdAt: new Date(result.nextCursor.createdAt),
+              }
+            : null,
+        };
       },
       {
         revalidateFirstPage: false,
@@ -51,7 +67,17 @@ export function useComments(
   const hasMore = data ? !!data[data.length - 1]?.nextCursor : false;
 
   const addComment = async (text: string) => {
-    const newComment = await addCommentAction(shortCode, text);
+    const response = await apiRequest<CommentData>(`/api/videos/${shortCode}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: text }),
+    });
+    const newComment = {
+      ...response,
+      createdAt: new Date(response.createdAt),
+    };
     mutate((pages) => {
       if (!pages?.length) return pages;
       const [first, ...rest] = pages;
@@ -76,7 +102,9 @@ export function useComments(
       false,
     );
     try {
-      await deleteComment(commentId);
+      await apiRequest<{ success: true }>(`/api/comments/${commentId}`, {
+        method: "DELETE",
+      });
     } catch (e) {
       mutate();
       throw e;
@@ -94,7 +122,13 @@ export function useComments(
       false,
     );
     try {
-      await updateCommentAction(commentId, newContent);
+      await apiRequest<{ success: true }>(`/api/comments/${commentId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: newContent }),
+      });
     } catch (e) {
       mutate();
       throw e;
@@ -117,7 +151,13 @@ export function useComments(
       false,
     );
     try {
-      await toggleCommentReaction(commentId, reactionType);
+      await apiRequest<{ success: true }>(`/api/comments/${commentId}/reaction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reactionType: reactionType ?? null }),
+      });
     } catch (e) {
       mutate();
       throw e;
@@ -125,7 +165,13 @@ export function useComments(
   };
 
   const addReply = async (commentId: string, text: string) => {
-    await addReplyAction(commentId, text);
+    await apiRequest(`/api/comments/${commentId}/replies`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: text }),
+    });
     // Increment repliesCount for the parent comment in this cache
     mutate((pages) =>
       pages?.map((page) => ({

@@ -15,15 +15,12 @@ import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Visibility } from "@prisma/client";
-import { editVideo } from "@/actions/video/edit-video";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getThumbnailUploadUrl } from "@/actions/video/get-upload-url";
-import { getCdnDomains } from "@/actions/video/get-cdn-domains";
 import { SmartImage } from "@/components/smart-image";
-import { deleteVideo } from "@/actions/video/delete-video";
 import { useRouter } from "next/navigation";
 import { VideoPlayer } from "@/components/player/video-player";
+import { apiRequest } from "@/lib/api-client";
 
 interface VideoFormProps {
   isInDialog?: boolean;
@@ -60,7 +57,7 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
   const [imageDomain, setImageDomain] = useState("");
 
   useEffect(() => {
-    getCdnDomains().then(({ imageDomain }) => {
+    apiRequest<{ imageDomain: string }>("/api/cdn/domains").then(({ imageDomain }) => {
       setImageDomain(imageDomain);
     });
   }, []);
@@ -88,11 +85,17 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
 
   async function uploadThumbnail(): Promise<string | undefined> {
     if (!thumbnailFile) return form.getValues("thumbnail");
-    const { url } = await getThumbnailUploadUrl(
-      thumbnailFile.name,
-      thumbnailFile.type,
-      video.shortCode
-    );
+    const { url } = await apiRequest<{ url: string }>("/api/uploads/thumbnail-url", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        filename: thumbnailFile.name,
+        contentType: thumbnailFile.type,
+        shortCode: video.shortCode,
+      }),
+    });
     const resp = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": thumbnailFile.type },
@@ -114,12 +117,17 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
         thumbnailUrl = await uploadThumbnail();
       }
 
-      await editVideo({
-        shortCode: video.shortCode,
-        title: values.title,
-        description: values.description,
-        thumbnail: thumbnailUrl || undefined,
-        visibility: values.visibility,
+      await apiRequest(`/api/studio/videos/${video.shortCode}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: values.title,
+          description: values.description,
+          thumbnail: thumbnailUrl || undefined,
+          visibility: values.visibility,
+        }),
       });
 
       toast.success("视频信息已成功保存");
@@ -132,6 +140,27 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
     } catch (err) {
       console.error(err);
       toast.error(err instanceof Error ? err.message : "保存视频信息失败");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    const confirmed = window.confirm(`确定删除视频「${video.title}」吗？`);
+    if (!confirmed) return;
+
+    try {
+      setIsSubmitting(true);
+      await apiRequest(`/api/studio/videos/${video.shortCode}`, {
+        method: "DELETE",
+      });
+      toast.success("视频已删除");
+      if (!isInDialog) {
+        router.back();
+      }
+      onComplete?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "删除视频失败");
     } finally {
       setIsSubmitting(false);
     }
@@ -192,9 +221,26 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
             name="thumbnail"
             render={() => (
               <FormItem>
-                <FormLabel>
+                <FormLabel className="flex items-center gap-2">
                   <p>缩略图</p>
-                  <RotateCw className="ml-2 w-4 h-4 cursor-pointer" onClick={() => setImageKey(imageKey + 1)} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-6"
+                        aria-label="刷新缩略图预览"
+                        title="刷新缩略图预览"
+                        onClick={() => setImageKey(imageKey + 1)}
+                      >
+                        <RotateCw className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>刷新缩略图预览</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </FormLabel>
                 <FormControl>
                   <div>
@@ -257,13 +303,8 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
                 className="rounded-full cursor-pointer"
                 variant="destructive"
                 type="button"
-                onClick={() => {
-                  try {
-                    deleteVideo(video.shortCode)
-                  } finally {
-                    if (!isInDialog) router.back();
-                  }
-                }}
+                onClick={() => void handleDelete()}
+                disabled={isSubmitting}
               >
                 删除
               </Button>
@@ -332,6 +373,7 @@ export function VideoForm({ isInDialog = false, video, onComplete }: VideoFormPr
                 />
               </PopoverContent>
             </Popover>
+            <p className="px-1 text-xs text-muted-foreground">设为公开并保存即发布</p>
           </div>
         </div>
 

@@ -1,27 +1,26 @@
 "use client"
 
+import type { MouseEvent } from "react"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
-import { ArrowLeft, ChartColumn, LayoutGrid, ListVideo, LogOut, Settings } from "lucide-react"
+import { ArrowLeft, ChartColumn, LayoutGrid, ListVideo, LogOut } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { usePathname, useRouter } from "next/navigation"
-import { useState } from "react"
+import { Fragment } from "react"
 import { authClient } from "@/lib/auth-client"
-import { SettingsDialogContent } from "@/components/settings/settings-dialog-content"
-import { useSettings } from "@/hooks/use-settings"
+import { cn } from "@/lib/utils"
+import { useStudioTransition } from "@/components/studio/basic/studio-transition"
 
 const studioItems = [
   {
@@ -49,13 +48,10 @@ const studioItems = [
 export const StudioSidebar = () => {
   const pathname = usePathname()
   const router = useRouter()
+  const { navigate, pendingHref } = useStudioTransition()
   const session = authClient.useSession().data
   const user = session?.user
-  const { flushToDB } = useSettings()
-  const [settingsOpen, setSettingsOpen] = useState(false)
-
   const isDetailPage = /^\/studio\/contents\/.+/.test(pathname)
-
   const navItems = studioItems
 
   const isItemActive = (url: string) => {
@@ -63,80 +59,101 @@ export const StudioSidebar = () => {
     return pathname === url || pathname.startsWith(`${url}/`)
   }
 
-  return (
-    <Dialog
-      open={settingsOpen}
-      onOpenChange={(open) => {
-        setSettingsOpen(open)
-        if (!open) flushToDB()
-      }}
-    >
-      <Sidebar collapsible="icon" className="border-r border-sidebar-border/70">
-        <SidebarHeader>
-          <SidebarMenu>
-            {isDetailPage && (
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => router.back()} tooltip="返回">
-                  <ArrowLeft strokeWidth={1.75} />
-                  <span>返回</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
+  const handleNavigation = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (event.defaultPrevented) return
+    if (event.button !== 0) return
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
+    const target = event.currentTarget.target
+    if (target && target !== "_self") return
+
+    event.preventDefault()
+    navigate(href)
+  }
+
+  return (
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border/70">
+      <SidebarHeader>
+        <SidebarMenu>
+          {isDetailPage && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild size="lg" tooltip={user?.name ?? "我的频道"}>
-                <Link href="#">
-                  <Avatar className="h-8 w-8 rounded-lg border border-sidebar-border/80">
-                    <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
-                    <AvatarFallback className="rounded-lg bg-[#33691e] text-sidebar-primary-foreground">
-                      {user?.name ? user.name[0] : "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">我的频道</span>
-                    <span className="truncate text-xs text-muted-foreground">{user?.name ?? "user"}</span>
-                  </div>
-                </Link>
+              <SidebarMenuButton
+                onClick={() => router.back()}
+                tooltip="返回"
+                className="rounded-xl transition-transform duration-300 hover:-translate-y-px"
+              >
+                <ArrowLeft strokeWidth={1.75} />
+                <span>返回</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+          )}
 
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Studio</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isItemActive(item.url)} tooltip={item.title}>
-                      <Link href={item.url}>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              size="lg"
+              tooltip={user?.name ?? "我的频道"}
+              className="rounded-2xl border border-transparent transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
+            >
+              <Link href="#">
+                <Avatar className="h-8 w-8 rounded-full border border-sidebar-border/80">
+                  <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
+                  <AvatarFallback className="bg-[#33691e] text-sidebar-primary-foreground">
+                    {user?.name ? user.name[0] : "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">我的频道</span>
+                  <span className="truncate text-xs text-muted-foreground">{user?.name ?? "user"}</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent className="overflow-hidden">
+        <SidebarSeparator className="my-1 mx-0" />
+        {navItems.map((item, index) => (
+          <Fragment key={item.title}>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isItemActive(item.url)}
+                      tooltip={item.title}
+                      data-pending={pendingHref === item.url ? "true" : undefined}
+                      className={cn(
+                        "h-full rounded-xl border border-transparent px-3 transition-[transform,border-color,box-shadow,background-color] duration-300",
+                        "hover:-translate-y-px hover:border-sidebar-border/70",
+                        "data-[active=true]:border-sidebar-border/70 data-[active=true]:shadow-sm",
+                        "data-[pending=true]:scale-[0.985] data-[pending=true]:border-sidebar-border/80"
+                      )}
+                    >
+                      <Link href={item.url} onClick={(event) => handleNavigation(event, item.url)}>
                         <item.icon strokeWidth={1.5} />
                         <span>{item.title}</span>
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "ml-auto flex size-1.5 rounded-full bg-sidebar-primary transition-all duration-300 group-data-[collapsible=icon]:hidden",
+                            isItemActive(item.url) ? "scale-100 opacity-100" : "scale-50 opacity-0",
+                            pendingHref === item.url && "animate-pulse"
+                          )}
+                        />
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <DialogTrigger asChild>
-                <SidebarMenuButton tooltip="设置">
-                  <Settings strokeWidth={1.5} />
-                  <span>设置</span>
-                </SidebarMenuButton>
-              </DialogTrigger>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-        <SidebarRail />
-      </Sidebar>
-      <SettingsDialogContent />
-    </Dialog>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            {index < navItems.length - 1 && <SidebarSeparator />}
+          </Fragment>
+        ))}
+      </SidebarContent>
+      <SidebarRail />
+    </Sidebar>
   )
 }

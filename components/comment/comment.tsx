@@ -1,6 +1,6 @@
 'use client';
 
-import { CommentData } from "@/actions/comment/get-comments";
+import type { CommentData } from "@/lib/server/comments";
 import { CommentContent } from "@/components/comment/comment-content";
 import { CommentActions } from "@/components/comment/comment-actions";
 import { useState } from "react";

@@ -10,7 +10,7 @@ export interface TransitionPayload {
   originRect: DOMRect;
 }
 
-export type FadeMaskMode = "full" | "keep-video" | "keep-home-navbar";
+export type FadeMaskMode = "full" | "keep-video" | "keep-home-navbar" | "keep-home-rail";
 
 export interface FadeTransitionOptions {
   maskMode?: FadeMaskMode;

@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from "react";
-import { getVideoUploadUrl } from "@/actions/video/get-upload-url";
-import { createVideo } from "@/actions/video/create-video";
-import { getPipelineStatus, type PipelineStatus } from "@/actions/video/get-pipeline-status";
 import type { Video } from "@prisma/client";
+import { apiRequest } from "@/lib/api-client";
+import type { PipelineStatus } from "@/lib/server/videos";
 
 export type { PipelineStatus };
 
@@ -144,7 +143,19 @@ export function useVideoUpload() {
     let presignedUrl: string;
 
     try {
-      const result = await getVideoUploadUrl(file.name, file.type);
+      const result = await apiRequest<{
+        shortCode: string;
+        url: string;
+      }>("/api/uploads/video-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+        }),
+      });
       shortCode = result.shortCode;
       presignedUrl = result.url;
     } catch (err) {
@@ -186,7 +197,16 @@ export function useVideoUpload() {
 
     let video: Video;
     try {
-      video = await createVideo(file.name, shortCode);
+      video = await apiRequest<Video>("/api/videos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          shortCode,
+        }),
+      });
       if (abortedRef.current) return;
     } catch (err) {
       if (abortedRef.current) return;
@@ -200,7 +220,7 @@ export function useVideoUpload() {
     // ── 4. 进入 transcoding 状态并开始轮询 ───────────────────────────
     let initialPipeline: PipelineStatus;
     try {
-      initialPipeline = await getPipelineStatus(shortCode);
+      initialPipeline = await apiRequest<PipelineStatus>(`/api/videos/${shortCode}/pipeline-status`);
     } catch {
       initialPipeline = {
         processingStatus: "PROCESSING",
@@ -219,7 +239,7 @@ export function useVideoUpload() {
 
       let pipeline: PipelineStatus;
       try {
-        pipeline = await getPipelineStatus(shortCode);
+        pipeline = await apiRequest<PipelineStatus>(`/api/videos/${shortCode}/pipeline-status`);
       } catch {
         return; // 网络抖动跳过本次，下次再试
       }

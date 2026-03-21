@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { CommentData } from "./get-comments";
+import type { CommentData } from "@/lib/server/comments";
 
 export async function addComment(
   shortCode: string,

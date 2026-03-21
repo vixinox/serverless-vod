@@ -1,16 +1,31 @@
-import { Sparkles } from "lucide-react";
-import { getRecommendation } from "@/actions/video/get-recommend-videos";
-import { RecommendVideo } from "@/components/player/recommend-video";
+"use client"
 
-export async function RecommendationList({
-  shortCode,
-  excludeShortCodes = [],
-}: {
-  shortCode: string;
-  excludeShortCodes?: string[];
-}) {
-  const excluded = Array.from(new Set([shortCode, ...excludeShortCodes]));
-  const recommendVideos = await getRecommendation(12, excluded);
+import { Sparkles } from "lucide-react";
+import { RecommendVideo } from "@/components/player/recommend-video";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { apiRequest } from "@/lib/api-client";
+import type { RecommendationVideoData as VideoData } from "@/lib/server/videos";
+
+export function RecommendationList() {
+  const shortCode = usePathname().split("/watch/")[1];
+  const [recommendVideos, setRecommendVideos] = useState<VideoData[]>([]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const excluded = shortCode ? Array.from(new Set([shortCode])) : [];
+        const videos = await apiRequest<VideoData[]>(
+          `/api/videos/recommendations?limit=12&exclude=${encodeURIComponent(excluded.join(","))}`
+        );
+        setRecommendVideos(videos);
+      } catch {
+        setRecommendVideos([]);
+      }
+    };
+
+    void fetchRecommendations();
+  }, [shortCode]);
 
   return (
     <div className="w-full space-y-3">

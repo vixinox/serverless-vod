@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getDashboardSummary } from "@/actions/studio/get-dashboard-summary";
+import { getDashboardSummary } from "@/lib/server/stats";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 

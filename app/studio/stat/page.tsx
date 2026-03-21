@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { getChannelStats } from "@/actions/stat/get-channel-stats";
-import { getVideoStats } from "@/actions/stat/get-video-stats";
+import { getChannelStats, getVideoStats } from "@/lib/server/stats";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 

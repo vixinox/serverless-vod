@@ -39,7 +39,7 @@ export function FloatingTextarea({
   return (
     <div
       className={cn(
-        "relative w-full flex flex-col transition-all rounded-lg border-2",
+        "relative w-full flex flex-col transition rounded-lg border-2",
         mergedError && "border-destructive"
       )}
     >
@@ -62,7 +62,7 @@ export function FloatingTextarea({
 
       <div
         className={cn(
-          "absolute bottom-1 right-2 text-xs text-muted-foreground transition-opacity opacity-0 peer-focus:opacity-100",
+          "absolute bottom-1 right-2 text-xs text-muted-foreground transition opacity-0 peer-focus:opacity-100",
           mergedError && "opacity-100",
           mergedError && "text-destructive"
         )}

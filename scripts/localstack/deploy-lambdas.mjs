@@ -172,7 +172,7 @@ async function computeRuntimeDepsSignature(dir) {
   // 回退：没有锁文件时，哈希依赖包 package.json，避免误判。
   const pairs = [];
   for (const dep of deps) {
-    const depPkgPath = join(packageDirByName(dep), "package.json");
+    const depPkgPath = join(await packageDirByName(dep), "package.json");
     pairs.push(`${dep}:${await hashFileContent(depPkgPath)}`);
   }
   return `pkg:${pairs.join("|")}`;
@@ -310,8 +310,31 @@ async function collectEntries(dir, base) {
   return entries;
 }
 
-function packageDirByName(packageName) {
-  return join(nodeModulesDir, ...packageName.split("/"));
+async function packageDirByName(packageName) {
+  // 首先尝试在顶级 node_modules 中查找（符号链接）
+  const topLevel = join(nodeModulesDir, ...packageName.split("/"));
+  try {
+    await access(topLevel);
+    return topLevel;
+  } catch {
+    // 如果不存在，则在 .pnpm 目录中查找（pnpm strict mode）
+    // .pnpm 结构：.pnpm/@aws-crypto+sha1-browser@5.2.0/node_modules/@aws-crypto/sha1-browser
+    const pkgParts = packageName.split("/");
+    const scopedName = pkgParts.length > 1 ? `${pkgParts[0]}+${pkgParts[1]}` : packageName;
+    const pnpmPath = join(nodeModulesDir, ".pnpm");
+    const files = await readdir(pnpmPath);
+    const matched = files.find((f) => f.startsWith(scopedName + "@"));
+    if (matched) {
+      const pnpmPkg = join(pnpmPath, matched, "node_modules", ...pkgParts);
+      try {
+        await access(pnpmPkg);
+        return pnpmPkg;
+      } catch {
+        // 继续下放，抛出原始错误
+      }
+    }
+    throw new Error(`Package directory not found: ${packageName}`);
+  }
 }
 
 async function collectPackageClosure(entryPackages) {
@@ -322,7 +345,7 @@ async function collectPackageClosure(entryPackages) {
     const pkgName = queue.shift();
     if (!pkgName || visited.has(pkgName)) continue;
 
-    const pkgDir = packageDirByName(pkgName);
+    const pkgDir = await packageDirByName(pkgName);
     const pkgJsonPath = join(pkgDir, "package.json");
 
     let pkgJson;
@@ -335,8 +358,8 @@ async function collectPackageClosure(entryPackages) {
     visited.add(pkgName);
 
     const deps = {
-      ...(pkgJson.dependencies ?? {}),
-      ...(pkgJson.optionalDependencies ?? {}),
+      ...pkgJson.dependencies,
+      ...pkgJson.optionalDependencies,
     };
     for (const depName of Object.keys(deps)) {
       if (!visited.has(depName)) queue.push(depName);
@@ -351,7 +374,7 @@ async function collectNodeModulesEntries(packageNames) {
   const closure = await collectPackageClosure(packageNames);
 
   for (const pkgName of closure) {
-    const pkgDir = packageDirByName(pkgName);
+    const pkgDir = await packageDirByName(pkgName);
     const pkgEntries = await collectEntries(pkgDir);
     entries.push(
       ...pkgEntries.map((e) => ({

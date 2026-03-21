@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 interface VideoDescriptionCardProps {
   description?: string | null;
   children?: ReactNode;
-  views: bigint;
+  views: number;
   createdAt: Date;
 }
 

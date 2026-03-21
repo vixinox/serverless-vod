@@ -6,7 +6,16 @@ import { MediaPlayer, MediaProvider, Gesture, Poster, type MediaPlayerInstance }
 import { Pause, Play } from 'lucide-react';
 import gsap from 'gsap';
 import { YoutubeControls } from './player-controls';
-import { recordPlaybackEvent } from '@/actions/video/record-playback-event';
+import { apiRequest } from "@/lib/api-client";
+import { PLAYER_SEEK_EVENT, type PlayerSeekDetail } from "@/lib/player-timestamps";
+
+type PlaybackEventType =
+  | "PLAY_START"
+  | "PLAY_PROGRESS"
+  | "PAUSE"
+  | "RESUME"
+  | "SEEK"
+  | "ENDED";
 
 const FLASH_FEEDBACK_CONFIG = {
   fromScale: 0.84,
@@ -18,14 +27,16 @@ const FLASH_FEEDBACK_CONFIG = {
   ease: 'expo.out',
 } as const;
 
+const PROGRESS_EVENT_INTERVAL_SECONDS = 10;
+
 export function VideoPlayer({
-  videoId,
+  shortCode,
   src,
   thumbnail,
   className,
   compact = false,
 }: {
-  videoId?: string;
+  shortCode?: string;
   src: string;
   thumbnail?: string | undefined;
   className?: string;
@@ -38,13 +49,16 @@ export function VideoPlayer({
   const playerRef = useRef<MediaPlayerInstance | null>(null);
   const playbackSessionIdRef = useRef<string>("");
   const hasRecordedPlayStartRef = useRef(false);
+  const progressCheckpointRef = useRef(0);
+  const seekStartRef = useRef<number | null>(null);
+  const didEndRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !videoId) {
+    if (typeof window === "undefined" || !shortCode) {
       return;
     }
 
-    const storageKey = `vod-playback-session:${videoId}`;
+    const storageKey = `vod-playback-session:${shortCode}`;
     const existingSessionId = window.sessionStorage.getItem(storageKey);
     const sessionId = existingSessionId || crypto.randomUUID();
 
@@ -54,10 +68,15 @@ export function VideoPlayer({
 
     playbackSessionIdRef.current = sessionId;
     hasRecordedPlayStartRef.current = false;
-  }, [videoId]);
+  }, [shortCode]);
 
-  const submitPlaybackEvent = (eventType: "PLAY_START" | "ENDED") => {
-    if (!videoId) {
+  const submitPlaybackEvent = (
+    eventType: PlaybackEventType,
+    extra?: {
+      watchDeltaMs?: number;
+    },
+  ) => {
+    if (!shortCode) {
       return;
     }
 
@@ -69,15 +88,36 @@ export function VideoPlayer({
     const player = playerRef.current;
     const currentTimeValue = player?.currentTime;
     const durationValue = player?.duration;
+    const playbackRateValue = player?.playbackRate;
+    const mutedValue = player?.muted;
+    const volumeValue = player?.volume;
     const currentTime = typeof currentTimeValue === "number" ? Math.floor(currentTimeValue) : undefined;
     const duration = typeof durationValue === "number" ? Math.floor(durationValue) : undefined;
+    const playbackRate =
+      typeof playbackRateValue === "number" && Number.isFinite(playbackRateValue)
+        ? playbackRateValue
+        : undefined;
+    const isMuted = typeof mutedValue === "boolean" ? mutedValue : undefined;
+    const volume =
+      typeof volumeValue === "number" && Number.isFinite(volumeValue)
+        ? Math.round(volumeValue * 100)
+        : undefined;
 
-    void recordPlaybackEvent({
-      videoId,
-      sessionId,
-      eventType,
-      positionSeconds: currentTime,
-      durationSeconds: duration,
+    void apiRequest(`/api/videos/${shortCode}/playback-events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId,
+        eventType,
+        positionSeconds: currentTime,
+        durationSeconds: duration,
+        watchDeltaMs: extra?.watchDeltaMs,
+        playbackRate,
+        isMuted,
+        volume,
+      }),
     }).catch(() => undefined);
   };
 
@@ -134,6 +174,9 @@ export function VideoPlayer({
     setFlashIcon(null);
     setShowInitialFlashIcon(true);
     hasRecordedPlayStartRef.current = false;
+    progressCheckpointRef.current = 0;
+    seekStartRef.current = null;
+    didEndRef.current = false;
   }, [src]);
 
   useEffect(() => {
@@ -142,6 +185,52 @@ export function VideoPlayer({
       flashTimelineRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const handleSeekRequest = (event: Event) => {
+      const customEvent = event as CustomEvent<PlayerSeekDetail>;
+      const player = playerRef.current;
+      const nextSeconds = customEvent.detail?.seconds;
+
+      if (!player || typeof nextSeconds !== "number" || Number.isNaN(nextSeconds)) {
+        return;
+      }
+
+      player.currentTime = Math.max(0, nextSeconds);
+      progressCheckpointRef.current = Math.max(0, nextSeconds);
+    };
+
+    window.addEventListener(PLAYER_SEEK_EVENT, handleSeekRequest as EventListener);
+
+    return () => {
+      window.removeEventListener(PLAYER_SEEK_EVENT, handleSeekRequest as EventListener);
+    };
+  }, []);
+
+  const flushProgressEvent = () => {
+    const player = playerRef.current;
+
+    if (!player) {
+      return;
+    }
+
+    const currentTime = player.currentTime;
+
+    if (typeof currentTime !== "number" || Number.isNaN(currentTime)) {
+      return;
+    }
+
+    const watchDeltaSeconds = currentTime - progressCheckpointRef.current;
+
+    if (watchDeltaSeconds < 3) {
+      return;
+    }
+
+    submitPlaybackEvent("PLAY_PROGRESS", {
+      watchDeltaMs: Math.round(watchDeltaSeconds * 1000),
+    });
+    progressCheckpointRef.current = currentTime;
+  };
 
   if (!src) {
     return (
@@ -157,13 +246,20 @@ export function VideoPlayer({
       title="Video Player"
       src={src}
       poster={thumbnail}
+      logLevel="silent"
       data-transition-keep-visible="video"
       aspectRatio="16 / 9"
       playsInline
       onPlay={() => {
+        didEndRef.current = false;
+
         if (!hasRecordedPlayStartRef.current) {
           hasRecordedPlayStartRef.current = true;
+          progressCheckpointRef.current = playerRef.current?.currentTime ?? 0;
           submitPlaybackEvent("PLAY_START");
+        } else {
+          progressCheckpointRef.current = playerRef.current?.currentTime ?? 0;
+          submitPlaybackEvent("RESUME");
         }
 
         // Initial center play hint should disappear immediately on first play.
@@ -175,6 +271,11 @@ export function VideoPlayer({
         triggerFlashIcon('play');
       }}
       onPause={() => {
+        if (!didEndRef.current) {
+          flushProgressEvent();
+          submitPlaybackEvent("PAUSE");
+        }
+
         if (showInitialFlashIcon) {
           return;
         }
@@ -182,7 +283,39 @@ export function VideoPlayer({
         setShowInitialFlashIcon(false);
         triggerFlashIcon('pause');
       }}
+      onTimeUpdate={() => {
+        const currentTime = playerRef.current?.currentTime;
+
+        if (typeof currentTime !== "number" || Number.isNaN(currentTime)) {
+          return;
+        }
+
+        if (currentTime - progressCheckpointRef.current >= PROGRESS_EVENT_INTERVAL_SECONDS) {
+          flushProgressEvent();
+        }
+      }}
+      onSeeking={() => {
+        seekStartRef.current = playerRef.current?.currentTime ?? null;
+      }}
+      onSeeked={() => {
+        const currentTime = playerRef.current?.currentTime;
+        const seekStart = seekStartRef.current;
+
+        if (
+          typeof currentTime === "number" &&
+          !Number.isNaN(currentTime) &&
+          typeof seekStart === "number" &&
+          Math.abs(currentTime - seekStart) >= 2
+        ) {
+          submitPlaybackEvent("SEEK");
+          progressCheckpointRef.current = currentTime;
+        }
+
+        seekStartRef.current = null;
+      }}
       onEnded={() => {
+        didEndRef.current = true;
+        flushProgressEvent();
         submitPlaybackEvent("ENDED");
       }}
       className={`group/player relative w-full aspect-video overflow-hidden rounded-xl text-white ring-media-focus data-focus:ring-4 ${className}`}

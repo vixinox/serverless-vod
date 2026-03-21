@@ -11,7 +11,16 @@ type ContentTab = "video" | "playlist";
 
 export function ContentsPanel() {
   const [activeTab, setActiveTab] = useState<ContentTab>("video");
+  const [visitedTabs, setVisitedTabs] = useState<Record<ContentTab, boolean>>({
+    video: true,
+    playlist: false,
+  });
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const switchTab = (tab: ContentTab) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => (prev[tab] ? prev : { ...prev, [tab]: true }));
+  };
 
   useLayoutEffect(() => {
     if (!tableContainerRef.current) return;
@@ -45,7 +54,7 @@ export function ContentsPanel() {
             size="sm"
             variant={activeTab === "video" ? "default" : "ghost"}
             className={cn("rounded-sm", activeTab === "video" ? "shadow-none" : "")}
-            onClick={() => setActiveTab("video")}
+            onClick={() => switchTab("video")}
           >
             视频
           </Button>
@@ -53,15 +62,24 @@ export function ContentsPanel() {
             size="sm"
             variant={activeTab === "playlist" ? "default" : "ghost"}
             className={cn("rounded-sm", activeTab === "playlist" ? "shadow-none" : "")}
-            onClick={() => setActiveTab("playlist")}
+            onClick={() => switchTab("playlist")}
           >
             播放列表
           </Button>
         </div>
       </div>
 
-      <div key={activeTab} ref={tableContainerRef}>
-        {activeTab === "video" ? <VideoTable /> : <PlaylistTable />}
+      <div ref={tableContainerRef}>
+        {visitedTabs.video ? (
+          <div className={cn(activeTab === "video" ? "block" : "hidden")}>
+            <VideoTable />
+          </div>
+        ) : null}
+        {visitedTabs.playlist ? (
+          <div className={cn(activeTab === "playlist" ? "block" : "hidden")}>
+            <PlaylistTable />
+          </div>
+        ) : null}
       </div>
     </div>
   );

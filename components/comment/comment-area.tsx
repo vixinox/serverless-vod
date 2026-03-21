@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CommentData } from "@/actions/comment/get-comments";
+import type { CommentData } from "@/lib/server/comments";
 import { CommentTextarea } from "@/components/comment/comment-textarea";
 import { useComments } from "@/hooks/use-comments";
 import { Comment } from "@/components/comment/comment";

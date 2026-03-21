@@ -4,7 +4,6 @@ import Link from "next/link";
 import { CopyButton } from "@/components/copy-button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { VideoPlayer } from "@/components/player/video-player";
 
 interface VideoInfoCardProps {
   shortCode: string;
