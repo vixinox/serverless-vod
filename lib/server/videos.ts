@@ -583,15 +583,28 @@ export async function getVideoDetails(shortCode: string) {
     notFound();
   }
 
-  const video = await prisma.video.findUnique({
-    where: { shortCode: safeShortCode },
-  });
+  const [video, { imageDomain }] = await Promise.all([
+    prisma.video.findUnique({
+      where: { shortCode: safeShortCode },
+      include: {
+        assets: {
+          where: { assetType: "HLS_VARIANT" },
+          select: { qualityLabel: true },
+        },
+      },
+    }),
+    getCdnDomains(),
+  ]);
 
   if (!video || video.userId !== userId || video.deletedAt) {
     notFound();
   }
 
-  return video;
+  const qualityPresets = video.assets
+    .map((a) => a.qualityLabel)
+    .filter((q): q is string => !!q);
+
+  return { ...video, qualityPresets, imageDomain };
 }
 
 interface ListUserVideosParams {

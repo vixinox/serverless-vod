@@ -13,10 +13,10 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { ArrowLeft, ChartColumn, LayoutGrid, ListVideo, LogOut } from "lucide-react"
+import { ArrowLeft, ChartColumn, ListVideo, LogOut } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Fragment } from "react"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
@@ -27,11 +27,6 @@ const studioItems = [
     title: "内容",
     url: "/studio/contents",
     icon: ListVideo,
-  },
-  {
-    title: "信息中心",
-    url: "/studio/dashboard",
-    icon: LayoutGrid,
   },
   {
     title: "数据分析",
@@ -47,11 +42,13 @@ const studioItems = [
 
 export const StudioSidebar = () => {
   const pathname = usePathname()
-  const router = useRouter()
-  const { navigate, pendingHref } = useStudioTransition()
+  const { navigate, goBack, pendingHref } = useStudioTransition()
   const session = authClient.useSession().data
   const user = session?.user
-  const isDetailPage = /^\/studio\/contents\/.+/.test(pathname)
+  const isDetailPage = /^\/studio\/(contents|stat)\/.+/.test(pathname)
+  const isInContentPath = pathname.startsWith("/studio/contents")
+  const isInStudio = pathname.startsWith("/studio")
+  const shouldShowBackButton = isInStudio && !isInContentPath
   const navItems = studioItems
 
   const isItemActive = (url: string) => {
@@ -68,7 +65,7 @@ export const StudioSidebar = () => {
     if (target && target !== "_self") return
 
     event.preventDefault()
-    navigate(href)
+    void navigate(href)
   }
 
   return (
@@ -78,7 +75,7 @@ export const StudioSidebar = () => {
           {isDetailPage && (
             <SidebarMenuItem>
               <SidebarMenuButton
-                onClick={() => router.back()}
+                onClick={() => void goBack("/studio/contents")}
                 tooltip="返回"
                 className="rounded-xl transition-transform duration-300 hover:-translate-y-px"
               >
@@ -88,27 +85,42 @@ export const StudioSidebar = () => {
             </SidebarMenuItem>
           )}
 
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              size="lg"
-              tooltip={user?.name ?? "我的频道"}
-              className="rounded-2xl border border-transparent transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
-            >
-              <Link href="#">
-                <Avatar className="h-8 w-8 rounded-full border border-sidebar-border/80">
-                  <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
-                  <AvatarFallback className="bg-[#33691e] text-sidebar-primary-foreground">
-                    {user?.name ? user.name[0] : "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">我的频道</span>
-                  <span className="truncate text-xs text-muted-foreground">{user?.name ?? "user"}</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {!shouldShowBackButton && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                size="lg"
+                tooltip={user?.name ?? "我的频道"}
+                className="rounded-2xl border border-transparent transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
+              >
+                <Link href="#">
+                  <Avatar className="h-8 w-8 rounded-full border border-sidebar-border/80">
+                    <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
+                    <AvatarFallback className="bg-[#33691e] text-sidebar-primary-foreground">
+                      {user?.name ? user.name[0] : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">我的频道</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.name ?? "user"}</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+
+          {shouldShowBackButton && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => void goBack("/studio/contents")}
+                tooltip="返回"
+                className="rounded-2xl border border-transparent transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
+              >
+                <ArrowLeft strokeWidth={1.75} />
+                <span>返回</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarHeader>
 

@@ -199,21 +199,27 @@ function VolumeControl({ expanded, onExpand, compact = false }: { expanded: bool
 //  Main exported layout
 // ─────────────────────────────────────────────
 
-export function YoutubeControls({ compact = false }: { compact?: boolean }) {
+export function YoutubeControls({
+  compact = false,
+  visible = true,
+}: {
+  compact?: boolean;
+  visible?: boolean;
+}) {
   const [isVolumeExpanded, setIsVolumeExpanded] = useState(false);
   const controlsPadding = compact ? 'px-2 pb-1.5' : 'px-3 pb-2';
   const controlsGap = compact ? 'gap-2.5' : 'gap-4';
 
   return (
     <Controls.Root
-      className="pointer-events-none absolute inset-0 z-30 flex h-full w-full flex-col justify-end opacity-0 transition-opacity duration-300 group-hover/player:pointer-events-auto group-hover/player:opacity-100"
+      className={`absolute inset-0 z-30 flex h-full w-full flex-col justify-end transition-opacity duration-300 ${visible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
       onPointerLeave={() => setIsVolumeExpanded(false)}
     >
-      <Controls.Group className="pointer-events-auto relative flex w-full items-center">
+      <Controls.Group className={`relative flex w-full items-center ${visible ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <ProgressBar compact={compact} />
       </Controls.Group>
 
-      <Controls.Group className={`pointer-events-auto relative flex w-full items-center justify-between ${controlsPadding}`}>
+      <Controls.Group className={`relative flex w-full items-center justify-between ${controlsPadding} ${visible ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div className={`flex items-center ${controlsGap}`}>
           <PlayBtn compact={compact} />
 

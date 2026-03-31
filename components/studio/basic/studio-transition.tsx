@@ -16,11 +16,14 @@ import { PageReadySignal } from "@/components/transition/page-ready-signal"
 import { cn } from "@/lib/utils"
 
 type StudioTransitionStage = "idle" | "exiting" | "entering"
+type NavigationGuard = () => boolean | Promise<boolean>
 
 type StudioTransitionContextValue = {
   pendingHref: string | null
   stage: StudioTransitionStage
   navigate: (href: string) => void
+  goBack: (fallbackHref?: string) => void
+  setNavigationGuard: (guard: NavigationGuard | null) => void
 }
 
 const StudioTransitionContext = createContext<StudioTransitionContextValue | null>(null)
@@ -42,6 +45,7 @@ export function StudioTransitionProvider({ children }: PropsWithChildren) {
   const hasMountedRef = useRef(false)
   const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const enterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const navigationGuardRef = useRef<NavigationGuard | null>(null)
 
   const clearTimers = useCallback(() => {
     if (exitTimeoutRef.current) {
@@ -55,9 +59,23 @@ export function StudioTransitionProvider({ children }: PropsWithChildren) {
     }
   }, [])
 
+  const confirmNavigation = useCallback(async () => {
+    const navigationGuard = navigationGuardRef.current
+    if (!navigationGuard) return true
+
+    try {
+      return await navigationGuard()
+    } catch {
+      return false
+    }
+  }, [])
+
   const navigate = useCallback(
-    (href: string) => {
+    async (href: string) => {
       if (!href || href === pathname || pendingHref) return
+
+      const canProceed = await confirmNavigation()
+      if (!canProceed) return
 
       clearTimers()
 
@@ -77,8 +95,29 @@ export function StudioTransitionProvider({ children }: PropsWithChildren) {
         })
       }, EXIT_DURATION_MS)
     },
-    [clearTimers, pathname, pendingHref, router]
+    [clearTimers, confirmNavigation, pathname, pendingHref, router]
   )
+
+  const goBack = useCallback(
+    async (fallbackHref = "/studio/contents") => {
+      if (pendingHref) return
+
+      const canProceed = await confirmNavigation()
+      if (!canProceed) return
+
+      if (typeof window !== "undefined" && window.history.length <= 1) {
+        void navigate(fallbackHref)
+        return
+      }
+
+      router.back()
+    },
+    [confirmNavigation, navigate, pendingHref, router]
+  )
+
+  const setNavigationGuard = useCallback((guard: NavigationGuard | null) => {
+    navigationGuardRef.current = guard
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -115,8 +154,10 @@ export function StudioTransitionProvider({ children }: PropsWithChildren) {
       pendingHref,
       stage,
       navigate,
+      goBack,
+      setNavigationGuard,
     }),
-    [navigate, pendingHref, stage]
+    [goBack, navigate, pendingHref, setNavigationGuard, stage]
   )
 
   return (

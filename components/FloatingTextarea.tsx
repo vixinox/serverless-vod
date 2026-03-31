@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from "@/lib/utils";
-import { ChangeEvent, TextareaHTMLAttributes, useState } from "react";
+import { ChangeEvent, TextareaHTMLAttributes, useMemo, useState } from "react";
 import { WandSparkles } from "lucide-react";
 
 export interface FloatingTextareaProps
@@ -25,11 +25,13 @@ export function FloatingTextarea({
   needAI = false,
   ...props
 }: FloatingTextareaProps) {
-  const [value, setValue] = useState(externalValue);
   const [aiError, setAiError] = useState<string | undefined>(undefined);
+  const value = useMemo(
+    () => (typeof externalValue === "string" ? externalValue : ""),
+    [externalValue],
+  );
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
     if (e.target.value.length > 0) setAiError(undefined);
     onChange?.(e);
   };

@@ -1,179 +1,137 @@
-import Link from "next/link";
-import { getChannelStats, getVideoStats } from "@/lib/server/stats";
+import { getStatPageData } from "@/lib/server/stats";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-function formatCount(value: number) {
-  if (value >= 10000) {
-    return `${(value / 10000).toFixed(1).replace(".0", "")}万`;
-  }
-
-  return `${value}`;
-}
-
-function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "short",
-    day: "numeric",
-  }).format(value);
-}
-
-function formatHours(seconds: number) {
-  return `${(seconds / 3600).toFixed(1)} 小时`;
-}
+import { StudioMetricCard } from "@/components/studio/analytics/metric-card";
+import { AnalyticsHero, AnalyticsPageShell, AnalyticsSection } from "@/components/studio/analytics/page-shell";
+import { SubscriberFlowChart, TrendMetricChart, VideoTypeDonutChart } from "@/components/studio/analytics/charts";
+import { VideoLeaderboardTable } from "@/components/studio/analytics/video-leaderboard-table";
+import {
+  formatCompactNumber,
+  formatHoursLabel,
+} from "@/components/studio/analytics/utils";
 
 export default async function StatPage() {
-  const [channelStats, videoStats] = await Promise.all([
-    getChannelStats(),
-    getVideoStats(),
-  ]);
+  const stats = await getStatPageData();
 
   return (
-    <div className="flex-1 p-4 space-y-4">
-      <div className="px-2">
-        <h1 className="text-2xl font-bold">统计概览</h1>
-        <p className="text-sm text-muted-foreground">
-          先用现有组件把后端统计查通，图表和更完整的可视化可以后续再补。
-        </p>
-      </div>
-
-      {!channelStats.hasChannel || !channelStats.channel ? (
-        <Card>
+    <AnalyticsPageShell>
+      {!stats.hasChannel || !stats.channel ? (
+        <Card className="border-border/70 bg-card/95 shadow-sm">
           <CardHeader>
-            <CardTitle>暂无频道</CardTitle>
-            <CardDescription>上传视频后会自动创建频道，统计数据也会开始累计。</CardDescription>
+            <CardTitle>暂无频道数据</CardTitle>
+            <CardDescription>当频道创建并开始累积统计后，这里会展示趋势分析和视频表现。</CardDescription>
           </CardHeader>
         </Card>
       ) : (
         <>
+          <AnalyticsHero
+            eyebrow="Channel Analytics"
+            title="数据分析"
+            description={`围绕 ${stats.channel.name} 的最近 30 天表现，查看趋势变化、订阅波动与视频贡献。`}
+            badges={
+              <>
+                <Badge variant="outline" className="rounded-full px-3 py-1">最近 30 天</Badge>
+                <Badge variant="outline" className="rounded-full px-3 py-1">频道级视角</Badge>
+              </>
+            }
+            stats={[
+              { label: "30 天观看", value: formatCompactNumber(stats.overview30d.views) },
+              { label: "观看时长", value: formatHoursLabel(stats.overview30d.watchTimeHours) },
+              { label: "净增订阅", value: stats.overview30d.subscribersNet.toLocaleString("zh-CN") },
+              { label: "发布视频", value: stats.overview30d.videosPublished.toLocaleString("zh-CN") },
+            ]}
+          />
+
+          <AnalyticsSection
+            kicker="Overview"
+            title="核心指标"
+            description="先看最能反映频道状态的四个指标，再下钻到趋势和单视频表现。"
+          />
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Card>
-              <CardHeader>
-                <CardDescription>近 30 天观看次数</CardDescription>
-                <CardTitle className="text-3xl">{formatCount(channelStats.totals.views)}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardDescription>近 30 天观看时长</CardDescription>
-                <CardTitle className="text-3xl">{formatHours(channelStats.totals.watchTimeSeconds)}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardDescription>近 30 天净增订阅</CardDescription>
-                <CardTitle className="text-3xl">{channelStats.totals.subscribersNet}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardDescription>近 30 天发布视频</CardDescription>
-                <CardTitle className="text-3xl">{channelStats.totals.videosPublished}</CardTitle>
-              </CardHeader>
-            </Card>
+            <StudioMetricCard
+              title="30 天观看次数"
+              value={formatCompactNumber(stats.overview30d.views)}
+              hint="来自频道日统计的累计播放"
+              accent="var(--chart-1)"
+            />
+            <StudioMetricCard
+              title="30 天观看时长"
+              value={formatHoursLabel(stats.overview30d.watchTimeHours)}
+              hint="已换算为小时，便于复盘"
+              accent="var(--chart-2)"
+            />
+            <StudioMetricCard
+              title="30 天净增订阅"
+              value={stats.overview30d.subscribersNet.toLocaleString("zh-CN")}
+              hint="新增订阅减去流失订阅"
+              accent="var(--chart-3)"
+            />
+            <StudioMetricCard
+              title="30 天发布视频数"
+              value={stats.overview30d.videosPublished.toLocaleString("zh-CN")}
+              hint="统计窗口内发布的视频数量"
+              accent="var(--chart-5)"
+            />
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <Card>
-              <CardHeader>
-                <CardTitle>频道日统计</CardTitle>
-                <CardDescription>
-                  数据来自 `ChannelDailyStat`，先用表格替代图表，方便答辩时展示真实聚合结果。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>日期</TableHead>
-                      <TableHead>观看次数</TableHead>
-                      <TableHead>观看时长</TableHead>
-                      <TableHead>订阅净增</TableHead>
-                      <TableHead>发布数</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {channelStats.daily.slice(-10).reverse().map((item) => (
-                      <TableRow key={item.date.toISOString()}>
-                        <TableCell>{formatDate(item.date)}</TableCell>
-                        <TableCell>{formatCount(item.views)}</TableCell>
-                        <TableCell>{formatHours(item.watchTimeSeconds)}</TableCell>
-                        <TableCell>{item.subscribersGained - item.subscribersLost}</TableCell>
-                        <TableCell>{item.videosPublished}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+          <AnalyticsSection
+            kicker="Trends"
+            title="趋势与结构"
+            description="把播放、订阅和内容结构放在一起看，更容易识别真正的增长来源。"
+          />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>页面状态</CardTitle>
-                <CardDescription>本次先完成后端设计和可复用布局，不额外做新的图表 UI。</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>已接通 `ChannelDailyStat` 近 30 天查询</p>
-                <p>已接通 `VideoDailyStat` 的单视频聚合</p>
-                <p>当前页面使用表格展示，后续可直接在此基础上接 ECharts</p>
-                <p>
-                  如果聚合表暂时为空，可以先跑现有 rollup/seed 脚本，再回到这个页面查看趋势。
-                </p>
-              </CardContent>
-            </Card>
+          <TrendMetricChart
+            data={stats.trend30d.map((item) => ({
+              date: item.date.toISOString(),
+              views: item.views,
+              watchTimeHours: item.watchTimeHours,
+              subscribersNet: item.subscribersNet,
+              subscribersGained: item.subscribersGained,
+              subscribersLost: item.subscribersLost,
+            }))}
+          />
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+            <SubscriberFlowChart
+              data={stats.subscriberFlow30d.map((item) => ({
+                date: item.date.toISOString(),
+                views: item.views,
+                watchTimeHours: item.watchTimeHours,
+                subscribersNet: item.subscribersNet,
+                subscribersGained: item.subscribersGained,
+                subscribersLost: item.subscribersLost,
+              }))}
+            />
+            <VideoTypeDonutChart
+              data={stats.typeBreakdown}
+              title="内容结构"
+              description="按频道内现有视频数量查看长短内容的结构占比。"
+            />
           </div>
 
-          <Card>
-            <CardHeader>
+          <AnalyticsSection
+            kicker="Leaderboard"
+            title="视频表现"
+            description="默认按近 30 天观看次数排序，快速定位频道里的主要流量来源。"
+            aside={
+              <Badge variant="outline" className="rounded-full px-3 py-1">
+                {`${stats.videoLeaderboard30d.length} 条内容`}
+              </Badge>
+            }
+          />
+
+          <Card className="overflow-hidden border-border/70 bg-card/95 shadow-sm backdrop-blur-sm">
+            <CardHeader className="border-b border-border/70 bg-background/40">
               <CardTitle>视频表现</CardTitle>
-              <CardDescription>
-                最近 30 天按视频聚合，方便答辩时快速展示哪个视频带来了播放和互动。
-              </CardDescription>
+              <CardDescription>频道级榜单与分析入口都收口在这里，便于继续下钻到单视频分析。</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>视频</TableHead>
-                    <TableHead>累计观看</TableHead>
-                    <TableHead>近 30 天观看</TableHead>
-                    <TableHead>独立观众</TableHead>
-                    <TableHead>新增点赞</TableHead>
-                    <TableHead>新增评论</TableHead>
-                    <TableHead>跳转</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {videoStats.videos.length > 0 ? videoStats.videos.map((video) => (
-                    <TableRow key={video.id}>
-                      <TableCell className="max-w-80 truncate">{video.title}</TableCell>
-                      <TableCell>{formatCount(video.views)}</TableCell>
-                      <TableCell>{formatCount(video.viewsLastDays)}</TableCell>
-                      <TableCell>{video.uniqueViewersLastDays}</TableCell>
-                      <TableCell>{video.likesGainedLastDays}</TableCell>
-                      <TableCell>{video.commentsGainedLastDays}</TableCell>
-                      <TableCell>
-                        <Link
-                          href={`/watch/${video.shortCode}`}
-                          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-                        >
-                          查看
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        还没有视频统计数据。
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              <VideoLeaderboardTable rows={stats.videoLeaderboard30d} />
             </CardContent>
           </Card>
         </>
       )}
-    </div>
+    </AnalyticsPageShell>
   );
 }

@@ -47,7 +47,7 @@ export function ContentsPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-16 z-30 flex items-end justify-between bg-studio-background px-6 py-4">
+      <div className="sticky top-0 z-30 flex items-end justify-between bg-studio-background px-6 py-4">
         <h1 className="py-1 text-2xl font-bold">频道内容</h1>
         <div className="flex items-center gap-2 rounded-sm border bg-background p-1">
           <Button

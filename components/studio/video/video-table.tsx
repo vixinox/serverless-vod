@@ -16,6 +16,7 @@ import {
 } from "@tanstack/react-table";
 import {
   AlertCircle,
+  ArrowUpRight,
   CircleStop,
   ChartColumn,
   ChevronDown,
@@ -25,7 +26,6 @@ import {
   ChevronsRight,
   Columns3,
   Loader2,
-  MessageSquareText,
   MoreVertical,
   Pencil,
   RefreshCcw,
@@ -41,6 +41,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { apiRequest } from "@/lib/api-client";
@@ -48,6 +49,14 @@ import { SmartImage } from "@/components/smart-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -65,6 +74,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -74,15 +84,73 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useStudioTransition } from "@/components/studio/basic/studio-transition";
 import type {
   ListUserVideosResult,
   ProcessingStatusItem,
 } from "@/lib/server/videos";
 
 type VideoRow = ListUserVideosResult["videos"][number];
+type PersistedVideoTableState = {
+  searchTerm?: string;
+  pagination?: {
+    pageIndex?: number;
+    pageSize?: number;
+  };
+  columnVisibility?: VisibilityState;
+  sorting?: SortingState;
+};
 
 const PENDING_STATUSES = new Set(["UPLOADING", "PROCESSING"]);
 const POLL_INTERVAL_MS = 5000;
+const VIDEO_TABLE_STATE_KEY = "studio:video-table-state:v1";
+
+function VideoTableSkeletonRows({ rows = 6 }: { rows?: number }) {
+  return Array.from({ length: rows }, (_, index) => (
+    <TableRow key={`video-skeleton-${index}`} className="border-b border-border/70">
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <div className="flex items-center justify-center">
+          <Skeleton className="size-4 rounded-sm" />
+        </div>
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <div className="flex min-w-72 items-center gap-3">
+          <Skeleton className="h-18 w-32 rounded-sm" />
+          <div className="flex w-full flex-col gap-2">
+            <Skeleton className="h-4 w-2/3 rounded-sm" />
+            <Skeleton className="h-4 w-24 rounded-full" />
+            <div className="flex gap-2">
+              <Skeleton className="h-7 w-24 rounded-full" />
+              <Skeleton className="h-7 w-24 rounded-full" />
+              <Skeleton className="h-7 w-7 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <Skeleton className="h-6 w-18 rounded-full" />
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <Skeleton className="h-4 w-16 rounded-sm" />
+        <Skeleton className="mt-1 h-3 w-10 rounded-sm" />
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <Skeleton className="h-4 w-12 rounded-sm" />
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <Skeleton className="h-4 w-10 rounded-sm" />
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <Skeleton className="h-4 w-14 rounded-sm" />
+      </TableCell>
+      <TableCell className="h-18 px-2.5 py-2 align-middle">
+        <div className="flex justify-end">
+          <Skeleton className="size-8 rounded-sm" />
+        </div>
+      </TableCell>
+    </TableRow>
+  ));
+}
 
 type VisibilityKey = "PUBLIC" | "PRIVATE" | "UNLISTED" | "DRAFT";
 
@@ -160,42 +228,6 @@ function ProcessingStatusBadge({
     );
   }
   return null;
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) return "—";
-  return new Date(value).toLocaleString();
-}
-
-function formatWallSeconds(value: number | null) {
-  if (value === null) return "—";
-  const minutes = Math.floor(value / 60);
-  const seconds = value % 60;
-  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
-}
-
-function JobStatusBadge({ status }: { status: string }) {
-  if (status === "SUCCEEDED") {
-    return <Badge className="rounded-sm border-emerald-200 bg-emerald-50 text-emerald-700">成功</Badge>;
-  }
-  if (status === "FAILED") {
-    return <Badge variant="destructive" className="rounded-sm">失败</Badge>;
-  }
-  if (status === "RUNNING") {
-    return (
-      <Badge variant="secondary" className="rounded-sm gap-1.5">
-        <Loader2 className="size-3 animate-spin" />
-        运行中
-      </Badge>
-    );
-  }
-  if (status === "QUEUED") {
-    return <Badge variant="secondary" className="rounded-sm">排队中</Badge>;
-  }
-  if (status === "CANCELED") {
-    return <Badge variant="outline" className="rounded-sm">已取消</Badge>;
-  }
-  return <Badge variant="outline" className="rounded-sm">{status}</Badge>;
 }
 
 function VisibilityCell({
@@ -284,18 +316,42 @@ function createColumns(
   pollDetails: Record<string, ProcessingStatusItem>,
   options: {
     pendingShortCode: string | null;
+    pendingHref: string | null;
+    navigate: (href: string) => void;
+    prefetchRoute: (href: string) => void;
     onRetry: (video: VideoRow) => Promise<void>;
     onCancel: (video: VideoRow) => Promise<void>;
     onDelete: (video: VideoRow) => Promise<void>;
     onVisibilityChange: (shortCode: string, visibility: VisibilityKey) => void;
   },
 ): ColumnDef<VideoRow>[] {
-  const { pendingShortCode, onRetry, onCancel, onDelete, onVisibilityChange } = options;
+  const {
+    pendingShortCode,
+    pendingHref,
+    navigate,
+    prefetchRoute,
+    onRetry,
+    onCancel,
+    onDelete,
+    onVisibilityChange,
+  } = options;
 
   const getEffectiveStatus = (video: VideoRow) =>
     pollDetails[video.shortCode]?.processingStatus ?? video.processingStatus;
 
   const getPollDetail = (video: VideoRow) => pollDetails[video.shortCode] ?? null;
+
+  const handleStudioNavigation = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (event.defaultPrevented) return;
+    if (event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const target = event.currentTarget.target;
+    if (target && target !== "_self") return;
+
+    event.preventDefault();
+    void navigate(href);
+  };
 
   return [
     {
@@ -332,16 +388,16 @@ function createColumns(
         const ps = getEffectiveStatus(video);
         const detail = getPollDetail(video);
         const isPending = PENDING_STATUSES.has(ps);
+        const analyticsHref = `/studio/stat/${video.shortCode}`;
+        const detailsHref = `/studio/contents/video/${video.shortCode}`;
+        const watchHref = `/watch/${video.shortCode}`;
+        const isAnalyticsPending = pendingHref === analyticsHref;
+        const isDetailsPending = pendingHref === detailsHref;
 
-        // "观看" button only when playable
-        const buttons = [
-          { title: "详细信息", icon: Pencil, url: "/studio/contents/video/" },
-          { title: "数据分析", icon: ChartColumn, url: "/studio/analytics/" },
-          { title: "评论", icon: MessageSquareText, url: "/studio/comments/" },
-          ...(ps === "READY"
-            ? [{ title: "观看", icon: TvMinimalPlay, url: "/watch/" }]
-            : []),
-        ];
+        const buttons =
+          ps === "READY"
+            ? [{ title: "观看", icon: TvMinimalPlay, href: watchHref, kind: "watch" as const }]
+            : [];
 
         return (
           <div className={`flex min-w-72 items-center gap-3 ${isPending ? "opacity-70" : ""}`}>
@@ -359,7 +415,7 @@ function createColumns(
               )}
             </div>
             <div className="w-full min-w-0">
-              <div className="mt-2 ml-1 truncate text-sm">{video.title}</div>
+              <div className="mt-2 ml-1 truncate text-sm font-medium">{video.title}</div>
               {ps !== "READY" && (
                 <div className="ml-1 mt-1">
                   <ProcessingStatusBadge
@@ -369,22 +425,72 @@ function createColumns(
                   />
                 </div>
               )}
-              <div className="mt-1 flex gap-1">
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="h-7 rounded-full border-border/70 bg-background/85 px-2.5 shadow-xs"
+                  asChild
+                >
+                  <Link
+                    href={detailsHref}
+                    prefetch={false}
+                    onMouseEnter={() => prefetchRoute(detailsHref)}
+                    onFocus={() => prefetchRoute(detailsHref)}
+                    onClick={(event) => handleStudioNavigation(event, detailsHref)}
+                    data-pending={isDetailsPending ? "true" : undefined}
+                    className="data-[pending=true]:opacity-70"
+                  >
+                    <Pencil data-icon="inline-start" />
+                    编辑详情
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="h-7 rounded-full border-border/70 bg-background/85 px-2.5 shadow-xs"
+                  asChild
+                >
+                  <Link
+                    href={analyticsHref}
+                    prefetch={false}
+                    onMouseEnter={() => prefetchRoute(analyticsHref)}
+                    onFocus={() => prefetchRoute(analyticsHref)}
+                    onClick={(event) => handleStudioNavigation(event, analyticsHref)}
+                    data-pending={isAnalyticsPending ? "true" : undefined}
+                    className="data-[pending=true]:opacity-70"
+                  >
+                    <ChartColumn data-icon="inline-start" />
+                    查看分析
+                    <ArrowUpRight data-icon="inline-end" />
+                  </Link>
+                </Button>
                 {buttons.map((item) => (
                   <Tooltip key={item.title}>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-sm opacity-0 transition-opacity duration-100 group-hover:opacity-100"
+                        className="h-7 w-7 rounded-full opacity-70 transition-[opacity,background-color] duration-150 hover:opacity-100 group-hover:opacity-100"
                         asChild
                       >
                         <Link
-                          href={item.url + video.shortCode}
+                          href={item.href}
                           prefetch={false}
-                          target={item.url === "/watch/" ? "_blank" : "_self"}
+                          target={item.kind === "watch" ? "_blank" : "_self"}
+                          onMouseEnter={
+                            item.kind === "studio" ? () => prefetchRoute(item.href) : undefined
+                          }
+                          onFocus={
+                            item.kind === "studio" ? () => prefetchRoute(item.href) : undefined
+                          }
+                          onClick={
+                            item.kind === "studio"
+                              ? (event) => handleStudioNavigation(event, item.href)
+                              : undefined
+                          }
                         >
-                          <item.icon className="size-4" strokeWidth={1.25} />
+                          <item.icon strokeWidth={1.25} />
                         </Link>
                       </Button>
                     </TooltipTrigger>
@@ -493,7 +599,22 @@ function createColumns(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44 rounded-sm">
               <DropdownMenuItem asChild>
-                <Link href={`/studio/contents/video/${video.shortCode}`}>编辑</Link>
+                <Link
+                  href={`/studio/contents/video/${video.shortCode}`}
+                  onMouseEnter={() => prefetchRoute(`/studio/contents/video/${video.shortCode}`)}
+                  onFocus={() => prefetchRoute(`/studio/contents/video/${video.shortCode}`)}
+                >
+                  编辑
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/studio/stat/${video.shortCode}`}
+                  onMouseEnter={() => prefetchRoute(`/studio/stat/${video.shortCode}`)}
+                  onFocus={() => prefetchRoute(`/studio/stat/${video.shortCode}`)}
+                >
+                  数据分析
+                </Link>
               </DropdownMenuItem>
               {canWatch ? (
                 <DropdownMenuItem asChild>
@@ -546,14 +667,32 @@ function createColumns(
   ];
 }
 
+function loadPersistedTableState(): PersistedVideoTableState | null {
+  if (typeof window === "undefined") return null;
+
+  const raw = window.sessionStorage.getItem(VIDEO_TABLE_STATE_KEY);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as PersistedVideoTableState;
+  } catch {
+    window.sessionStorage.removeItem(VIDEO_TABLE_STATE_KEY);
+    return null;
+  }
+}
+
 export const VideoTable = () => {
+  const router = useRouter();
+  const { navigate, pendingHref } = useStudioTransition();
   const [videos, setVideos] = useState<VideoRow[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedTerm, setDebouncedTerm] = useState("");
+  const [hasRestoredState, setHasRestoredState] = useState(false);
   const [pollDetails, setPollDetails] = useState<Record<string, ProcessingStatusItem>>({});
   const [pendingActionShortCode, setPendingActionShortCode] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<VideoRow | null>(null);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -561,15 +700,76 @@ export const VideoTable = () => {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const reqIdRef = useRef(0);
+  const prefetchedRoutesRef = useRef<Set<string>>(new Set());
   const pageCount = Math.ceil(totalCount / pagination.pageSize) || 1;
 
   useEffect(() => {
+    const persistedState = loadPersistedTableState();
+
+    if (persistedState?.searchTerm) {
+      setSearchTerm(persistedState.searchTerm);
+      setDebouncedTerm(persistedState.searchTerm);
+    }
+
+    if (persistedState?.pagination) {
+      setPagination((prev) => ({
+        pageIndex:
+          typeof persistedState.pagination?.pageIndex === "number"
+            ? Math.max(0, persistedState.pagination.pageIndex)
+            : prev.pageIndex,
+        pageSize:
+          typeof persistedState.pagination?.pageSize === "number"
+            ? Math.min(Math.max(persistedState.pagination.pageSize, 10), 50)
+            : prev.pageSize,
+      }));
+    }
+
+    if (persistedState?.columnVisibility) {
+      setColumnVisibility(persistedState.columnVisibility);
+    }
+
+    if (persistedState?.sorting) {
+      setSorting(persistedState.sorting);
+    }
+
+    setHasRestoredState(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasRestoredState || typeof window === "undefined") return;
+
+    window.sessionStorage.setItem(
+      VIDEO_TABLE_STATE_KEY,
+      JSON.stringify({
+        searchTerm,
+        pagination,
+        columnVisibility,
+        sorting,
+      } satisfies PersistedVideoTableState),
+    );
+  }, [columnVisibility, hasRestoredState, pagination, searchTerm, sorting]);
+
+  useEffect(() => {
+    if (!hasRestoredState) return;
+
     const t = setTimeout(() => {
       setDebouncedTerm(searchTerm);
-      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      if (searchTerm !== debouncedTerm) {
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      }
     }, 300);
     return () => clearTimeout(t);
-  }, [searchTerm]);
+  }, [debouncedTerm, hasRestoredState, searchTerm]);
+
+  const prefetchRoute = useCallback(
+    (href: string) => {
+      if (!href || prefetchedRoutesRef.current.has(href)) return;
+
+      prefetchedRoutesRef.current.add(href);
+      void router.prefetch(href);
+    },
+    [router],
+  );
 
   const fetchVideos = useCallback(async () => {
     setLoading(true);
@@ -633,28 +833,32 @@ export const VideoTable = () => {
     }
   }, [fetchVideos]);
 
-  const runDelete = useCallback(async (video: VideoRow) => {
-    const confirmed = window.confirm(`确定删除视频「${video.title}」吗？删除后将从内容列表中移除。`);
-    if (!confirmed) return;
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
 
-    setPendingActionShortCode(video.shortCode);
+    setPendingActionShortCode(deleteTarget.shortCode);
     try {
-      await apiRequest(`/api/studio/videos/${video.shortCode}`, {
+      await apiRequest(`/api/studio/videos/${deleteTarget.shortCode}`, {
         method: "DELETE",
       });
-      setVideos((prev) => prev.filter((item) => item.shortCode !== video.shortCode));
+      setVideos((prev) => prev.filter((item) => item.shortCode !== deleteTarget.shortCode));
       setPollDetails((prev) => {
-        const { [video.shortCode]: _removed, ...rest } = prev;
+        const { [deleteTarget.shortCode]: _removed, ...rest } = prev;
         return rest;
       });
       toast.success("视频已删除");
+      setDeleteTarget(null);
       await fetchVideos();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "删除失败");
     } finally {
       setPendingActionShortCode(null);
     }
-  }, [fetchVideos]);
+  }, [deleteTarget, fetchVideos]);
+
+  const runDelete = useCallback((video: VideoRow) => {
+    setDeleteTarget(video);
+  }, []);
 
   const handleVisibilityChange = useCallback(
     (shortCode: string, visibility: VisibilityKey) => {
@@ -671,20 +875,36 @@ export const VideoTable = () => {
     () =>
       createColumns(pollDetails, {
         pendingShortCode: pendingActionShortCode,
+        pendingHref,
+        navigate,
+        prefetchRoute,
         onRetry: runRetry,
         onCancel: runCancel,
         onDelete: runDelete,
         onVisibilityChange: handleVisibilityChange,
       }),
-    [pollDetails, pendingActionShortCode, runRetry, runCancel, runDelete, handleVisibilityChange],
+    [
+      pollDetails,
+      pendingActionShortCode,
+      pendingHref,
+      navigate,
+      prefetchRoute,
+      runRetry,
+      runCancel,
+      runDelete,
+      handleVisibilityChange,
+    ],
   );
 
   useEffect(() => {
+    if (!hasRestoredState) return;
     fetchVideos();
-  }, [fetchVideos]);
+  }, [fetchVideos, hasRestoredState]);
 
   // Poll pending videos every 5s; refresh table when status transitions to terminal
   useEffect(() => {
+    if (!hasRestoredState) return;
+
     const pendingCodes = videos
       .filter((v) => PENDING_STATUSES.has(v.processingStatus))
       .map((v) => v.shortCode);
@@ -738,7 +958,7 @@ export const VideoTable = () => {
       cancelled = true;
       clearInterval(id);
     };
-  }, [videos, fetchVideos]);
+  }, [videos, fetchVideos, hasRestoredState]);
 
   const table = useReactTable({
     data: videos,
@@ -850,6 +1070,8 @@ export const VideoTable = () => {
                   ))}
                 </TableRow>
               ))
+            ) : loading ? (
+              <VideoTableSkeletonRows rows={Math.min(Math.max(pagination.pageSize, 4), 8)} />
             ) : (
               <TableRow>
                 <TableCell
@@ -937,6 +1159,38 @@ export const VideoTable = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="max-w-md rounded-sm">
+          <DialogHeader>
+            <DialogTitle>删除这条视频？</DialogTitle>
+            <DialogDescription>
+              {deleteTarget
+                ? `视频「${deleteTarget.title}」删除后会从内容列表中移除，此操作不可撤销。`
+                : "删除后会从内容列表中移除，此操作不可撤销。"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={Boolean(pendingActionShortCode)}
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => void confirmDelete()}
+              disabled={!deleteTarget || Boolean(pendingActionShortCode)}
+            >
+              {pendingActionShortCode ? <Loader2 className="size-4 animate-spin" /> : null}
+              确认删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
