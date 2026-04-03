@@ -14,12 +14,15 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group";
+import {
   formatCompactNumber,
   formatHoursLabel,
   formatLongDate,
   formatPercent,
   formatShortDate,
-  formatSignedNumber,
   formatVideoTypeLabel,
 } from "@/components/studio/analytics/utils";
 import { cn } from "@/lib/utils";
@@ -49,7 +52,7 @@ type VideoTrendPoint = {
   commentsGained: number;
 };
 
-type TrendMetricKey = "views" | "watchTimeHours" | "subscribersNet";
+type TrendMetricKey = "views" | "watchTimeHours";
 type SubscriberMetricKey = "subscribersGained" | "subscribersLost";
 
 const dashboardViewsConfig = {
@@ -81,10 +84,6 @@ const trendMetricConfig = {
   watchTimeHours: {
     label: "观看时长",
     color: "var(--chart-2)",
-  },
-  subscribersNet: {
-    label: "净增订阅",
-    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
@@ -138,11 +137,6 @@ const trendMetricMeta: Record<
     label: "观看时长",
     description: "按天查看累计观看时长",
     formatValue: formatHoursLabel,
-  },
-  subscribersNet: {
-    label: "净增订阅",
-    description: "按天查看频道订阅变化",
-    formatValue: formatSignedNumber,
   },
 };
 
@@ -215,31 +209,6 @@ function TooltipMetricRow({
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
     </div>
-  );
-}
-
-function MetricToggleButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      data-active={active}
-      className={cn(
-        "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-        "hover:bg-accent hover:text-accent-foreground",
-        "data-[active=true]:border-border data-[active=true]:bg-muted data-[active=true]:text-foreground",
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -328,7 +297,7 @@ export function VideoTypeDonutChart({
 }: {
   data: VideoTypeBreakdown;
   title: string;
-  description: string;
+  description?: string;
 }) {
   const totalCount = React.useMemo(
     () => data.reduce((result, item) => result + item.count, 0),
@@ -353,67 +322,62 @@ export function VideoTypeDonutChart({
   );
 
   return (
-    <Card className="flex flex-col overflow-hidden border-border/70 bg-card/95 shadow-sm backdrop-blur-sm">
-      <CardHeader className="items-center border-b border-border/70 bg-background/40 pb-5 text-center">
-        <Badge variant="outline" className="mb-1 rounded-full px-2.5 py-0.5 text-[10px] tracking-[0.16em] uppercase">
-          Content Mix
-        </Badge>
+    <Card className="flex flex-col overflow-hidden border-border/70 bg-card/95 shadow-sm backdrop-blur-sm pt-0 pb-0">
+      <CardHeader className="items-center border-b border-border/70 bg-background/40 pb-5 text-center pt-6">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         {totalCount > 0 ? (
-          <ChartFrame className="mx-auto mt-6 w-full max-w-[280px] p-3 sm:p-4">
-            <ChartContainer config={videoTypeConfig} className="mx-auto aspect-square max-h-[250px]">
-              <PieChart>
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      hideLabel
-                      nameKey="key"
-                      labelFormatter={() => "内容结构"}
-                      formatter={(value, _name, item) => {
-                        const payload = item.payload as (typeof chartData)[number];
-
-                        return (
-                          <TooltipMetricRow
-                            label={payload.label}
-                            value={`${Number(value).toLocaleString("zh-CN")} 个`}
-                          />
-                        );
-                      }}
-                    />
-                  }
-                />
-                <Pie data={chartData} dataKey="count" nameKey="key" innerRadius={62} strokeWidth={5}>
-                  <Label
-                    content={({ viewBox }) => {
-                      if (!viewBox || !("cx" in viewBox) || !("cy" in viewBox)) {
-                        return null;
-                      }
+          <ChartContainer config={videoTypeConfig} className="mx-auto mt-6 aspect-square max-h-[250px] w-full max-w-[280px]">
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    nameKey="key"
+                    labelFormatter={() => "内容结构"}
+                    formatter={(value, _name, item) => {
+                      const payload = item.payload as (typeof chartData)[number];
 
                       return (
-                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                          <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-3xl font-semibold">
-                            {totalCount.toLocaleString("zh-CN")}
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className="fill-muted-foreground text-sm"
-                          >
-                            视频数
-                          </tspan>
-                        </text>
+                        <TooltipMetricRow
+                          label={payload.label}
+                          value={`${Number(value).toLocaleString("zh-CN")} 个`}
+                        />
                       );
                     }}
                   />
-                </Pie>
-                <ChartLegend content={<ChartLegendContent nameKey="key" />} />
-              </PieChart>
-            </ChartContainer>
-          </ChartFrame>
+                }
+              />
+              <Pie data={chartData} dataKey="count" nameKey="key" innerRadius={62} strokeWidth={5}>
+                <Label
+                  content={({ viewBox }) => {
+                    if (!viewBox || !("cx" in viewBox) || !("cy" in viewBox)) {
+                      return null;
+                    }
+
+                    return (
+                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                        <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-3xl font-semibold">
+                          {totalCount.toLocaleString("zh-CN")}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className="fill-muted-foreground text-sm"
+                        >
+                          视频数
+                        </tspan>
+                      </text>
+                    );
+                  }}
+                />
+              </Pie>
+              <ChartLegend content={<ChartLegendContent nameKey="key" />} />
+            </PieChart>
+          </ChartContainer>
         ) : (
           <StudioChartEmpty
             title="还没有内容结构数据"
@@ -421,12 +385,6 @@ export function VideoTypeDonutChart({
           />
         )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 border-t border-border/70 bg-background/35 text-sm">
-        <div className="font-medium">{`共 ${totalCount.toLocaleString("zh-CN")} 个视频 · 累计 ${formatCompactNumber(totalViews)} 次观看`}</div>
-        <div className="text-muted-foreground">
-          {singleType ? "当前仅包含一种视频类型。" : "长视频与短视频的结构会持续影响频道增长。"}
-        </div>
-      </CardFooter>
     </Card>
   );
 }
@@ -437,89 +395,84 @@ export function TrendMetricChart({
   data: StatTrendPoint[];
 }) {
   const [activeMetric, setActiveMetric] = React.useState<TrendMetricKey>("views");
+  const chartId = React.useId().replace(/:/g, "");
   const hasData = React.useMemo(
-    () => data.some((item) => item.views > 0 || item.watchTimeHours > 0 || item.subscribersNet !== 0),
+    () => data.some((item) => item.views > 0 || item.watchTimeHours > 0),
     [data],
   );
   const activeMeta = trendMetricMeta[activeMetric];
+  const gradientId = `${chartId}-${activeMetric}`;
 
   return (
-    <Card className="overflow-hidden border-border/70 bg-card/95 py-0 shadow-sm backdrop-blur-sm">
-      <CardHeader className="flex flex-col gap-3 border-b border-border/70 bg-background/40 px-6 py-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="grid gap-1">
-          <Badge variant="outline" className="mb-1 w-fit rounded-full px-2.5 py-0.5 text-[10px] tracking-[0.16em] uppercase">
-            Core Signals
-          </Badge>
+    <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b border-border/70 bg-background/40 px-6 py-5 sm:flex-row">
+        <div className="grid flex-1 gap-1">
           <CardTitle>30 天趋势探索</CardTitle>
           <CardDescription>{activeMeta.description}</CardDescription>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <MetricToggleButton active={activeMetric === "views"} onClick={() => setActiveMetric("views")}>
-            观看次数
-          </MetricToggleButton>
-          <MetricToggleButton
-            active={activeMetric === "watchTimeHours"}
-            onClick={() => setActiveMetric("watchTimeHours")}
-          >
-            观看时长
-          </MetricToggleButton>
-          <MetricToggleButton
-            active={activeMetric === "subscribersNet"}
-            onClick={() => setActiveMetric("subscribersNet")}
-          >
-            净增订阅
-          </MetricToggleButton>
-        </div>
+        <ToggleGroup
+          type="single"
+          value={activeMetric}
+          onValueChange={(value) => {
+            if (value) {
+              setActiveMetric(value as TrendMetricKey);
+            }
+          }}
+          variant="outline"
+          className="hidden sm:ml-auto sm:flex"
+          aria-label="选择指标"
+        >
+          <ToggleGroupItem value="views">观看次数</ToggleGroupItem>
+          <ToggleGroupItem value="watchTimeHours">观看时长</ToggleGroupItem>
+        </ToggleGroup>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
-          <ChartFrame className="p-3 sm:p-4">
-            <ChartContainer config={trendMetricConfig} className="aspect-auto h-[300px] w-full">
-              <LineChart
-                accessibilityLayer
-                data={data}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={24}
-                  tickFormatter={(value) => formatShortDate(value)}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      nameKey={activeMetric}
-                      labelFormatter={(value) => formatLongDate(value as string)}
-                      formatter={(value) => (
-                        <TooltipMetricRow
-                          label={activeMeta.label}
-                          value={activeMeta.formatValue(Number(value))}
-                        />
-                      )}
-                    />
-                  }
-                />
-                <Line
-                  dataKey={activeMetric}
-                  type="monotone"
-                  stroke={`var(--color-${activeMetric})`}
-                  strokeWidth={2.5}
-                  dot={false}
-                />
-              </LineChart>
-            </ChartContainer>
-          </ChartFrame>
+          <ChartContainer config={trendMetricConfig} className="aspect-auto h-[250px] w-full">
+            <AreaChart accessibilityLayer data={data}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={`var(--color-${activeMetric})`} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={`var(--color-${activeMetric})`} stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={24}
+                tickFormatter={(value) => formatShortDate(value)}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    indicator="dot"
+                    labelFormatter={(value) => formatLongDate(value as string)}
+                    formatter={(value) => (
+                      <TooltipMetricRow
+                        label={activeMeta.label}
+                        value={activeMeta.formatValue(Number(value))}
+                      />
+                    )}
+                  />
+                }
+              />
+              <Area
+                dataKey={activeMetric}
+                type="natural"
+                fill={`url(#${gradientId})`}
+                stroke={`var(--color-${activeMetric})`}
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
         ) : (
           <StudioChartEmpty
             title="最近 30 天还没有趋势数据"
-            description="当频道日统计开始累计后，这里会展示播放、观看时长和净增订阅。"
+            description="当频道日统计开始累计后，这里会展示播放和观看时长趋势。"
           />
         )}
       </CardContent>
@@ -540,12 +493,9 @@ export function SubscriberFlowChart({
   const activeMeta = subscriberMetricMeta[activeMetric];
 
   return (
-    <Card className="overflow-hidden border-border/70 bg-card/95 py-0 shadow-sm backdrop-blur-sm">
-      <CardHeader className="flex flex-col gap-3 border-b border-border/70 bg-background/40 p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:py-0">
-          <Badge variant="outline" className="mb-1 w-fit rounded-full px-2.5 py-0.5 text-[10px] tracking-[0.16em] uppercase">
-            Subscriber Flow
-          </Badge>
+    <Card className="overflow-hidden border-border/70 bg-card/95 py-0 pb-6 shadow-sm backdrop-blur-sm h-fit">
+      <CardHeader className="flex flex-col items-stretch border-b pb-0! border-border/70 bg-background/40 p-0 sm:flex-row">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 pt-8">
           <CardTitle>订阅变化</CardTitle>
           <CardDescription>{activeMeta.description}</CardDescription>
         </div>
@@ -562,53 +512,53 @@ export function SubscriberFlowChart({
                 "data-[active=true]:bg-muted/50",
               )}
             >
-              <span className="text-xs text-muted-foreground">{subscriberMetricMeta[metric].label}</span>
-              <span className="text-lg font-bold sm:text-3xl">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {subscriberMetricMeta[metric].label}
+              </span>
+              <span className="text-base leading-none font-semibold whitespace-nowrap sm:text-2xl">
                 {formatCompactNumber(data.reduce((result, item) => result + item[metric], 0))}
               </span>
             </button>
           ))}
         </div>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:p-6">
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
-          <ChartFrame className="p-3 sm:p-4">
-            <ChartContainer config={subscriberMetricConfig} className="aspect-auto h-[250px] w-full">
-              <BarChart
-                accessibilityLayer
-                data={data}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={24}
-                  tickFormatter={(value) => formatShortDate(value)}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      nameKey={activeMetric}
-                      labelFormatter={(value) => formatLongDate(value as string)}
-                      formatter={(value) => (
-                        <TooltipMetricRow
-                          label={subscriberMetricMeta[activeMetric].label}
-                          value={Number(value).toLocaleString("zh-CN")}
-                        />
-                      )}
-                    />
-                  }
-                />
-                <Bar dataKey={activeMetric} fill={`var(--color-${activeMetric})`} radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-          </ChartFrame>
+          <ChartContainer config={subscriberMetricConfig} className="aspect-auto h-[250px] w-full">
+            <BarChart
+              accessibilityLayer
+              data={data}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={24}
+                tickFormatter={(value) => formatShortDate(value)}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    nameKey={activeMetric}
+                    labelFormatter={(value) => formatLongDate(value as string)}
+                    formatter={(value) => (
+                      <TooltipMetricRow
+                        label={subscriberMetricMeta[activeMetric].label}
+                        value={Number(value).toLocaleString("zh-CN")}
+                      />
+                    )}
+                  />
+                }
+              />
+              <Bar dataKey={activeMetric} fill={`var(--color-${activeMetric})`} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
         ) : (
           <StudioChartEmpty
             title="还没有订阅变化数据"
@@ -644,66 +594,74 @@ export function VideoViewsTrendChart({
 }: {
   data: VideoTrendPoint[];
 }) {
+  const chartId = React.useId().replace(/:/g, "");
+  const viewsGradientId = `${chartId}-views`;
+  const uniqueViewersGradientId = `${chartId}-unique-viewers`;
   const hasData = React.useMemo(
     () => data.some((item) => item.views > 0 || item.uniqueViewers > 0),
     [data],
   );
 
   return (
-    <Card className="overflow-hidden border-border/70 bg-card/95 py-0 shadow-sm backdrop-blur-sm">
+    <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="flex flex-col gap-2 border-b border-border/70 bg-background/40 px-6 py-5">
-        <Badge variant="outline" className="mb-1 w-fit rounded-full px-2.5 py-0.5 text-[10px] tracking-[0.16em] uppercase">
-          Audience Reach
-        </Badge>
         <CardTitle>30 天播放趋势</CardTitle>
         <CardDescription>对比观看次数和独立观众，判断这条视频的持续触达能力。</CardDescription>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
-          <ChartFrame className="p-3 sm:p-4">
-            <ChartContainer config={videoTrendConfig} className="aspect-auto h-[300px] w-full">
-              <LineChart
-                accessibilityLayer
-                data={data}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={24}
-                  tickFormatter={(value) => formatShortDate(value)}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value) => formatLongDate(value as string)}
-                      formatter={(value, name) => (
-                        <TooltipMetricRow
-                          label={name === "uniqueViewers" ? "独立观众" : "观看次数"}
-                          value={formatCompactNumber(Number(value))}
-                        />
-                      )}
-                    />
-                  }
-                />
-                <Line dataKey="views" type="monotone" stroke="var(--color-views)" strokeWidth={2.5} dot={false} />
-                <Line
-                  dataKey="uniqueViewers"
-                  type="monotone"
-                  stroke="var(--color-uniqueViewers)"
-                  strokeWidth={2.5}
-                  dot={false}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </LineChart>
-            </ChartContainer>
-          </ChartFrame>
+          <ChartContainer config={videoTrendConfig} className="aspect-auto h-[300px] w-full">
+            <AreaChart accessibilityLayer data={data} margin={{ left: 12, right: 12 }}>
+              <defs>
+                <linearGradient id={viewsGradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.5} />
+                  <stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id={uniqueViewersGradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-uniqueViewers)" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="var(--color-uniqueViewers)" stopOpacity={0.08} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={24}
+                tickFormatter={(value) => formatShortDate(value)}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => formatLongDate(value as string)}
+                    formatter={(value, name) => (
+                      <TooltipMetricRow
+                        label={name === "uniqueViewers" ? "独立观众" : "观看次数"}
+                        value={formatCompactNumber(Number(value))}
+                      />
+                    )}
+                  />
+                }
+              />
+              <Area
+                dataKey="views"
+                type="natural"
+                fill={`url(#${viewsGradientId})`}
+                stroke="var(--color-views)"
+                strokeWidth={2.2}
+              />
+              <Area
+                dataKey="uniqueViewers"
+                type="natural"
+                fill={`url(#${uniqueViewersGradientId})`}
+                stroke="var(--color-uniqueViewers)"
+                strokeWidth={2.2}
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+            </AreaChart>
+          </ChartContainer>
         ) : (
           <StudioChartEmpty
             title="最近 30 天还没有播放趋势数据"
@@ -728,52 +686,59 @@ export function VideoEngagementChart({
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 py-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="flex flex-col gap-2 border-b border-border/70 bg-background/40 px-6 py-5">
-        <Badge variant="outline" className="mb-1 w-fit rounded-full px-2.5 py-0.5 text-[10px] tracking-[0.16em] uppercase">
-          Engagement
-        </Badge>
         <CardTitle>互动增量</CardTitle>
         <CardDescription>查看这条视频在近 30 天内带来的点赞和评论变化。</CardDescription>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
-          <ChartFrame className="p-3 sm:p-4">
-            <ChartContainer config={videoEngagementConfig} className="aspect-auto h-[260px] w-full">
-              <BarChart
-                accessibilityLayer
-                data={data}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={24}
-                  tickFormatter={(value) => formatShortDate(value)}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value) => formatLongDate(value as string)}
-                      formatter={(value, name) => (
-                        <TooltipMetricRow
-                          label={name === "commentsGained" ? "新增评论" : "新增点赞"}
-                          value={Number(value).toLocaleString("zh-CN")}
-                        />
-                      )}
-                    />
-                  }
-                />
-                <Bar dataKey="likesGained" fill="var(--color-likesGained)" radius={[5, 5, 0, 0]} />
-                <Bar dataKey="commentsGained" fill="var(--color-commentsGained)" radius={[5, 5, 0, 0]} />
-                <ChartLegend content={<ChartLegendContent />} />
-              </BarChart>
-            </ChartContainer>
-          </ChartFrame>
+          <ChartContainer config={videoEngagementConfig} className="aspect-auto h-[260px] w-full">
+            <LineChart
+              accessibilityLayer
+              data={data}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={24}
+                tickFormatter={(value) => formatShortDate(value)}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => formatLongDate(value as string)}
+                    formatter={(value, name) => (
+                      <TooltipMetricRow
+                        label={name === "commentsGained" ? "新增评论" : "新增点赞"}
+                        value={Number(value).toLocaleString("zh-CN")}
+                      />
+                    )}
+                  />
+                }
+              />
+              <Line
+                dataKey="likesGained"
+                type="monotone"
+                stroke="var(--color-likesGained)"
+                strokeWidth={2.5}
+                dot={false}
+              />
+              <Line
+                dataKey="commentsGained"
+                type="monotone"
+                stroke="var(--color-commentsGained)"
+                strokeWidth={2.5}
+                dot={false}
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+            </LineChart>
+          </ChartContainer>
         ) : (
           <StudioChartEmpty
             title="最近 30 天还没有互动增量数据"

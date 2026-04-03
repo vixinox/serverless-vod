@@ -34,6 +34,7 @@ import {
   ThumbsDown,
   ThumbsUp,
   TvMinimalPlay,
+  type LucideIcon,
 } from "lucide-react";
 import {
   Popover,
@@ -91,6 +92,13 @@ import type {
 } from "@/lib/server/videos";
 
 type VideoRow = ListUserVideosResult["videos"][number];
+type VideoActionButton = {
+  title: string;
+  icon: LucideIcon;
+  href: string;
+  kind: "watch" | "studio";
+};
+
 type PersistedVideoTableState = {
   searchTerm?: string;
   pagination?: {
@@ -160,10 +168,10 @@ const visibilityConfig: Record<
   VisibilityKey,
   { label: string; variant: "default" | "secondary" | "outline" | "destructive"; className: string; dotClass: string }
 > = {
-  PUBLIC:   { label: "公开",   variant: "secondary", className: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",   dotClass: "bg-green-500" },
-  UNLISTED: { label: "不公开", variant: "secondary", className: "bg-blue-50  text-blue-700  border-blue-200  dark:bg-blue-950  dark:text-blue-300  dark:border-blue-800",   dotClass: "bg-blue-500" },
-  PRIVATE:  { label: "私享",   variant: "secondary", className: "bg-yellow-50  text-yellow-700  border-yellow-200  dark:bg-yellow-950  dark:text-yellow-300  dark:border-yellow-800",   dotClass: "bg-yellow-500" },
-  DRAFT:    { label: "草稿",   variant: "secondary", className: "bg-zinc-50  text-zinc-500  border-zinc-200  dark:bg-zinc-900  dark:text-zinc-400  dark:border-zinc-700",   dotClass: "bg-zinc-400" },
+  PUBLIC: { label: "公开", variant: "secondary", className: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800", dotClass: "bg-green-500" },
+  UNLISTED: { label: "不公开", variant: "secondary", className: "bg-blue-50  text-blue-700  border-blue-200  dark:bg-blue-950  dark:text-blue-300  dark:border-blue-800", dotClass: "bg-blue-500" },
+  PRIVATE: { label: "私享", variant: "secondary", className: "bg-yellow-50  text-yellow-700  border-yellow-200  dark:bg-yellow-950  dark:text-yellow-300  dark:border-yellow-800", dotClass: "bg-yellow-500" },
+  DRAFT: { label: "草稿", variant: "secondary", className: "bg-zinc-50  text-zinc-500  border-zinc-200  dark:bg-zinc-900  dark:text-zinc-400  dark:border-zinc-700", dotClass: "bg-zinc-400" },
 };
 
 const stageLabels: Record<string, string> = {
@@ -295,11 +303,10 @@ function VisibilityCell({
                 key={v}
                 onClick={() => handleSelect(v)}
                 disabled={isActive || saving}
-                className={`flex items-center gap-2 rounded-sm px-2.5 py-1.5 text-sm transition-colors ${
-                  isActive
+                className={`flex items-center gap-2 rounded-sm px-2.5 py-1.5 text-sm transition-colors ${isActive
                     ? "font-medium text-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                } disabled:cursor-default`}
+                  } disabled:cursor-default`}
               >
                 <span className={`inline-block size-2 shrink-0 rounded-full ${c.dotClass}`} />
                 {c.label}
@@ -394,7 +401,7 @@ function createColumns(
         const isAnalyticsPending = pendingHref === analyticsHref;
         const isDetailsPending = pendingHref === detailsHref;
 
-        const buttons =
+        const buttons: VideoActionButton[] =
           ps === "READY"
             ? [{ title: "观看", icon: TvMinimalPlay, href: watchHref, kind: "watch" as const }]
             : [];
@@ -442,7 +449,7 @@ function createColumns(
                     className="data-[pending=true]:opacity-70"
                   >
                     <Pencil data-icon="inline-start" />
-                    编辑详情
+                    编辑
                   </Link>
                 </Button>
                 <Button
@@ -461,7 +468,7 @@ function createColumns(
                     className="data-[pending=true]:opacity-70"
                   >
                     <ChartColumn data-icon="inline-start" />
-                    查看分析
+                    分析
                     <ArrowUpRight data-icon="inline-end" />
                   </Link>
                 </Button>
@@ -597,7 +604,7 @@ function createColumns(
                 <span className="sr-only">操作菜单</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44 rounded-sm">
+            <DropdownMenuContent align="end" className="rounded-sm">
               <DropdownMenuItem asChild>
                 <Link
                   href={`/studio/contents/video/${video.shortCode}`}
@@ -856,7 +863,7 @@ export const VideoTable = () => {
     }
   }, [deleteTarget, fetchVideos]);
 
-  const runDelete = useCallback((video: VideoRow) => {
+  const runDelete = useCallback(async (video: VideoRow) => {
     setDeleteTarget(video);
   }, []);
 

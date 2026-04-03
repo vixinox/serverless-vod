@@ -34,7 +34,8 @@ export function VideoInfo({ videoData, channelData, isOwner }: {
           shortCode={videoData.shortCode}
           likesCount={videoData.likesCount}
           prevReaction={videoData.prevReaction}
-          isSaved={videoData.isSaved}
+          isWatchLater={videoData.isWatchLater}
+          isFavorited={videoData.isFavorited}
         />
       </div>
 

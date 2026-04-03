@@ -4,30 +4,39 @@ import { ReactionType } from "@prisma/client";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ClockPlus, ListVideo, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Bookmark, ClockPlus, ListVideo, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { apiRequest } from "@/lib/api-client";
 import { SaveToPlaylistDialog } from "@/components/player/save-to-playlist-dialog";
-import { QUICK_SAVE_PLAYLIST_TITLE } from "@/lib/system-playlists";
+import {
+  FAVORITES_PLAYLIST_KEY,
+  FAVORITES_PLAYLIST_TITLE,
+  type SystemPlaylistKey,
+  WATCH_LATER_PLAYLIST_KEY,
+  WATCH_LATER_PLAYLIST_TITLE,
+} from "@/lib/system-playlists";
 
 interface VideoActionButtonProps {
   shortCode: string;
   likesCount: number;
   prevReaction: ReactionType | undefined;
-  isSaved: boolean;
+  isWatchLater: boolean;
+  isFavorited: boolean;
 }
 
 export function VideoActionButtons({
   shortCode,
   likesCount,
   prevReaction,
-  isSaved,
+  isWatchLater,
+  isFavorited,
 }: VideoActionButtonProps) {
   const [reaction, setReaction] = useState(prevReaction);
   const [localLikesCount, setLocalLikesCount] = useState(likesCount);
-  const [saved, setSaved] = useState(isSaved);
+  const [watchLater, setWatchLater] = useState(isWatchLater);
+  const [favorited, setFavorited] = useState(isFavorited);
   const [isReactionPending, startReactionTransition] = useTransition();
-  const [isSavePending, startSaveTransition] = useTransition();
+  const [isPlaylistPending, startPlaylistTransition] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleReaction = (nextReaction: ReactionType) => {
@@ -78,24 +87,36 @@ export function VideoActionButtons({
     }
   };
 
-  const handleSave = () => {
-    const previousSaved = saved;
-    const nextSaved = !saved;
+  const handleSystemPlaylistToggle = (playlistKey: SystemPlaylistKey) => {
+    const isWatchLaterTarget = playlistKey === WATCH_LATER_PLAYLIST_KEY;
+    const previousValue = isWatchLaterTarget ? watchLater : favorited;
+    const setValue = isWatchLaterTarget ? setWatchLater : setFavorited;
 
-    setSaved(nextSaved);
+    setValue(!previousValue);
 
-    startSaveTransition(async () => {
+    startPlaylistTransition(async () => {
       try {
         const result = await apiRequest<{ saved: boolean; playlistTitle: string }>(
           `/api/videos/${shortCode}/save`,
           {
             method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              playlistKey,
+            }),
           },
         );
-        setSaved(result.saved);
-        toast.success(result.saved ? `已保存到${result.playlistTitle}` : "已从收藏中移除");
+
+        setValue(result.saved);
+        toast.success(
+          result.saved
+            ? `已保存到${result.playlistTitle}`
+            : `已从${result.playlistTitle}移除`,
+        );
       } catch (error) {
-        setSaved(previousSaved);
+        setValue(previousValue);
         toast.error(error instanceof Error ? error.message : "保存失败");
       }
     });
@@ -150,12 +171,22 @@ export function VideoActionButtons({
 
         <Button
           className="rounded-full shadow-none"
-          disabled={isSavePending}
-          onClick={handleSave}
-          variant={saved ? "default" : "secondary"}
+          disabled={isPlaylistPending}
+          onClick={() => handleSystemPlaylistToggle(FAVORITES_PLAYLIST_KEY)}
+          variant={favorited ? "default" : "secondary"}
+        >
+          <Bookmark />
+          <p>{favorited ? "已收藏" : FAVORITES_PLAYLIST_TITLE}</p>
+        </Button>
+
+        <Button
+          className="rounded-full shadow-none"
+          disabled={isPlaylistPending}
+          onClick={() => handleSystemPlaylistToggle(WATCH_LATER_PLAYLIST_KEY)}
+          variant={watchLater ? "default" : "secondary"}
         >
           <ClockPlus />
-          <p>{saved ? "已收藏" : QUICK_SAVE_PLAYLIST_TITLE}</p>
+          <p>{watchLater ? "已加入稍后再看" : WATCH_LATER_PLAYLIST_TITLE}</p>
         </Button>
 
         <Button

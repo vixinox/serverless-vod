@@ -38,10 +38,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/api-client";
-import {
-  QUICK_SAVE_PLAYLIST_DESCRIPTION,
-  QUICK_SAVE_PLAYLIST_TITLE,
-} from "@/lib/system-playlists";
 
 interface PlaylistRow {
   id: string;
@@ -99,15 +95,7 @@ export function SaveToPlaylistDialog({
           return;
         }
 
-        setPlaylists(
-          result.playlists.filter(
-            (playlist) =>
-              !(
-                playlist.title === QUICK_SAVE_PLAYLIST_TITLE &&
-                playlist.description === QUICK_SAVE_PLAYLIST_DESCRIPTION
-              ),
-          ),
-        );
+        setPlaylists(result.playlists);
       } catch (error) {
         if (cancelled) {
           return;
@@ -233,7 +221,7 @@ export function SaveToPlaylistDialog({
         <DialogHeader className="border-b px-6 py-5">
           <DialogTitle>添加到播放列表</DialogTitle>
           <DialogDescription>
-            参考 YouTube 的观看页交互，直接把当前视频加入你的自定义播放列表。
+            这里管理的是你的自定义播放列表，系统列表会单独显示在播放器操作区。
           </DialogDescription>
         </DialogHeader>
 
@@ -375,7 +363,7 @@ export function SaveToPlaylistDialog({
 
         <DialogFooter className="border-t px-6 py-4">
           <p className="flex-1 text-sm text-muted-foreground">
-            {pendingLabel ? `正在处理：${pendingLabel}` : "“稍后再看”仍保留为播放器上的快速收藏捷径。"}
+            {pendingLabel ? `正在处理：${pendingLabel}` : "收藏夹与稍后再看会作为系统列表单独维护。"}
           </p>
           <Button className="rounded-full" onClick={() => onOpenChange(false)} variant="outline">
             关闭

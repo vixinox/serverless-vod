@@ -4,12 +4,133 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getOptionalUserId, requireUserId } from "@/lib/server/auth-session";
 import {
-  QUICK_SAVE_PLAYLIST_DESCRIPTION,
-  QUICK_SAVE_PLAYLIST_TITLE,
+  FAVORITES_PLAYLIST_KEY,
+  SystemPlaylistKey,
+  WATCH_LATER_LEGACY_MATCH,
+  WATCH_LATER_PLAYLIST_KEY,
+  getSystemPlaylistMeta,
 } from "@/lib/system-playlists";
 import type { GalleryVideoData } from "@/lib/server/videos";
 
-export async function toggleVideoSave(shortCode: string, requestHeaders?: Headers) {
+function getSystemPlaylistLookupWhere(
+  userId: string,
+  systemKey: SystemPlaylistKey,
+): Prisma.PlaylistWhereInput {
+  if (systemKey === WATCH_LATER_PLAYLIST_KEY) {
+    return {
+      ownerId: userId,
+      OR: [
+        {
+          systemKey,
+        },
+        WATCH_LATER_LEGACY_MATCH,
+      ],
+    };
+  }
+
+  return {
+    ownerId: userId,
+    systemKey,
+  };
+}
+
+function getEditablePlaylistWhere(userId: string, playlistId?: string): Prisma.PlaylistWhereInput {
+  return {
+    ownerId: userId,
+    systemKey: null,
+    NOT: WATCH_LATER_LEGACY_MATCH,
+    ...(playlistId
+      ? {
+          id: playlistId,
+        }
+      : {}),
+  };
+}
+
+async function ensureSystemPlaylist(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  systemKey: SystemPlaylistKey,
+) {
+  const meta = getSystemPlaylistMeta(systemKey);
+
+  const existingSystemPlaylist = await tx.playlist.findFirst({
+    where: {
+      ownerId: userId,
+      systemKey,
+    },
+    select: {
+      id: true,
+      title: true,
+      systemKey: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  if (existingSystemPlaylist) {
+    return {
+      id: existingSystemPlaylist.id,
+      title: existingSystemPlaylist.title,
+    };
+  }
+
+  const legacyPlaylist =
+    systemKey === WATCH_LATER_PLAYLIST_KEY
+      ? await tx.playlist.findFirst({
+          where: {
+            ownerId: userId,
+            ...WATCH_LATER_LEGACY_MATCH,
+          },
+          select: {
+            id: true,
+            title: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        })
+      : null;
+
+  if (legacyPlaylist) {
+    return tx.playlist.update({
+      where: {
+        id: legacyPlaylist.id,
+      },
+      data: {
+        title: meta.title,
+        description: meta.description,
+        isPublic: false,
+        systemKey,
+      },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+  }
+
+  return tx.playlist.create({
+    data: {
+      ownerId: userId,
+      title: meta.title,
+      description: meta.description,
+      isPublic: false,
+      systemKey,
+    },
+    select: {
+      id: true,
+      title: true,
+    },
+  });
+}
+
+export async function toggleSystemPlaylistVideo(
+  shortCode: string,
+  systemKey: SystemPlaylistKey,
+  requestHeaders?: Headers,
+) {
   const userId = await requireUserId(requestHeaders);
   const safeShortCode = shortCode.trim();
 
@@ -42,36 +163,7 @@ export async function toggleVideoSave(shortCode: string, requestHeaders?: Header
   }
 
   return prisma.$transaction(async (tx) => {
-    let playlist = await tx.playlist.findFirst({
-      where: {
-        ownerId: userId,
-        title: QUICK_SAVE_PLAYLIST_TITLE,
-        description: QUICK_SAVE_PLAYLIST_DESCRIPTION,
-        isPublic: false,
-      },
-      select: {
-        id: true,
-        title: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
-
-    if (!playlist) {
-      playlist = await tx.playlist.create({
-        data: {
-          ownerId: userId,
-          title: QUICK_SAVE_PLAYLIST_TITLE,
-          description: QUICK_SAVE_PLAYLIST_DESCRIPTION,
-          isPublic: false,
-        },
-        select: {
-          id: true,
-          title: true,
-        },
-      });
-    }
+    const playlist = await ensureSystemPlaylist(tx, userId, systemKey);
 
     const existingItem = await tx.playlistItem.findFirst({
       where: {
@@ -118,6 +210,7 @@ export async function toggleVideoSave(shortCode: string, requestHeaders?: Header
         saved: false,
         playlistId: playlist.id,
         playlistTitle: playlist.title,
+        playlistKey: systemKey,
       };
     }
 
@@ -155,23 +248,27 @@ export async function toggleVideoSave(shortCode: string, requestHeaders?: Header
       saved: true,
       playlistId: playlist.id,
       playlistTitle: playlist.title,
+      playlistKey: systemKey,
     };
   });
+}
+
+export async function toggleVideoSave(shortCode: string, requestHeaders?: Headers) {
+  return toggleSystemPlaylistVideo(shortCode, WATCH_LATER_PLAYLIST_KEY, requestHeaders);
 }
 
 export type SavedVideoData = GalleryVideoData & {
   savedAt: Date;
 };
 
-async function listQuickSaveVideosForUser(userId: string, limit: number = 24) {
+async function listSystemPlaylistVideosForUser(
+  userId: string,
+  systemKey: SystemPlaylistKey,
+  limit: number = 24,
+) {
   const items = await prisma.playlistItem.findMany({
     where: {
-      playlist: {
-        ownerId: userId,
-        title: QUICK_SAVE_PLAYLIST_TITLE,
-        description: QUICK_SAVE_PLAYLIST_DESCRIPTION,
-        isPublic: false,
-      },
+      playlist: getSystemPlaylistLookupWhere(userId, systemKey),
       video: {
         deletedAt: null,
         OR: [
@@ -231,17 +328,22 @@ async function listQuickSaveVideosForUser(userId: string, limit: number = 24) {
   }));
 }
 
-export async function getSavedVideos(limit: number = 24) {
+async function getRequiredSystemPlaylistVideos(
+  systemKey: SystemPlaylistKey,
+  limit: number,
+  callbackUrl: string,
+) {
   const userId = await getOptionalUserId();
 
   if (!userId) {
-    redirect("/login?callbackUrl=/saved");
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
-  return listQuickSaveVideosForUser(userId, limit);
+  return listSystemPlaylistVideosForUser(userId, systemKey, limit);
 }
 
-export async function getSavedPreviewVideos(
+async function getOptionalSystemPlaylistVideos(
+  systemKey: SystemPlaylistKey,
   limit: number = 3,
   requestHeaders?: Headers,
 ) {
@@ -251,7 +353,37 @@ export async function getSavedPreviewVideos(
     return null;
   }
 
-  return listQuickSaveVideosForUser(userId, limit);
+  return listSystemPlaylistVideosForUser(userId, systemKey, limit);
+}
+
+export async function getSavedVideos(limit: number = 24) {
+  return getRequiredSystemPlaylistVideos(FAVORITES_PLAYLIST_KEY, limit, "/saved");
+}
+
+export async function getWatchLaterVideos(limit: number = 24) {
+  return getRequiredSystemPlaylistVideos(
+    WATCH_LATER_PLAYLIST_KEY,
+    limit,
+    "/saved?list=wl",
+  );
+}
+
+export async function getSavedPreviewVideos(
+  limit: number = 3,
+  requestHeaders?: Headers,
+) {
+  return getOptionalSystemPlaylistVideos(FAVORITES_PLAYLIST_KEY, limit, requestHeaders);
+}
+
+export async function getWatchLaterPreviewVideos(
+  limit: number = 3,
+  requestHeaders?: Headers,
+) {
+  return getOptionalSystemPlaylistVideos(
+    WATCH_LATER_PLAYLIST_KEY,
+    limit,
+    requestHeaders,
+  );
 }
 
 interface ListUserPlaylistsParams {
@@ -271,7 +403,7 @@ export async function listUserPlaylists(
   const safePageSize = Math.min(Math.max(Math.floor(pageSize || 10), 1), 100);
   const skip = (safePage - 1) * safePageSize;
   const where: Prisma.PlaylistWhereInput = {
-    ownerId: userId,
+    ...getEditablePlaylistWhere(userId),
     ...(searchTerm
       ? {
           title: {
@@ -369,8 +501,8 @@ export async function listPlaylistItems(playlistId: string, requestHeaders?: Hea
 
   const playlist = await prisma.playlist.findFirst({
     where: {
+      ...getEditablePlaylistWhere(userId),
       id: safePlaylistId,
-      ownerId: userId,
     },
     select: {
       id: true,
@@ -508,10 +640,7 @@ export async function updatePlaylist(
 
   const { playlistId, title, description, isPublic } = parsed.data;
   const playlist = await prisma.playlist.findFirst({
-    where: {
-      id: playlistId,
-      ownerId: userId,
-    },
+    where: getEditablePlaylistWhere(userId, playlistId),
     select: {
       id: true,
     },
@@ -543,10 +672,7 @@ export async function deletePlaylist(playlistId: string, requestHeaders?: Header
   }
 
   const playlist = await prisma.playlist.findFirst({
-    where: {
-      id: safePlaylistId,
-      ownerId: userId,
-    },
+    where: getEditablePlaylistWhere(userId, safePlaylistId),
     select: {
       id: true,
     },
@@ -584,10 +710,7 @@ export async function addVideoToPlaylist(
 
   const { playlistId, videoShortCode } = parsed.data;
   const playlist = await prisma.playlist.findFirst({
-    where: {
-      id: playlistId,
-      ownerId: userId,
-    },
+    where: getEditablePlaylistWhere(userId, playlistId),
     select: {
       id: true,
     },
@@ -698,6 +821,8 @@ export async function removeVideoFromPlaylist(
       videoId,
       playlist: {
         ownerId: userId,
+        systemKey: null,
+        NOT: WATCH_LATER_LEGACY_MATCH,
       },
     },
     select: {
@@ -725,6 +850,8 @@ export async function removePlaylistItem(itemId: string, requestHeaders?: Header
       id: safeItemId,
       playlist: {
         ownerId: userId,
+        systemKey: null,
+        NOT: WATCH_LATER_LEGACY_MATCH,
       },
     },
     select: {

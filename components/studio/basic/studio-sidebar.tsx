@@ -45,7 +45,6 @@ export const StudioSidebar = () => {
   const { navigate, goBack, pendingHref } = useStudioTransition()
   const session = authClient.useSession().data
   const user = session?.user
-  const isDetailPage = /^\/studio\/(contents|stat)\/.+/.test(pathname)
   const isInContentPath = pathname.startsWith("/studio/contents")
   const isInStudio = pathname.startsWith("/studio")
   const shouldShowBackButton = isInStudio && !isInContentPath
@@ -72,35 +71,22 @@ export const StudioSidebar = () => {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border/70">
       <SidebarHeader>
         <SidebarMenu>
-          {isDetailPage && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => void goBack("/studio/contents")}
-                tooltip="返回"
-                className="rounded-xl transition-transform duration-300 hover:-translate-y-px"
-              >
-                <ArrowLeft strokeWidth={1.75} />
-                <span>返回</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-
           {!shouldShowBackButton && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 size="lg"
                 tooltip={user?.name ?? "我的频道"}
-                className="rounded-2xl border border-transparent transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
+                className="rounded-2xl border border-transparent transition duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
               >
-                <Link href="#">
+                <Link href="#" className="min-w-0">
                   <Avatar className="h-8 w-8 rounded-full border border-sidebar-border/80">
                     <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
                     <AvatarFallback className="bg-[#33691e] text-sidebar-primary-foreground">
                       {user?.name ? user.name[0] : "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
+                  <div className="grid min-w-0 flex-1 overflow-hidden text-left text-sm leading-tight">
                     <span className="truncate font-medium">我的频道</span>
                     <span className="truncate text-xs text-muted-foreground">{user?.name ?? "user"}</span>
                   </div>
@@ -114,10 +100,10 @@ export const StudioSidebar = () => {
               <SidebarMenuButton
                 onClick={() => void goBack("/studio/contents")}
                 tooltip="返回"
-                className="rounded-2xl border border-transparent transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
+                className="min-w-0 rounded-2xl border border-transparent transition duration-300 hover:-translate-y-px hover:border-sidebar-border/70 hover:shadow-sm"
               >
                 <ArrowLeft strokeWidth={1.75} />
-                <span>返回</span>
+                <span className="overflow-hidden text-ellipsis whitespace-nowrap">返回</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
@@ -138,19 +124,21 @@ export const StudioSidebar = () => {
                       tooltip={item.title}
                       data-pending={pendingHref === item.url ? "true" : undefined}
                       className={cn(
-                        "h-full rounded-xl border border-transparent px-3 transition-[transform,border-color,box-shadow,background-color] duration-300",
+                        "h-full min-w-0 rounded-xl border border-transparent px-3 transition duration-300",
                         "hover:-translate-y-px hover:border-sidebar-border/70",
                         "data-[active=true]:border-sidebar-border/70 data-[active=true]:shadow-sm",
                         "data-[pending=true]:scale-[0.985] data-[pending=true]:border-sidebar-border/80"
                       )}
                     >
-                      <Link href={item.url} onClick={(event) => handleNavigation(event, item.url)}>
+                      <Link href={item.url} onClick={(event) => handleNavigation(event, item.url)} className="min-w-0">
                         <item.icon strokeWidth={1.5} />
-                        <span>{item.title}</span>
+                        <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {item.title}
+                        </span>
                         <span
                           aria-hidden="true"
                           className={cn(
-                            "ml-auto flex size-1.5 rounded-full bg-sidebar-primary transition-all duration-300 group-data-[collapsible=icon]:hidden",
+                            "ml-auto flex size-1.5 shrink-0 rounded-full bg-sidebar-primary overflow-hidden transition duration-300 group-data-[collapsible=icon]:hidden",
                             isItemActive(item.url) ? "scale-100 opacity-100" : "scale-50 opacity-0",
                             pendingHref === item.url && "animate-pulse"
                           )}

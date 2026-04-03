@@ -1,14 +1,17 @@
 import { VideoTimeline } from "@/components/home/video-timeline";
-import { getSavedVideos } from "@/lib/server/playlists";
+import { getSavedVideos, getWatchLaterVideos } from "@/lib/server/playlists";
 import { BrowseShell } from "@/components/home/browse-shell";
+
 export default async function SavedPage({
   searchParams,
 }: {
   searchParams: Promise<{ list?: string }>;
 }) {
   const { list = "" } = await searchParams;
-  const videos = await getSavedVideos();
   const isWatchLater = list === "wl";
+  const videos = isWatchLater
+    ? await getWatchLaterVideos()
+    : await getSavedVideos();
 
   return (
     <BrowseShell>
@@ -28,7 +31,7 @@ export default async function SavedPage({
         emptyState={
           isWatchLater
             ? "还没有“稍后再看”内容，去播放器点一下快捷保存吧。"
-            : "还没有收藏内容，去播放器点一下“稍后再看”吧。"
+            : "还没有收藏内容，去播放器点一下“收藏夹”吧。"
         }
       />
     </BrowseShell>

@@ -13,8 +13,9 @@ import {
 } from "@/lib/localstack";
 import prisma from "@/lib/prisma";
 import {
-  QUICK_SAVE_PLAYLIST_DESCRIPTION,
-  QUICK_SAVE_PLAYLIST_TITLE,
+  FAVORITES_PLAYLIST_KEY,
+  WATCH_LATER_LEGACY_MATCH,
+  WATCH_LATER_PLAYLIST_KEY,
 } from "@/lib/system-playlists";
 import { createUploadVideoDraft } from "@/lib/video-pipeline";
 import { getOptionalUserId, requireUserId } from "@/lib/server/auth-session";
@@ -104,10 +105,11 @@ export async function getVideoInfo(shortCode: string) {
 
   let prevReaction: ReactionType | undefined;
   let isSubscribed = false;
-  let isSaved = false;
+  let isWatchLater = false;
+  let isFavorited = false;
 
   if (currentUserId) {
-    const [reaction, subscription, savedItem] = await Promise.all([
+    const [reaction, subscription, watchLaterItem, favoriteItem] = await Promise.all([
       prisma.videoReaction.findUnique({
         where: {
           userId_videoId: {
@@ -135,9 +137,24 @@ export async function getVideoInfo(shortCode: string) {
           videoId: video.id,
           playlist: {
             ownerId: currentUserId,
-            title: QUICK_SAVE_PLAYLIST_TITLE,
-            description: QUICK_SAVE_PLAYLIST_DESCRIPTION,
-            isPublic: false,
+            OR: [
+              {
+                systemKey: WATCH_LATER_PLAYLIST_KEY,
+              },
+              WATCH_LATER_LEGACY_MATCH,
+            ],
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+      prisma.playlistItem.findFirst({
+        where: {
+          videoId: video.id,
+          playlist: {
+            ownerId: currentUserId,
+            systemKey: FAVORITES_PLAYLIST_KEY,
           },
         },
         select: {
@@ -148,7 +165,8 @@ export async function getVideoInfo(shortCode: string) {
 
     prevReaction = reaction?.reactionType;
     isSubscribed = Boolean(subscription);
-    isSaved = Boolean(savedItem);
+    isWatchLater = Boolean(watchLaterItem);
+    isFavorited = Boolean(favoriteItem);
   }
 
   const { channel, userId: _userId, ...rest } = video;
@@ -161,7 +179,8 @@ export async function getVideoInfo(shortCode: string) {
       likesCount: rest.likesCount,
       commentsCount: rest.commentsCount,
       prevReaction,
-      isSaved,
+      isWatchLater,
+      isFavorited,
     },
     channelData: {
       id: channel.id,

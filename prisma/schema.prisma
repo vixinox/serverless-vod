@@ -77,6 +77,11 @@ enum ThemePreference {
   SYSTEM
 }
 
+enum SystemPlaylistKey {
+  WATCH_LATER
+  FAVORITES
+}
+
 model UserSettings {
   userId    String          @id
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -87,26 +92,26 @@ model UserSettings {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
-  channel       Channel?          @relation("UserChannel")
-  comments      Comment[]
-  videoReactions VideoReaction[]
+  id               String               @id
+  name             String
+  email            String               @unique
+  emailVerified    Boolean
+  image            String?
+  createdAt        DateTime
+  updatedAt        DateTime
+  sessions         Session[]
+  accounts         Account[]
+  channel          Channel?             @relation("UserChannel")
+  comments         Comment[]
+  videoReactions   VideoReaction[]
   commentReactions CommentReaction[]
-  subscriptions Subscription[]    @relation("UserSubscriptions")
-  playlists     Playlist[]
-  uploadSessions UploadSession[]
-  videos        Video[]
-  playlistItems PlaylistItem[]
-  playbackEvents VideoPlaybackEvent[]
-  settings      UserSettings?
+  subscriptions    Subscription[]       @relation("UserSubscriptions")
+  playlists        Playlist[]
+  uploadSessions   UploadSession[]
+  videos           Video[]
+  playlistItems    PlaylistItem[]
+  playbackEvents   VideoPlaybackEvent[]
+  settings         UserSettings?
 
   @@map("user")
 }
@@ -157,18 +162,18 @@ model Verification {
 }
 
 model Channel {
-  id          String   @id @default(cuid())
-  ownerId     String   @unique
-  owner       User     @relation("UserChannel", fields: [ownerId], references: [id], onDelete: Cascade)
-  name        String   @unique
-  banner      String?
-  description String?
-  videos      Video[]
-  subscriptions Subscription[]
-  subscribersCount Int @default(0)
-  dailyStats   ChannelDailyStat[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String             @id @default(cuid())
+  ownerId          String             @unique
+  owner            User               @relation("UserChannel", fields: [ownerId], references: [id], onDelete: Cascade)
+  name             String             @unique
+  banner           String?
+  description      String?
+  videos           Video[]
+  subscriptions    Subscription[]
+  subscribersCount Int                @default(0)
+  dailyStats       ChannelDailyStat[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model Subscription {
@@ -274,34 +279,39 @@ model CommentReaction {
 }
 
 model Playlist {
-  id          String         @id @default(cuid())
+  id          String             @id @default(cuid())
   ownerId     String
-  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   title       String
   description String?
-  isPublic    Boolean        @default(true)
+  isPublic    Boolean            @default(true)
+  systemKey   SystemPlaylistKey?
   items       PlaylistItem[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
+  @@unique([ownerId, systemKey])
   @@index([ownerId])
   @@index([ownerId, createdAt])
+  @@index([ownerId, systemKey])
   @@index([ownerId, isPublic, updatedAt])
 }
 
 model PlaylistItem {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   playlistId String
   videoId    String
   addedById  String
   position   Int
-  createdAt  DateTime  @default(now())
-  playlist   Playlist  @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  video      Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  addedBy    User      @relation(fields: [addedById], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  addedBy    User     @relation(fields: [addedById], references: [id], onDelete: Cascade)
 
   @@unique([playlistId, position])
+  @@unique([playlistId, videoId])
   @@index([playlistId])
+  @@index([playlistId, createdAt])
   @@index([videoId])
   @@index([addedById])
 }
@@ -323,15 +333,15 @@ model VideoDailyStat {
 }
 
 model ChannelDailyStat {
-  id                 String   @id @default(cuid())
-  channelId          String
-  date               DateTime @db.Date
-  views              BigInt   @default(0)
-  watchTimeSeconds   BigInt   @default(0)
-  subscribersGained  Int      @default(0)
-  subscribersLost    Int      @default(0)
-  videosPublished    Int      @default(0)
-  channel            Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  channelId         String
+  date              DateTime @db.Date
+  views             BigInt   @default(0)
+  watchTimeSeconds  BigInt   @default(0)
+  subscribersGained Int      @default(0)
+  subscribersLost   Int      @default(0)
+  videosPublished   Int      @default(0)
+  channel           Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
   @@unique([channelId, date])
   @@index([date])
@@ -387,24 +397,24 @@ model TranscodeJob {
 }
 
 model VideoAsset {
-  id             String         @id @default(cuid())
-  videoId        String
-  assetType      VideoAssetType
-  qualityLabel   String?
-  mimeType       String?
-  codec          String?
-  bitrateKbps    Int?
-  width          Int?
-  height         Int?
-  duration       Int?
-  storageBucket  String
-  storageKey     String
-  sizeBytes      BigInt?
-  checksum       String?
-  isPrimary      Boolean        @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  video          Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  id            String         @id @default(cuid())
+  videoId       String
+  assetType     VideoAssetType
+  qualityLabel  String?
+  mimeType      String?
+  codec         String?
+  bitrateKbps   Int?
+  width         Int?
+  height        Int?
+  duration      Int?
+  storageBucket String
+  storageKey    String
+  sizeBytes     BigInt?
+  checksum      String?
+  isPrimary     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  video         Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@index([videoId])
   @@index([assetType])
