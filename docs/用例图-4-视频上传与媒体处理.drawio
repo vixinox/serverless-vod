@@ -1,0 +1,173 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="RkxRSzm_uE9DGm927hxD" name="第 1 页">
+    <mxGraphModel dx="2362" dy="2411" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="10" parent="1" style="rounded=1;arcSize=2;fillColor=none;strokeColor=#000000;fontStyle=1;fontSize=16;verticalAlign=top;align=center;spacingTop=5;" value="视频上传与媒体处理模块" vertex="1">
+          <mxGeometry height="1240" width="1060" x="190" y="-80" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;" value="视频上传流程" vertex="1">
+          <mxGeometry height="30" width="170" x="220" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="30" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="创建视频草稿" vertex="1">
+          <mxGeometry height="65" width="165" x="230" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="31" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="获取预签名上传URL" vertex="1">
+          <mxGeometry height="65" width="175" x="225" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="32" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="直传视频文件到S3" vertex="1">
+          <mxGeometry height="65" width="175" x="225" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="上传自定义封面" vertex="1">
+          <mxGeometry height="65" width="165" x="230" y="518" as="geometry" />
+        </mxCell>
+        <mxCell id="34" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="获取封面预签名URL" vertex="1">
+          <mxGeometry height="65" width="175" x="480" y="518" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;" value="转码任务管理" vertex="1">
+          <mxGeometry height="30" width="170" x="370" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="35" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="实时查看转码状态" vertex="1">
+          <mxGeometry height="65" width="175" x="480" y="685" as="geometry" />
+        </mxCell>
+        <mxCell id="36" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="取消转码任务" vertex="1">
+          <mxGeometry height="65" width="165" x="225" y="685" as="geometry" />
+        </mxCell>
+        <mxCell id="37" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="重试失败任务" vertex="1">
+          <mxGeometry height="65" width="165" x="240" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="38" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="触发转码任务入队" vertex="1">
+          <mxGeometry height="65" width="175" x="480" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;" value="媒体处理流水线" vertex="1">
+          <mxGeometry height="30" width="170" x="850" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="50" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="从S3下载源视频" vertex="1">
+          <mxGeometry height="65" width="170" x="1020" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="51" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="探测视频元数据" vertex="1">
+          <mxGeometry height="65" width="170" x="745" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="52" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="多码率视频转码" vertex="1">
+          <mxGeometry height="65" width="170" x="1020" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="53" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="生成HLS分片与清单" vertex="1">
+          <mxGeometry height="65" width="180" x="740" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="54" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="提取视频封面帧" vertex="1">
+          <mxGeometry height="65" width="170" x="1020" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="55" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="上传HLS产物到S3" vertex="1">
+          <mxGeometry height="65" width="170" x="745" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="56" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="回写流水线阶段状态" vertex="1">
+          <mxGeometry height="65" width="180" x="1020" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="57" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="写入VideoAsset记录" vertex="1">
+          <mxGeometry height="65" width="180" x="740" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="58" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="标记视频为READY" vertex="1">
+          <mxGeometry height="65" width="170" x="1025" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="59" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;" value="标记视频处理失败" vertex="1">
+          <mxGeometry height="65" width="170" x="1025" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="90" edge="1" parent="1" style="endArrow=none;html=1;" target="30" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="490" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="91" edge="1" parent="1" style="endArrow=none;html=1;" target="33" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="550" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="92" edge="1" parent="1" style="endArrow=none;html=1;" target="35" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="570" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="93" edge="1" parent="1" style="endArrow=none;html=1;" target="36" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="590" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="94" edge="1" parent="1" style="endArrow=none;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;" target="37" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="610" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="100" edge="1" parent="1" style="endArrow=none;html=1;" target="50" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1320" y="440" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="101" edge="1" parent="1" style="endArrow=none;html=1;" target="52" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1320" y="470" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="102" edge="1" parent="1" style="endArrow=none;html=1;" target="54" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1320" y="488" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="103" edge="1" parent="1" style="endArrow=none;html=1;" target="56" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1320" y="510" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="104" edge="1" parent="1" style="endArrow=none;html=1;" target="58" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1320" y="530" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="105" edge="1" parent="1" style="endArrow=none;html=1;" target="59" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1320" y="550" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="150" edge="1" parent="1" source="30" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="31" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="151" edge="1" parent="1" source="31" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="32" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="152" edge="1" parent="1" source="32" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="38" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="153" edge="1" parent="1" source="33" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="34" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="154" edge="1" parent="1" source="50" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="51" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="155" edge="1" parent="1" source="52" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="53" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="156" edge="1" parent="1" source="54" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="55" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="157" edge="1" parent="1" source="56" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="57" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="160" edge="1" parent="1" source="36" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="35" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="161" edge="1" parent="1" source="37" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=11;" target="35" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IIfUZibCF78jThmDNOzS-161" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="创作者" vertex="1">
+          <mxGeometry height="60" width="30" x="50" y="512.5" as="geometry" />
+        </mxCell>
+        <mxCell id="IIfUZibCF78jThmDNOzS-167" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="80" width="80" x="1341" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="IIfUZibCF78jThmDNOzS-170" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Lambda&lt;div&gt;云函数&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="1351" y="542.5" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
