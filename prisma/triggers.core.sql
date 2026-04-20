@@ -96,7 +96,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_comment_reaction_counter();
 
 -- ------------------------------------------------------------
--- 3) Comment counters: Video.commentsCount / parent Comment.repliesCount
+-- 评论统计触发器: Video.commentsCount / parent Comment.repliesCount
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_comment_counter()
 RETURNS TRIGGER

@@ -94,7 +94,7 @@ export default async function ChannelPage({
               <div data-channel-animate>
                 <VideoGridSection
                   title="最新视频"
-                  description="参考首页视频流排布，继续从这个频道往下看。"
+                  description=""
                   videos={videos}
                   emptyState={null}
                 />

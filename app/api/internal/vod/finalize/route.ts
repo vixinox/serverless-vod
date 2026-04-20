@@ -85,7 +85,7 @@ export async function POST(req: Request) {
         ...(thumbnailUrl    != null && { thumbnail: thumbnailUrl }),
       },
     }),
-    // 幂等删除旧 HLS_MASTER 资产，防止重试时重复写入
+    // 删除旧 HLS_MASTER 防止重试时重复写入
     prisma.videoAsset.deleteMany({ where: { videoId, assetType: "HLS_MASTER" } }),
     prisma.videoAsset.create({
       data: {
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         duration: durationSeconds ?? null,
       },
     }),
-    // 幂等删除旧 THUMBNAIL 资产
+    // 删除旧 THUMBNAIL
     ...(thumbnailBucket && thumbnailKey
       ? [
           prisma.videoAsset.deleteMany({ where: { videoId, assetType: "THUMBNAIL" } }),
