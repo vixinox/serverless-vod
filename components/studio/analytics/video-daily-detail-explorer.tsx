@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -151,6 +151,40 @@ function getAverage(data: VideoDailyDetailPoint[], metric: MetricKey) {
 
 function getMax(data: VideoDailyDetailPoint[], metric: MetricKey) {
   return data.reduce((result, item) => Math.max(result, item[metric]), 0);
+}
+
+function clampNonNegative(value: number) {
+  return value < 0 ? 0 : value;
+}
+
+function getPositiveYAxisMax(values: number[]) {
+  const maxValue = values.reduce((currentMax, value) => {
+    return value > currentMax ? value : currentMax;
+  }, 0);
+
+  if (maxValue <= 0) {
+    return 1;
+  }
+
+  const paddedMax = maxValue * 1.15;
+
+  if (paddedMax < 10) {
+    return Number(paddedMax.toFixed(2));
+  }
+
+  if (paddedMax < 100) {
+    return Math.ceil(paddedMax);
+  }
+
+  if (paddedMax < 1000) {
+    return Math.ceil(paddedMax / 10) * 10;
+  }
+
+  if (paddedMax < 10000) {
+    return Math.ceil(paddedMax / 100) * 100;
+  }
+
+  return Math.ceil(paddedMax / 1000) * 1000;
 }
 
 function getRank(data: VideoDailyDetailPoint[], metric: MetricKey, value: number) {
@@ -379,10 +413,26 @@ export function VideoDailyDetailExplorer({
   const [hoveredDate, setHoveredDate] = React.useState<string | null>(null);
   const [drawerDate, setDrawerDate] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState(false);
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        views: clampNonNegative(item.views),
+        uniqueViewers: clampNonNegative(item.uniqueViewers),
+        watchTimeHours: clampNonNegative(item.watchTimeHours),
+        likesGained: clampNonNegative(item.likesGained),
+        commentsGained: clampNonNegative(item.commentsGained),
+      })),
+    [data],
+  );
+  const yAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => item[activeMetric])),
+    [chartData, activeMetric],
+  );
 
   const hasMeaningfulData = React.useMemo(
     () =>
-      data.some(
+      chartData.some(
         (item) =>
           item.views > 0 ||
           item.uniqueViewers > 0 ||
@@ -390,42 +440,42 @@ export function VideoDailyDetailExplorer({
           item.likesGained > 0 ||
           item.commentsGained > 0,
       ),
-    [data],
+    [chartData],
   );
 
-  const rowsByDate = React.useMemo(() => new Map(data.map((item) => [item.date, item])), [data]);
-  const reversedRows = React.useMemo(() => data.slice().reverse(), [data]);
+  const rowsByDate = React.useMemo(() => new Map(chartData.map((item) => [item.date, item])), [chartData]);
+  const reversedRows = React.useMemo(() => chartData.slice().reverse(), [chartData]);
 
   const averages = React.useMemo(
     () =>
-      Object.fromEntries(ALL_METRICS.map((metric) => [metric, getAverage(data, metric)])) as Record<
+      Object.fromEntries(ALL_METRICS.map((metric) => [metric, getAverage(chartData, metric)])) as Record<
         MetricKey,
         number
       >,
-    [data],
+    [chartData],
   );
 
   const maxima = React.useMemo(
     () =>
-      Object.fromEntries(ALL_METRICS.map((metric) => [metric, getMax(data, metric)])) as Record<
+      Object.fromEntries(ALL_METRICS.map((metric) => [metric, getMax(chartData, metric)])) as Record<
         MetricKey,
         number
       >,
-    [data],
+    [chartData],
   );
 
   const totals = React.useMemo(
     () =>
       Object.fromEntries(
-        ALL_METRICS.map((metric) => [metric, data.reduce((result, item) => result + item[metric], 0)]),
+        ALL_METRICS.map((metric) => [metric, chartData.reduce((result, item) => result + item[metric], 0)]),
       ) as Record<MetricKey, number>,
-    [data],
+    [chartData],
   );
 
-  const activeDate = hoveredDate ?? selectedDate ?? data.at(-1)?.date ?? null;
+  const activeDate = hoveredDate ?? selectedDate ?? chartData.at(-1)?.date ?? null;
   const activeIndex = React.useMemo(
-    () => Math.max(data.findIndex((item) => item.date === activeDate), 0),
-    [activeDate, data],
+    () => Math.max(chartData.findIndex((item) => item.date === activeDate), 0),
+    [activeDate, chartData],
   );
   const activeRow = activeDate ? rowsByDate.get(activeDate) ?? null : null;
   const drawerRow = drawerDate ? rowsByDate.get(drawerDate) ?? null : null;
@@ -433,14 +483,14 @@ export function VideoDailyDetailExplorer({
 
   const activePeakRow = React.useMemo(() => {
     const maxValue = maxima[activeMetric];
-    return data.find((item) => item[activeMetric] === maxValue) ?? null;
-  }, [activeMetric, data, maxima]);
+    return chartData.find((item) => item[activeMetric] === maxValue) ?? null;
+  }, [activeMetric, chartData, maxima]);
 
   React.useEffect(() => {
-    if (!selectedDate && data.length > 0) {
-      setSelectedDate(data[data.length - 1]?.date ?? null);
+    if (!selectedDate && chartData.length > 0) {
+      setSelectedDate(chartData[chartData.length - 1]?.date ?? null);
     }
-  }, [data, selectedDate]);
+  }, [chartData, selectedDate]);
 
   if (!hasMeaningfulData) {
     return <AnalyticsEmptyState />;
@@ -507,7 +557,7 @@ export function VideoDailyDetailExplorer({
             <ChartContainer config={chartConfig} className="aspect-auto h-[300px] w-full">
               <AreaChart
                 accessibilityLayer
-                data={data}
+                data={chartData}
                 margin={{ left: 12, right: 12 }}
                 onMouseLeave={() => setHoveredDate(null)}
                 onMouseMove={(state: ChartInteractionState) => {
@@ -515,14 +565,14 @@ export function VideoDailyDetailExplorer({
                     return;
                   }
 
-                  const hoveredRow = getChartRowFromState(data, state);
+                  const hoveredRow = getChartRowFromState(chartData, state);
 
                   if (hoveredRow) {
                     setHoveredDate(hoveredRow.date);
                   }
                 }}
                 onClick={(state: ChartInteractionState) => {
-                  const clickedRow = getChartRowFromState(data, state);
+                  const clickedRow = getChartRowFromState(chartData, state);
 
                   if (clickedRow) {
                     openDrawerForDate(clickedRow.date);
@@ -544,6 +594,7 @@ export function VideoDailyDetailExplorer({
                   minTickGap={24}
                   tickFormatter={(value) => formatShortDate(value)}
                 />
+                <YAxis hide domain={[0, yAxisMax]} />
                 {activeDate ? (
                   <ReferenceLine
                     x={activeDate}
@@ -557,7 +608,7 @@ export function VideoDailyDetailExplorer({
                 />
                 <Area
                   dataKey={activeMetric}
-                  type="natural"
+                  type="monotoneX"
                   fill={`url(#fill-${activeMetric})`}
                   stroke={activeMetricInfo.color}
                   strokeWidth={2.5}
@@ -637,7 +688,7 @@ export function VideoDailyDetailExplorer({
                           <div className="flex flex-col gap-1">
                             <span className="font-medium">{formatShortDate(row.date)}</span>
                             <span className="text-xs text-muted-foreground">
-                              {row.date === data[data.length - 1]?.date ? "最新一天" : "历史明细"}
+                              {row.date === chartData[chartData.length - 1]?.date ? "最新一天" : "历史明细"}
                             </span>
                           </div>
                         </TableCell>
@@ -712,7 +763,7 @@ export function VideoDailyDetailExplorer({
                   <div key={metric} className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium">{metricMeta[metric].label}</p>
-                      <Badge variant="outline">第 {getRank(data, metric, drawerRow[metric])} / {data.length}</Badge>
+                      <Badge variant="outline">第 {getRank(chartData, metric, drawerRow[metric])} / {chartData.length}</Badge>
                     </div>
                     <p className="mt-2 text-xl font-semibold tabular-nums">
                       {metricMeta[metric].formatValue(drawerRow[metric])}

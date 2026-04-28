@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Label, Line, LineChart, Pie, PieChart, XAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Label, Line, LineChart, Pie, PieChart, XAxis, YAxis } from "recharts";
 import type { DashboardPageData, StatPageData, VideoAnalyticsPageData } from "@/lib/server/stats";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -161,6 +161,40 @@ function hasPositiveValue(values: number[]) {
   return values.some((value) => value > 0);
 }
 
+function getPositiveYAxisMax(values: number[]) {
+  const maxValue = values.reduce((currentMax, value) => {
+    return value > currentMax ? value : currentMax;
+  }, 0);
+
+  if (maxValue <= 0) {
+    return 1;
+  }
+
+  const paddedMax = maxValue * 1.15;
+
+  if (paddedMax < 10) {
+    return Number(paddedMax.toFixed(2));
+  }
+
+  if (paddedMax < 100) {
+    return Math.ceil(paddedMax);
+  }
+
+  if (paddedMax < 1000) {
+    return Math.ceil(paddedMax / 10) * 10;
+  }
+
+  if (paddedMax < 10000) {
+    return Math.ceil(paddedMax / 100) * 100;
+  }
+
+  return Math.ceil(paddedMax / 1000) * 1000;
+}
+
+function clampNonNegative(value: number) {
+  return value < 0 ? 0 : value;
+}
+
 function StudioChartEmpty({
   title,
   description,
@@ -218,7 +252,19 @@ export function DashboardViewsChart({
   data: DashboardTrendPoint[];
 }) {
   const gradientId = React.useId().replace(/:/g, "");
-  const hasData = hasPositiveValue(data.map((item) => item.views));
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        views: clampNonNegative(item.views),
+      })),
+    [data],
+  );
+  const hasData = hasPositiveValue(chartData.map((item) => item.views));
+  const yAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => item.views)),
+    [chartData],
+  );
 
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
@@ -238,7 +284,7 @@ export function DashboardViewsChart({
         {hasData ? (
           <ChartFrame className="p-3 sm:p-4">
             <ChartContainer config={dashboardViewsConfig} className="aspect-auto h-[250px] w-full">
-              <AreaChart data={data} accessibilityLayer>
+              <AreaChart data={chartData} accessibilityLayer>
                 <defs>
                   <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8} />
@@ -254,6 +300,7 @@ export function DashboardViewsChart({
                   minTickGap={24}
                   tickFormatter={(value) => formatShortDate(value)}
                 />
+                <YAxis hide domain={[0, yAxisMax]} />
                 <ChartTooltip
                   cursor={false}
                   content={
@@ -271,7 +318,7 @@ export function DashboardViewsChart({
                 />
                 <Area
                   dataKey="views"
-                  type="natural"
+                  type="monotoneX"
                   fill={`url(#${gradientId})`}
                   stroke="var(--color-views)"
                   strokeWidth={2}
@@ -396,9 +443,22 @@ export function TrendMetricChart({
 }) {
   const [activeMetric, setActiveMetric] = React.useState<TrendMetricKey>("views");
   const chartId = React.useId().replace(/:/g, "");
-  const hasData = React.useMemo(
-    () => data.some((item) => item.views > 0 || item.watchTimeHours > 0),
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        views: clampNonNegative(item.views),
+        watchTimeHours: clampNonNegative(item.watchTimeHours),
+      })),
     [data],
+  );
+  const hasData = React.useMemo(
+    () => chartData.some((item) => item.views > 0 || item.watchTimeHours > 0),
+    [chartData],
+  );
+  const yAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => item[activeMetric])),
+    [chartData, activeMetric],
   );
   const activeMeta = trendMetricMeta[activeMetric];
   const gradientId = `${chartId}-${activeMetric}`;
@@ -429,7 +489,7 @@ export function TrendMetricChart({
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
           <ChartContainer config={trendMetricConfig} className="aspect-auto h-[250px] w-full">
-            <AreaChart accessibilityLayer data={data}>
+            <AreaChart accessibilityLayer data={chartData}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={`var(--color-${activeMetric})`} stopOpacity={0.8} />
@@ -445,6 +505,7 @@ export function TrendMetricChart({
                 minTickGap={24}
                 tickFormatter={(value) => formatShortDate(value)}
               />
+              <YAxis hide domain={[0, yAxisMax]} />
               <ChartTooltip
                 cursor={false}
                 content={
@@ -462,7 +523,7 @@ export function TrendMetricChart({
               />
               <Area
                 dataKey={activeMetric}
-                type="natural"
+                type="monotoneX"
                 fill={`url(#${gradientId})`}
                 stroke={`var(--color-${activeMetric})`}
                 strokeWidth={2}
@@ -597,9 +658,22 @@ export function VideoViewsTrendChart({
   const chartId = React.useId().replace(/:/g, "");
   const viewsGradientId = `${chartId}-views`;
   const uniqueViewersGradientId = `${chartId}-unique-viewers`;
-  const hasData = React.useMemo(
-    () => data.some((item) => item.views > 0 || item.uniqueViewers > 0),
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        views: clampNonNegative(item.views),
+        uniqueViewers: clampNonNegative(item.uniqueViewers),
+      })),
     [data],
+  );
+  const hasData = React.useMemo(
+    () => chartData.some((item) => item.views > 0 || item.uniqueViewers > 0),
+    [chartData],
+  );
+  const yAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => Math.max(item.views, item.uniqueViewers))),
+    [chartData],
   );
 
   return (
@@ -611,7 +685,7 @@ export function VideoViewsTrendChart({
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
           <ChartContainer config={videoTrendConfig} className="aspect-auto h-[300px] w-full">
-            <AreaChart accessibilityLayer data={data} margin={{ left: 12, right: 12 }}>
+            <AreaChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12 }}>
               <defs>
                 <linearGradient id={viewsGradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.5} />
@@ -631,6 +705,7 @@ export function VideoViewsTrendChart({
                 minTickGap={24}
                 tickFormatter={(value) => formatShortDate(value)}
               />
+              <YAxis hide domain={[0, yAxisMax]} />
               <ChartTooltip
                 cursor={false}
                 content={
@@ -647,14 +722,14 @@ export function VideoViewsTrendChart({
               />
               <Area
                 dataKey="views"
-                type="natural"
+                type="monotoneX"
                 fill={`url(#${viewsGradientId})`}
                 stroke="var(--color-views)"
                 strokeWidth={2.2}
               />
               <Area
                 dataKey="uniqueViewers"
-                type="natural"
+                type="monotoneX"
                 fill={`url(#${uniqueViewersGradientId})`}
                 stroke="var(--color-uniqueViewers)"
                 strokeWidth={2.2}
@@ -678,9 +753,22 @@ export function VideoEngagementChart({
 }: {
   data: VideoTrendPoint[];
 }) {
-  const hasData = React.useMemo(
-    () => data.some((item) => item.likesGained > 0 || item.commentsGained > 0),
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        likesGained: clampNonNegative(item.likesGained),
+        commentsGained: clampNonNegative(item.commentsGained),
+      })),
     [data],
+  );
+  const hasData = React.useMemo(
+    () => chartData.some((item) => item.likesGained > 0 || item.commentsGained > 0),
+    [chartData],
+  );
+  const yAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => Math.max(item.likesGained, item.commentsGained))),
+    [chartData],
   );
 
   return (
@@ -694,7 +782,7 @@ export function VideoEngagementChart({
           <ChartContainer config={videoEngagementConfig} className="aspect-auto h-[260px] w-full">
             <LineChart
               accessibilityLayer
-              data={data}
+              data={chartData}
               margin={{
                 left: 12,
                 right: 12,
@@ -709,6 +797,7 @@ export function VideoEngagementChart({
                 minTickGap={24}
                 tickFormatter={(value) => formatShortDate(value)}
               />
+              <YAxis hide domain={[0, yAxisMax]} />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
@@ -724,14 +813,14 @@ export function VideoEngagementChart({
               />
               <Line
                 dataKey="likesGained"
-                type="monotone"
+                type="monotoneX"
                 stroke="var(--color-likesGained)"
                 strokeWidth={2.5}
                 dot={false}
               />
               <Line
                 dataKey="commentsGained"
-                type="monotone"
+                type="monotoneX"
                 stroke="var(--color-commentsGained)"
                 strokeWidth={2.5}
                 dot={false}
