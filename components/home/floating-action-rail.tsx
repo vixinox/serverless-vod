@@ -6,8 +6,6 @@ import {
   Bookmark,
   History,
   Clock,
-  Moon,
-  Sun,
   Settings,
   RefreshCw,
   type LucideIcon,
@@ -15,7 +13,6 @@ import {
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePageTransition } from "@/components/transition/transition-context";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { SettingsDialogContent } from "@/components/settings/settings-dialog-content";
@@ -34,7 +31,7 @@ type NavTabItem = {
   icon: LucideIcon;
   targetPath?: string;
   selectable?: boolean;
-  action?: "toggle-theme" | "refresh" | "open-settings";
+  action?: "refresh" | "open-settings";
 };
 
 type NavTabSection = {
@@ -114,18 +111,12 @@ function NavTabButton({
 }
 
 export function FloatingActionRail() {
-  const { resolvedTheme, setTheme } = useTheme();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { startFadeTransition } = usePageTransition();
   const { flushToDB } = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const resolvedActivePath =
     pathname === "/saved" && searchParams.get("list") === "wl"
@@ -144,28 +135,11 @@ export function FloatingActionRail() {
     },
     {
       id: "secondary",
-      items: [
-        {
-          id: "theme",
-          label: mounted
-            ? resolvedTheme === "dark"
-              ? "浅色模式"
-              : "深色模式"
-            : "切换主题",
-          icon: mounted && resolvedTheme === "dark" ? Sun : Moon,
-          action: "toggle-theme",
-        },
-        ...SECONDARY_NAV_ITEMS,
-      ],
+      items: SECONDARY_NAV_ITEMS,
     },
   ];
 
   const handlePress = (item: NavTabItem) => {
-    if (item.action === "toggle-theme") {
-      setTheme(resolvedTheme === "dark" ? "light" : "dark");
-      return;
-    }
-
     if (item.action === "refresh") {
       router.refresh();
       return;

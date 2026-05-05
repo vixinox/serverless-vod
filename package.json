@@ -12,7 +12,6 @@
     "perf:jmeter:videos": "bun run scripts/perf/run-video-list-jmeter.mjs",
     "db:clear-videos": "bun run scripts/db/clear-videos.mjs",
     "seed:slice": "bun run scripts/seed/slice.mjs",
-    "seed:users-cache": "bun run scripts/seed/seed-db.mjs --prepare-users-cache",
     "seed:db": "bun run scripts/seed/seed-db.mjs",
     "seed:s3": "bun run scripts/seed/seed-s3.mjs",
     "localstack:setup": "bun run scripts/localstack/setup.mjs",

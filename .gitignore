@@ -14,7 +14,10 @@
 /coverage
 
 # seed
-**/seed/
+/seed/videos_1080p/
+/seed/hls-videos/
+/seed/images/
+/seed/cache/
 
 # next.js
 /.next/
@@ -52,3 +55,5 @@ next-env.d.ts
 AGENTs.md
 
 /reports
+*.pptx
+*.zip
