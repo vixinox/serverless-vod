@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Label, Line, LineChart, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Label, Line, Pie, PieChart, XAxis, YAxis } from "recharts";
 import type { DashboardPageData, StatPageData, VideoAnalyticsPageData } from "@/lib/server/stats";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/toggle-group";
 import {
   formatCompactNumber,
-  formatHoursLabel,
+  formatDecimalPercent,
+  formatDurationSeconds,
   formatLongDate,
   formatPercent,
   formatShortDate,
@@ -38,6 +39,9 @@ type StatTrendPoint = {
   date: StatPageData["trend30d"][number]["date"] | string;
   views: number;
   watchTimeHours: number;
+  averageViewSeconds: number;
+  rollingViews7d: number;
+  subscriberPerThousandViews: number;
   subscribersNet: number;
   subscribersGained: number;
   subscribersLost: number;
@@ -48,12 +52,20 @@ type VideoTrendPoint = {
   views: number;
   uniqueViewers: number;
   watchTimeHours: number;
+  averageViewSeconds: number;
+  completionRate: number | null;
+  engagementRate: number;
+  feedbackRate: number;
+  positiveRate: number | null;
   likesGained: number;
+  dislikesGained: number;
+  reactionsGained: number;
   commentsGained: number;
 };
 
-type TrendMetricKey = "views" | "watchTimeHours";
+type TrendMetricKey = "views" | "averageViewSeconds" | "subscriberPerThousandViews";
 type SubscriberMetricKey = "subscribersGained" | "subscribersLost";
+type VideoQualityMetricKey = "averageViewSeconds" | "completionRate" | "engagementRate";
 
 const dashboardViewsConfig = {
   views: {
@@ -81,9 +93,17 @@ const trendMetricConfig = {
     label: "观看次数",
     color: "var(--chart-1)",
   },
-  watchTimeHours: {
-    label: "观看时长",
+  rollingViews7d: {
+    label: "7 日均线",
     color: "var(--chart-2)",
+  },
+  averageViewSeconds: {
+    label: "平均观看",
+    color: "var(--chart-3)",
+  },
+  subscriberPerThousandViews: {
+    label: "订阅转化",
+    color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
@@ -103,9 +123,17 @@ const videoTrendConfig = {
     label: "观看次数",
     color: "var(--chart-1)",
   },
-  uniqueViewers: {
-    label: "独立观众",
+  averageViewSeconds: {
+    label: "平均观看",
     color: "var(--chart-2)",
+  },
+  completionRate: {
+    label: "估算完播",
+    color: "var(--chart-3)",
+  },
+  engagementRate: {
+    label: "互动率",
+    color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
@@ -114,9 +142,17 @@ const videoEngagementConfig = {
     label: "新增点赞",
     color: "var(--chart-3)",
   },
+  dislikesGained: {
+    label: "新增点踩",
+    color: "var(--chart-2)",
+  },
   commentsGained: {
     label: "新增评论",
     color: "var(--chart-5)",
+  },
+  positiveRate: {
+    label: "好评率",
+    color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
@@ -124,19 +160,20 @@ const trendMetricMeta: Record<
   TrendMetricKey,
   {
     label: string;
-    description: string;
     formatValue: (value: number) => string;
   }
 > = {
   views: {
     label: "观看次数",
-    description: "按天查看频道播放趋势",
     formatValue: formatCompactNumber,
   },
-  watchTimeHours: {
-    label: "观看时长",
-    description: "按天查看累计观看时长",
-    formatValue: formatHoursLabel,
+  averageViewSeconds: {
+    label: "平均观看",
+    formatValue: formatDurationSeconds,
+  },
+  subscriberPerThousandViews: {
+    label: "订阅转化",
+    formatValue: (value) => `${value.toFixed(2).replace(".00", "")}/千次`,
   },
 };
 
@@ -144,16 +181,13 @@ const subscriberMetricMeta: Record<
   SubscriberMetricKey,
   {
     label: string;
-    description: string;
   }
 > = {
   subscribersGained: {
     label: "新增订阅",
-    description: "查看每天带来的新增订阅",
   },
   subscribersLost: {
     label: "流失订阅",
-    description: "查看每天发生的订阅流失",
   },
 };
 
@@ -206,7 +240,7 @@ function StudioChartEmpty({
     <div className="flex h-[250px] items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 text-center">
       <div className="flex max-w-sm flex-col gap-1">
         <p className="font-medium">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       </div>
     </div>
   );
@@ -246,6 +280,17 @@ function TooltipMetricRow({
   );
 }
 
+function ToneBadge({ tone, children }: { tone: "up" | "flat" | "down" | "neutral"; children: React.ReactNode }) {
+  return (
+    <Badge
+      variant={tone === "down" ? "destructive" : tone === "neutral" ? "outline" : "secondary"}
+      className="w-fit rounded-full px-2.5 py-1"
+    >
+      {children}
+    </Badge>
+  );
+}
+
 export function DashboardViewsChart({
   data,
 }: {
@@ -274,7 +319,6 @@ export function DashboardViewsChart({
             Channel Trend
           </Badge>
           <CardTitle>近 14 天观看趋势</CardTitle>
-          <CardDescription>观察频道流量在最近两周的变化节奏。</CardDescription>
         </div>
         <Badge variant="outline" className="w-fit">
           最近 14 天
@@ -329,7 +373,7 @@ export function DashboardViewsChart({
         ) : (
           <StudioChartEmpty
             title="近 14 天还没有可展示的观看趋势"
-            description="跑过聚合任务后，这里会开始显示每天的播放变化。"
+            description=""
           />
         )}
       </CardContent>
@@ -350,11 +394,6 @@ export function VideoTypeDonutChart({
     () => data.reduce((result, item) => result + item.count, 0),
     [data],
   );
-  const totalViews = React.useMemo(
-    () => data.reduce((result, item) => result + item.views, 0),
-    [data],
-  );
-  const singleType = data.length === 1;
   const chartData = React.useMemo(
     () =>
       data.map((item) => ({
@@ -372,7 +411,7 @@ export function VideoTypeDonutChart({
     <Card className="flex flex-col overflow-hidden border-border/70 bg-card/95 shadow-sm backdrop-blur-sm pt-0 pb-0">
       <CardHeader className="items-center border-b border-border/70 bg-background/40 pb-5 text-center pt-6">
         <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         {totalCount > 0 ? (
@@ -428,8 +467,133 @@ export function VideoTypeDonutChart({
         ) : (
           <StudioChartEmpty
             title="还没有内容结构数据"
-            description="发布长视频或短视频后，这里会展示你的内容分布。"
+            description=""
           />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function ChannelDiagnosisStrip({
+  insights,
+}: {
+  insights: StatPageData["diagnostics"];
+}) {
+  return (
+    <div className="grid gap-3 md:grid-cols-3">
+      {insights.map((item) => (
+        <Card key={item.title} className="border-border/70 bg-card/95 shadow-sm">
+          <CardHeader className="gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <CardDescription>{item.title}</CardDescription>
+              <ToneBadge tone={item.tone}>{item.value}</ToneBadge>
+            </div>
+          </CardHeader>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+export function ContentTypeRingChart({
+  data,
+}: {
+  data: StatPageData["contentTypePerformance"];
+}) {
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        label: formatVideoTypeLabel(item.type),
+        averageViews: clampNonNegative(item.averageViews),
+        averageViewSeconds: clampNonNegative(item.averageViewSeconds),
+        fill: item.type === "LONG" ? "var(--color-long)" : "var(--color-short)",
+      })),
+    [data],
+  );
+  const totalViews = chartData.reduce((result, item) => result + item.views, 0);
+  const hasData = chartData.some((item) => item.views > 0 || item.count > 0);
+
+  return (
+    <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
+      <CardHeader className="border-b border-border/70 bg-background/40 px-6 py-5">
+        <CardTitle>长短视频占比</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4 px-4 pt-4 pb-5 sm:px-6 sm:pt-6">
+        {hasData ? (
+          <>
+            <ChartContainer config={videoTypeConfig} className="mx-auto aspect-square h-[250px] w-full max-w-[280px]">
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    formatter={(_value, _name, item) => {
+                      const payload = item.payload as (typeof chartData)[number];
+
+                      return (
+                        <div className="grid gap-1.5">
+                          <TooltipMetricRow label="平均播放/条" value={formatCompactNumber(payload.averageViews)} />
+                          <TooltipMetricRow label="30 天播放" value={formatCompactNumber(payload.views)} />
+                          <TooltipMetricRow label="平均观看" value={formatDurationSeconds(payload.averageViewSeconds)} />
+                        </div>
+                      );
+                    }}
+                  />
+                }
+              />
+              <Pie data={chartData} dataKey="views" nameKey="label" innerRadius={66} outerRadius={94} strokeWidth={5}>
+                {chartData.map((item) => (
+                  <Cell key={item.type} fill={item.fill} />
+                ))}
+                <Label
+                  content={({ viewBox }) => {
+                    if (!viewBox || !("cx" in viewBox) || !("cy" in viewBox)) {
+                      return null;
+                    }
+
+                    return (
+                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                        <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-semibold">
+                          {formatCompactNumber(totalViews)}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 22}
+                          className="fill-muted-foreground text-xs"
+                        >
+                          30 天播放
+                        </tspan>
+                      </text>
+                    );
+                  }}
+                />
+              </Pie>
+            </PieChart>
+            </ChartContainer>
+            <div className="flex flex-col gap-2">
+              {chartData.map((item) => {
+                const percent = totalViews > 0 ? (item.views / totalViews) * 100 : 0;
+
+                return (
+                  <div key={item.type} className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full" style={{ backgroundColor: item.fill }} />
+                      <span className="font-medium">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <span>{formatDecimalPercent(percent)}</span>
+                      <span>{formatCompactNumber(item.averageViews)}/条</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <StudioChartEmpty title="暂无内容类型数据" description="" />
         )}
       </CardContent>
     </Card>
@@ -452,10 +616,7 @@ export function TrendMetricChart({
       })),
     [data],
   );
-  const hasData = React.useMemo(
-    () => chartData.some((item) => item.views > 0 || item.watchTimeHours > 0),
-    [chartData],
-  );
+  const hasData = React.useMemo(() => chartData.some((item) => item.views > 0), [chartData]);
   const yAxisMax = React.useMemo(
     () => getPositiveYAxisMax(chartData.map((item) => item[activeMetric])),
     [chartData, activeMetric],
@@ -467,8 +628,7 @@ export function TrendMetricChart({
     <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b border-border/70 bg-background/40 px-6 py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>30 天趋势探索</CardTitle>
-          <CardDescription>{activeMeta.description}</CardDescription>
+          <CardTitle>增长趋势</CardTitle>
         </div>
         <ToggleGroup
           type="single"
@@ -482,8 +642,9 @@ export function TrendMetricChart({
           className="hidden sm:ml-auto sm:flex"
           aria-label="选择指标"
         >
-          <ToggleGroupItem value="views">观看次数</ToggleGroupItem>
-          <ToggleGroupItem value="watchTimeHours">观看时长</ToggleGroupItem>
+          <ToggleGroupItem value="views">观看</ToggleGroupItem>
+          <ToggleGroupItem value="averageViewSeconds">平均观看</ToggleGroupItem>
+          <ToggleGroupItem value="subscriberPerThousandViews">订阅转化</ToggleGroupItem>
         </ToggleGroup>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
@@ -528,12 +689,22 @@ export function TrendMetricChart({
                 stroke={`var(--color-${activeMetric})`}
                 strokeWidth={2}
               />
+              {activeMetric === "views" ? (
+                <Line
+                  dataKey="rollingViews7d"
+                  type="monotoneX"
+                  stroke="var(--color-rollingViews7d)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              ) : null}
+              <ChartLegend content={<ChartLegendContent />} />
             </AreaChart>
           </ChartContainer>
         ) : (
           <StudioChartEmpty
             title="最近 30 天还没有趋势数据"
-            description="当频道日统计开始累计后，这里会展示播放和观看时长趋势。"
+            description=""
           />
         )}
       </CardContent>
@@ -551,14 +722,11 @@ export function SubscriberFlowChart({
     () => data.some((item) => item.subscribersGained > 0 || item.subscribersLost > 0),
     [data],
   );
-  const activeMeta = subscriberMetricMeta[activeMetric];
-
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 py-0 pb-6 shadow-sm backdrop-blur-sm h-fit">
       <CardHeader className="flex flex-col items-stretch border-b pb-0! border-border/70 bg-background/40 p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 pt-8">
           <CardTitle>订阅变化</CardTitle>
-          <CardDescription>{activeMeta.description}</CardDescription>
         </div>
         <div className="flex">
           {(["subscribersGained", "subscribersLost"] as const).map((metric) => (
@@ -623,7 +791,7 @@ export function SubscriberFlowChart({
         ) : (
           <StudioChartEmpty
             title="还没有订阅变化数据"
-            description="当频道开始获得或流失订阅后，这里会展示每天的订阅变化。"
+            description=""
           />
         )}
       </CardContent>
@@ -657,30 +825,64 @@ export function VideoViewsTrendChart({
 }) {
   const chartId = React.useId().replace(/:/g, "");
   const viewsGradientId = `${chartId}-views`;
-  const uniqueViewersGradientId = `${chartId}-unique-viewers`;
+  const [qualityMetric, setQualityMetric] = React.useState<VideoQualityMetricKey>("averageViewSeconds");
   const chartData = React.useMemo(
     () =>
       data.map((item) => ({
         ...item,
         views: clampNonNegative(item.views),
-        uniqueViewers: clampNonNegative(item.uniqueViewers),
+        averageViewSeconds: clampNonNegative(item.averageViewSeconds),
+        completionRate: item.completionRate === null ? 0 : clampNonNegative(item.completionRate),
+        engagementRate: clampNonNegative(item.engagementRate),
       })),
     [data],
   );
   const hasData = React.useMemo(
-    () => chartData.some((item) => item.views > 0 || item.uniqueViewers > 0),
+    () => chartData.some((item) => item.views > 0 || item.averageViewSeconds > 0),
     [chartData],
   );
   const yAxisMax = React.useMemo(
-    () => getPositiveYAxisMax(chartData.map((item) => Math.max(item.views, item.uniqueViewers))),
+    () => getPositiveYAxisMax(chartData.map((item) => item.views)),
     [chartData],
   );
+  const qualityAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => Number(item[qualityMetric] ?? 0))),
+    [chartData, qualityMetric],
+  );
+  const qualityLabel =
+    qualityMetric === "averageViewSeconds"
+      ? "平均观看"
+      : qualityMetric === "completionRate"
+        ? "估算完播"
+        : "互动率";
+  const formatQualityValue = (value: number) => {
+    if (qualityMetric === "averageViewSeconds") {
+      return formatDurationSeconds(value);
+    }
+
+    return formatDecimalPercent(value);
+  };
 
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
-      <CardHeader className="flex flex-col gap-2 border-b border-border/70 bg-background/40 px-6 py-5">
-        <CardTitle>30 天播放趋势</CardTitle>
-        <CardDescription>对比观看次数和独立观众，判断这条视频的持续触达能力。</CardDescription>
+      <CardHeader className="flex items-center gap-2 border-b border-border/70 bg-background/40 px-6 py-5 sm:flex-row">
+        <CardTitle className="flex-1">播放质量</CardTitle>
+        <ToggleGroup
+          type="single"
+          value={qualityMetric}
+          onValueChange={(value) => {
+            if (value) {
+              setQualityMetric(value as VideoQualityMetricKey);
+            }
+          }}
+          variant="outline"
+          className="hidden sm:flex"
+          aria-label="选择质量指标"
+        >
+          <ToggleGroupItem value="averageViewSeconds">平均观看</ToggleGroupItem>
+          <ToggleGroupItem value="completionRate">完播</ToggleGroupItem>
+          <ToggleGroupItem value="engagementRate">互动</ToggleGroupItem>
+        </ToggleGroup>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
@@ -690,10 +892,6 @@ export function VideoViewsTrendChart({
                 <linearGradient id={viewsGradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.5} />
                   <stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id={uniqueViewersGradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-uniqueViewers)" stopOpacity={0.45} />
-                  <stop offset="95%" stopColor="var(--color-uniqueViewers)" stopOpacity={0.08} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} />
@@ -706,17 +904,22 @@ export function VideoViewsTrendChart({
                 tickFormatter={(value) => formatShortDate(value)}
               />
               <YAxis hide domain={[0, yAxisMax]} />
+              <YAxis yAxisId="quality" hide domain={[0, qualityAxisMax]} />
               <ChartTooltip
                 cursor={false}
                 content={
                   <ChartTooltipContent
                     labelFormatter={(value) => formatLongDate(value as string)}
-                    formatter={(value, name) => (
-                      <TooltipMetricRow
-                        label={name === "uniqueViewers" ? "独立观众" : "观看次数"}
-                        value={formatCompactNumber(Number(value))}
-                      />
-                    )}
+                    formatter={(value, name) => {
+                      const key = String(name);
+
+                      return (
+                        <TooltipMetricRow
+                          label={key === "views" ? "观看次数" : qualityLabel}
+                          value={key === "views" ? formatCompactNumber(Number(value)) : formatQualityValue(Number(value))}
+                        />
+                      );
+                    }}
                   />
                 }
               />
@@ -727,12 +930,13 @@ export function VideoViewsTrendChart({
                 stroke="var(--color-views)"
                 strokeWidth={2.2}
               />
-              <Area
-                dataKey="uniqueViewers"
+              <Line
+                yAxisId="quality"
+                dataKey={qualityMetric}
                 type="monotoneX"
-                fill={`url(#${uniqueViewersGradientId})`}
-                stroke="var(--color-uniqueViewers)"
-                strokeWidth={2.2}
+                stroke={`var(--color-${qualityMetric})`}
+                strokeWidth={2.5}
+                dot={false}
               />
               <ChartLegend content={<ChartLegendContent />} />
             </AreaChart>
@@ -740,7 +944,7 @@ export function VideoViewsTrendChart({
         ) : (
           <StudioChartEmpty
             title="最近 30 天还没有播放趋势数据"
-            description="当这条视频开始产生稳定播放后，这里会展示播放和独立观众变化。"
+            description=""
           />
         )}
       </CardContent>
@@ -758,29 +962,30 @@ export function VideoEngagementChart({
       data.map((item) => ({
         ...item,
         likesGained: clampNonNegative(item.likesGained),
+        dislikesGained: clampNonNegative(item.dislikesGained),
         commentsGained: clampNonNegative(item.commentsGained),
+        positiveRate: item.positiveRate === null ? 0 : clampNonNegative(item.positiveRate),
       })),
     [data],
   );
   const hasData = React.useMemo(
-    () => chartData.some((item) => item.likesGained > 0 || item.commentsGained > 0),
+    () => chartData.some((item) => item.likesGained > 0 || item.dislikesGained > 0 || item.commentsGained > 0),
     [chartData],
   );
   const yAxisMax = React.useMemo(
-    () => getPositiveYAxisMax(chartData.map((item) => Math.max(item.likesGained, item.commentsGained))),
+    () => getPositiveYAxisMax(chartData.map((item) => Math.max(item.likesGained, item.dislikesGained, item.commentsGained))),
     [chartData],
   );
 
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 py-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="flex flex-col gap-2 border-b border-border/70 bg-background/40 px-6 py-5">
-        <CardTitle>互动增量</CardTitle>
-        <CardDescription>查看这条视频在近 30 天内带来的点赞和评论变化。</CardDescription>
+        <CardTitle>观众反馈</CardTitle>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasData ? (
           <ChartContainer config={videoEngagementConfig} className="aspect-auto h-[260px] w-full">
-            <LineChart
+            <BarChart
               accessibilityLayer
               data={chartData}
               margin={{
@@ -798,40 +1003,50 @@ export function VideoEngagementChart({
                 tickFormatter={(value) => formatShortDate(value)}
               />
               <YAxis hide domain={[0, yAxisMax]} />
+              <YAxis yAxisId="rate" hide domain={[0, 100]} />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
                     labelFormatter={(value) => formatLongDate(value as string)}
-                    formatter={(value, name) => (
-                      <TooltipMetricRow
-                        label={name === "commentsGained" ? "新增评论" : "新增点赞"}
-                        value={Number(value).toLocaleString("zh-CN")}
-                      />
-                    )}
+                    formatter={(value, name) => {
+                      const key = String(name);
+                      const label =
+                        key === "commentsGained"
+                          ? "新增评论"
+                          : key === "dislikesGained"
+                            ? "新增点踩"
+                            : key === "positiveRate"
+                              ? "好评率"
+                              : "新增点赞";
+
+                      return (
+                        <TooltipMetricRow
+                          label={label}
+                          value={key === "positiveRate" ? formatDecimalPercent(Number(value)) : Number(value).toLocaleString("zh-CN")}
+                        />
+                      );
+                    }}
                   />
                 }
               />
+              <Bar dataKey="likesGained" fill="var(--color-likesGained)" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="dislikesGained" fill="var(--color-dislikesGained)" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="commentsGained" fill="var(--color-commentsGained)" radius={[5, 5, 0, 0]} />
               <Line
-                dataKey="likesGained"
+                yAxisId="rate"
+                dataKey="positiveRate"
                 type="monotoneX"
-                stroke="var(--color-likesGained)"
-                strokeWidth={2.5}
-                dot={false}
-              />
-              <Line
-                dataKey="commentsGained"
-                type="monotoneX"
-                stroke="var(--color-commentsGained)"
+                stroke="var(--color-positiveRate)"
                 strokeWidth={2.5}
                 dot={false}
               />
               <ChartLegend content={<ChartLegendContent />} />
-            </LineChart>
+            </BarChart>
           </ChartContainer>
         ) : (
           <StudioChartEmpty
-            title="最近 30 天还没有互动增量数据"
-            description="当这条视频收到点赞或评论后，这里会开始显示互动变化。"
+            title="最近还没有观众反馈"
+            description=""
           />
         )}
       </CardContent>

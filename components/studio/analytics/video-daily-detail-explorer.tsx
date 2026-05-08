@@ -9,8 +9,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,7 +17,6 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -35,6 +32,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   formatCompactNumber,
+  formatDecimalPercent,
   formatHoursLabel,
   formatLongDate,
   formatPercent,
@@ -48,6 +46,7 @@ type VideoDailyDetailPoint = {
   uniqueViewers: number;
   watchTimeHours: number;
   likesGained: number;
+  dislikesGained: number;
   commentsGained: number;
 };
 
@@ -57,7 +56,7 @@ type ChartInteractionState = {
 };
 
 type PrimaryMetricKey = "views" | "uniqueViewers" | "watchTimeHours";
-type SecondaryMetricKey = "likesGained" | "commentsGained";
+type SecondaryMetricKey = "likesGained" | "dislikesGained" | "commentsGained";
 type MetricKey = PrimaryMetricKey | SecondaryMetricKey;
 
 type MetricMeta = {
@@ -68,7 +67,7 @@ type MetricMeta = {
 };
 
 const PRIMARY_METRICS = ["views", "uniqueViewers", "watchTimeHours"] as const;
-const SECONDARY_METRICS = ["likesGained", "commentsGained"] as const;
+const SECONDARY_METRICS = ["likesGained", "dislikesGained", "commentsGained"] as const;
 const ALL_METRICS = [...PRIMARY_METRICS, ...SECONDARY_METRICS] as const;
 
 const chartConfig = {
@@ -77,7 +76,7 @@ const chartConfig = {
     color: "var(--chart-1)",
   },
   uniqueViewers: {
-    label: "独立观众",
+    label: "观看人数",
     color: "var(--chart-2)",
   },
   watchTimeHours: {
@@ -94,7 +93,7 @@ const metricMeta: Record<MetricKey, MetricMeta> = {
     formatValue: formatCompactNumber,
   },
   uniqueViewers: {
-    label: "独立观众",
+    label: "观看人数",
     description: "查看每日真正触达了多少不同观众。",
     color: "var(--color-uniqueViewers)",
     formatValue: formatCompactNumber,
@@ -111,6 +110,12 @@ const metricMeta: Record<MetricKey, MetricMeta> = {
     color: "var(--chart-4)",
     formatValue: (value) => value.toLocaleString("zh-CN"),
   },
+  dislikesGained: {
+    label: "新增点踩",
+    description: "查看每天新增的点踩反馈。",
+    color: "var(--chart-2)",
+    formatValue: (value) => value.toLocaleString("zh-CN"),
+  },
   commentsGained: {
     label: "新增评论",
     description: "查看每天新增的评论反馈。",
@@ -124,15 +129,11 @@ function AnalyticsEmptyState() {
     <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="border-b border-border/70 bg-background/40 pt-6">
         <CardTitle>30 天日明细</CardTitle>
-        <CardDescription>逐天查看这条视频的播放、独立观众和互动变化</CardDescription>
       </CardHeader>
       <CardContent className="py-10">
         <div className="flex min-h-60 items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 text-center">
           <div className="flex max-w-sm flex-col gap-1">
             <p className="font-medium">最近 30 天还没有日明细趋势</p>
-            <p className="text-sm text-muted-foreground">
-              当这条视频开始产生稳定播放与互动后，这里会展示逐日变化。
-            </p>
           </div>
         </div>
       </CardContent>
@@ -208,14 +209,6 @@ function getDeltaFromAverageLabel(value: number, average: number) {
     : `较日均低 ${formatPercent(Math.abs(deltaRatio))}`;
 }
 
-function getPeakCoverageLabel(value: number, max: number) {
-  if (max <= 0) {
-    return "近 30 天暂无峰值数据";
-  }
-
-  return `达到近 30 天峰值的 ${formatPercent((value / max) * 100)}`;
-}
-
 function getChartRowFromState(data: VideoDailyDetailPoint[], state: ChartInteractionState) {
   if (state.activeTooltipIndex == null) {
     return null;
@@ -229,32 +222,9 @@ function getChartRowFromState(data: VideoDailyDetailPoint[], state: ChartInterac
   return Number.isFinite(index) ? data[index] ?? null : null;
 }
 
-function getEngagementInsight(item: VideoDailyDetailPoint, averages: Record<MetricKey, number>) {
-  const interactions = item.likesGained + item.commentsGained;
-  const averageInteractions = averages.likesGained + averages.commentsGained;
-  const highReach = item.views >= averages.views * 1.1;
-  const highInteraction = interactions >= averageInteractions * 1.1;
-  const uniqueRatio = item.views > 0 ? item.uniqueViewers / item.views : 0;
-
-  let headline = "整体表现接近日常水平。";
-
-  if (highReach && highInteraction) {
-    headline = "这一天的播放和互动同步走强，属于近 30 天的高表现日。";
-  } else if (highReach) {
-    headline = "这一天触达扩张很明显，但互动转化相对克制。";
-  } else if (highInteraction) {
-    headline = "这一天互动反馈更集中，说明观众回应意愿更强。";
-  }
-
-  const ratioDetail =
-    item.views > 0
-      ? `独立观众约占总观看的 ${formatPercent(uniqueRatio * 100)}，可用来判断新触达质量。`
-      : "当天还没有形成有效观看，因此触达结构信号有限。";
-
-  return {
-    headline,
-    ratioDetail,
-  };
+function getPositiveRate(likes: number, dislikes: number) {
+  const reactions = likes + dislikes;
+  return reactions > 0 ? (likes / reactions) * 100 : null;
 }
 
 function HighlightDot({
@@ -421,6 +391,7 @@ export function VideoDailyDetailExplorer({
         uniqueViewers: clampNonNegative(item.uniqueViewers),
         watchTimeHours: clampNonNegative(item.watchTimeHours),
         likesGained: clampNonNegative(item.likesGained),
+        dislikesGained: clampNonNegative(item.dislikesGained),
         commentsGained: clampNonNegative(item.commentsGained),
       })),
     [data],
@@ -438,6 +409,7 @@ export function VideoDailyDetailExplorer({
           item.uniqueViewers > 0 ||
           item.watchTimeHours > 0 ||
           item.likesGained > 0 ||
+          item.dislikesGained > 0 ||
           item.commentsGained > 0,
       ),
     [chartData],
@@ -502,15 +474,12 @@ export function VideoDailyDetailExplorer({
     setOpen(true);
   };
 
-  const drawerInsight = drawerRow ? getEngagementInsight(drawerRow, averages) : null;
-
   return (
     <Drawer direction={isMobile ? "bottom" : "right"} open={open} onOpenChange={setOpen}>
       <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
         <CardHeader className="border-b border-border/70 bg-background/40 py-5">
           <div className="grid gap-1">
             <CardTitle>30 天日明细</CardTitle>
-            <CardDescription>图表看趋势，表格看每一天的强弱和互动落点。</CardDescription>
           </div>
           <CardAction className="w-full sm:w-auto">
             <ToggleGroup
@@ -526,7 +495,7 @@ export function VideoDailyDetailExplorer({
               aria-label="切换主指标"
             >
               <ToggleGroupItem value="views">观看</ToggleGroupItem>
-              <ToggleGroupItem value="uniqueViewers">独立观众</ToggleGroupItem>
+              <ToggleGroupItem value="uniqueViewers">观看人数</ToggleGroupItem>
               <ToggleGroupItem value="watchTimeHours">观看时长</ToggleGroupItem>
             </ToggleGroup>
           </CardAction>
@@ -548,7 +517,7 @@ export function VideoDailyDetailExplorer({
             <SummaryPanel
               label="日均水平"
               value={activeMetricInfo.formatValue(averages[activeMetric])}
-              helper={activeMetricInfo.description}
+              helper={activeMetricInfo.label}
               accentColor={activeMetricInfo.color}
             />
           </div>
@@ -636,9 +605,6 @@ export function VideoDailyDetailExplorer({
             <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
               <div>
                 <p className="font-medium">逐日分析表</p>
-                <p className="text-sm text-muted-foreground">
-                  当前主视角：{activeMetricInfo.label}。悬停联动图表，点击某一天查看详情。
-                </p>
               </div>
               {activeRow ? (
                 <Badge variant="outline" className="hidden sm:inline-flex">
@@ -652,9 +618,10 @@ export function VideoDailyDetailExplorer({
                   <TableRow>
                     <TableHead className="w-28">日期</TableHead>
                     <TableHead>观看</TableHead>
-                    <TableHead>独立观众</TableHead>
+                    <TableHead>观看人数</TableHead>
                     <TableHead>观看时长</TableHead>
                     <TableHead>新增点赞</TableHead>
+                    <TableHead>新增点踩</TableHead>
                     <TableHead>新增评论</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -726,6 +693,14 @@ export function VideoDailyDetailExplorer({
                         </TableCell>
                         <TableCell>
                           <SecondaryMetricCell
+                            value={row.dislikesGained}
+                            max={maxima.dislikesGained}
+                            label="点踩"
+                            color={metricMeta.dislikesGained.color}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <SecondaryMetricCell
                             value={row.commentsGained}
                             max={maxima.commentsGained}
                             label="评论"
@@ -740,10 +715,6 @@ export function VideoDailyDetailExplorer({
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start gap-1 border-t border-border/70 bg-background/20 py-4 text-sm">
-          <p className="font-medium">主图用于判断趋势，表格用于判断每天的强弱结构。</p>
-          <p className="text-muted-foreground">点击图表节点或表格行，可以展开该日的完整指标和表现解读。</p>
-        </CardFooter>
       </Card>
 
       <DrawerContent className="sm:max-w-xl">
@@ -755,11 +726,31 @@ export function VideoDailyDetailExplorer({
                 <Badge variant="secondary">{formatShortDate(drawerRow.date)}</Badge>
               </div>
               <DrawerTitle>{formatLongDate(drawerRow.date)}</DrawerTitle>
-              <DrawerDescription>对照近 30 天均值和峰值，快速判断这一天的触达与互动质量。</DrawerDescription>
             </DrawerHeader>
             <div className="flex flex-col gap-6 overflow-y-auto p-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <SummaryPanel
+                  label="当日表现"
+                  value={formatCompactNumber(drawerRow.views)}
+                  helper={getDeltaFromAverageLabel(drawerRow.views, averages.views)}
+                  accentColor={metricMeta.views.color}
+                />
+                <SummaryPanel
+                  label="观看结构"
+                  value={formatCompactNumber(drawerRow.uniqueViewers)}
+                  helper={getDeltaFromAverageLabel(drawerRow.uniqueViewers, averages.uniqueViewers)}
+                  accentColor={metricMeta.uniqueViewers.color}
+                />
+                <SummaryPanel
+                  label="互动反馈"
+                  value={formatDecimalPercent(getPositiveRate(drawerRow.likesGained, drawerRow.dislikesGained))}
+                  helper={`${drawerRow.likesGained} 赞 / ${drawerRow.dislikesGained} 踩 / ${drawerRow.commentsGained} 评论`}
+                  accentColor={metricMeta.commentsGained.color}
+                />
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-2">
-                {ALL_METRICS.map((metric) => (
+                {(["views", "uniqueViewers", "watchTimeHours", "likesGained", "dislikesGained", "commentsGained"] as const).map((metric) => (
                   <div key={metric} className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium">{metricMeta[metric].label}</p>
@@ -768,44 +759,11 @@ export function VideoDailyDetailExplorer({
                     <p className="mt-2 text-xl font-semibold tabular-nums">
                       {metricMeta[metric].formatValue(drawerRow[metric])}
                     </p>
-                    <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{getDeltaFromAverageLabel(drawerRow[metric], averages[metric])}</span>
-                      <span>{getPeakCoverageLabel(drawerRow[metric], maxima[metric])}</span>
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {drawerInsight ? (
-                <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-4">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">当日判断</Badge>
-                    <span className="text-sm text-muted-foreground">帮助快速定位“高播放低互动”或“反馈爆发”</span>
-                  </div>
-                  <p className="mt-3 font-medium">{drawerInsight.headline}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">{drawerInsight.ratioDetail}</p>
-                </div>
-              ) : null}
-
-              <div className="grid gap-3 sm:grid-cols-3">
-                <SummaryPanel
-                  label="观看"
-                  value={formatCompactNumber(drawerRow.views)}
-                  helper={getDeltaFromAverageLabel(drawerRow.views, averages.views)}
-                  accentColor={metricMeta.views.color}
-                />
-                <SummaryPanel
-                  label="独立观众"
-                  value={formatCompactNumber(drawerRow.uniqueViewers)}
-                  helper={getDeltaFromAverageLabel(drawerRow.uniqueViewers, averages.uniqueViewers)}
-                  accentColor={metricMeta.uniqueViewers.color}
-                />
-                <SummaryPanel
-                  label="互动总量"
-                  value={(drawerRow.likesGained + drawerRow.commentsGained).toLocaleString("zh-CN")}
-                  helper={`点赞 ${drawerRow.likesGained.toLocaleString("zh-CN")} / 评论 ${drawerRow.commentsGained.toLocaleString("zh-CN")}`}
-                  accentColor={metricMeta.commentsGained.color}
-                />
               </div>
             </div>
             <DrawerFooter className="border-t border-border/70">

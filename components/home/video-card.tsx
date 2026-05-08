@@ -57,7 +57,7 @@ export function VideoCard({ data }: { data?: VideoData | undefined }) {
         <div className="flex justify-start items-start w-full mt-2">
           <Avatar className="w-9 h-9">
             <AvatarImage src={data.ownerImage} alt=""/>
-            <AvatarFallback className="bg-[#33691e] text-lg">{data.ownerName?.charAt(0) ?? "U"}</AvatarFallback>
+            <AvatarFallback className="bg-[#33691e] text-lg text-white">{data.ownerName?.charAt(0) ?? "U"}</AvatarFallback>
           </Avatar>
           <div className="w-full ml-3">
             <p className="font-bold">{data.title}</p>

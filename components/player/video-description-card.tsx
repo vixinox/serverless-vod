@@ -30,18 +30,30 @@ export function VideoDescriptionCard({ description, children, views, createdAt }
       }}
     >
       <p className="text-sm font-bold">
-        {views}次观看 {formatter.format(createdAt)}
+        {(() => {
+          const v = Number(views);  
+          if (v >= 10000) {
+            const display = (v / 10000).toFixed(1).replace('.0', '');
+            return `${display}万 次观看`;
+          }
+          return `${v} 次观看`;
+        })()} · {formatter.format(createdAt)}
       </p>
 
-      <div className={cn(
-        "whitespace-pre-wrap text-sm",
-        open ? "" : "line-clamp-3"
-      )}>
+      {/* 描述文本：overflow clip，max-height 平滑伸缩，内容不被压缩 */}
+      <div
+        className="overflow-hidden whitespace-pre-wrap text-sm transition-[max-height] duration-150 ease-in-out"
+        style={{ maxHeight: open ? '600px' : '4.5em' }}
+      >
         {description}
       </div>
 
-      {open && (
-        <>
+      {/* 附加内容：grid-template-rows 动画，内容不被压缩 */}
+      <div
+        className="grid transition-[grid-template-rows] duration-150 ease-in-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden min-h-0">
           {children && (
             <div className="mt-6">
               {children}
@@ -56,8 +68,8 @@ export function VideoDescriptionCard({ description, children, views, createdAt }
           >
             收起
           </p>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   )
 }

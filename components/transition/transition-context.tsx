@@ -28,12 +28,12 @@ export interface TransitionContextValue {
     href: string,
     thumbnailUrl: string,
     originRect: DOMRect
-  ) => void;
+  ) => boolean;
   /**
    * Trigger a fade-only page transition (e.g. watch → home).
    * @param href - the destination URL
    */
-  startFadeTransition: (href: string, options?: FadeTransitionOptions) => void;
+  startFadeTransition: (href: string, options?: FadeTransitionOptions) => boolean;
   /**
    * Called by the destination page once it has fully mounted and is ready
    * to be displayed.
@@ -43,8 +43,8 @@ export interface TransitionContextValue {
 
 export const TransitionContext = createContext<TransitionContextValue>({
   status: "idle",
-  startTransition: () => {},
-  startFadeTransition: () => {},
+  startTransition: () => false,
+  startFadeTransition: () => false,
   notifyPageReady: () => {},
 });
 

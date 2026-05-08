@@ -18,6 +18,7 @@
 /seed/hls-videos/
 /seed/images/
 /seed/cache/
+/seed/mainfests/
 
 # next.js
 /.next/

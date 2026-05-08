@@ -7,7 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { StatPageData } from "@/lib/server/stats";
-import { formatCompactNumber, formatHoursLabel, formatVideoTypeLabel } from "@/components/studio/analytics/utils";
+import {
+  formatCompactNumber,
+  formatDecimalPercent,
+  formatDurationSeconds,
+  formatSignedPercent,
+  formatVideoTypeLabel,
+} from "@/components/studio/analytics/utils";
 
 type VideoLeaderboardRow = StatPageData["videoLeaderboard30d"][number];
 const PAGE_SIZE = 10;
@@ -52,28 +58,26 @@ export function VideoLeaderboardTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <div className="overflow-x-auto">
-        <Table className="min-w-[920px]">
+        <Table className="min-w-[900px]">
           <TableHeader>
             <TableRow>
               <TableHead>排名</TableHead>
               <TableHead>视频</TableHead>
               <TableHead>类型</TableHead>
-              <TableHead>累计观看</TableHead>
               <TableHead>30 天观看</TableHead>
-              <TableHead>独立观众</TableHead>
-              <TableHead>观看时长</TableHead>
+              <TableHead>贡献</TableHead>
+              <TableHead>平均观看</TableHead>
               <TableHead>互动率</TableHead>
-              <TableHead>新增点赞</TableHead>
-              <TableHead>新增评论</TableHead>
+              <TableHead>7 天动量</TableHead>
+              <TableHead>标签</TableHead>
               <TableHead>跳转</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length > 0 ? (
               pagedRows.map((video, index) => {
-                const engagementRate = (((video.likesGainedLastDays + video.commentsGainedLastDays) / Math.max(video.viewsLastDays, 1)) * 100).toFixed(1);
                 const rank = pageStartRank + index + 1;
 
                 return (
@@ -95,24 +99,27 @@ export function VideoLeaderboardTable({
                         <span className="truncate">{video.title}</span>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>跟踪 {video.trackedDays} 天</span>
-                          <span>30 天播放占比 {Math.min(100, Math.round((video.viewsLastDays / Math.max(video.viewsTotal, 1)) * 100))}%</span>
+                          <span>累计 {formatCompactNumber(video.viewsTotal)}</span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{formatVideoTypeLabel(video.type)}</Badge>
                     </TableCell>
-                    <TableCell>{formatCompactNumber(video.viewsTotal)}</TableCell>
                     <TableCell className="font-medium">{formatCompactNumber(video.viewsLastDays)}</TableCell>
-                    <TableCell>{video.uniqueViewersLastDays.toLocaleString("zh-CN")}</TableCell>
-                    <TableCell>{formatHoursLabel(video.watchTimeHoursLastDays)}</TableCell>
+                    <TableCell>{formatDecimalPercent(video.contributionPercent)}</TableCell>
+                    <TableCell>{formatDurationSeconds(video.averageViewSeconds)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="rounded-full px-2.5 py-1">
-                        {engagementRate}%
+                        {formatDecimalPercent(video.engagementRate)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{video.likesGainedLastDays.toLocaleString("zh-CN")}</TableCell>
-                    <TableCell>{video.commentsGainedLastDays.toLocaleString("zh-CN")}</TableCell>
+                    <TableCell>{formatSignedPercent(video.momentum7dPercent)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="rounded-full px-2.5 py-1">
+                        {video.label}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <button
@@ -139,7 +146,7 @@ export function VideoLeaderboardTable({
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={11} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="py-8 text-center text-muted-foreground">
                   近 30 天还没有视频聚合数据，跑完聚合任务后这里会显示视频排行榜。
                 </TableCell>
               </TableRow>

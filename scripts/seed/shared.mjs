@@ -41,6 +41,22 @@ export function seededInt(seed, salt, min, max) {
   return min + (value % span);
 }
 
+export function randomFloat(min, max) {
+  if (max <= min) {
+    return min;
+  }
+
+  return min + Math.random() * (max - min);
+}
+
+export function randomInt(min, max) {
+  if (max <= min) {
+    return min;
+  }
+
+  return Math.floor(randomFloat(min, max + 1));
+}
+
 export function maybeChoice(seed, salt, values) {
   return values[seededInt(seed, salt, 0, values.length - 1)];
 }

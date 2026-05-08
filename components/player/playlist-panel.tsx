@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { WatchSidebarData } from "@/lib/server/videos";
 import { SmartImage } from "@/components/smart-image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { usePageTransition } from "@/components/transition/transition-context";
 import { cn } from "@/lib/utils";
 
 type PlaylistData = NonNullable<WatchSidebarData["playlist"]>;
@@ -26,16 +26,20 @@ export function PlaylistPanel({
   shortCode: string;
   playlist: PlaylistData;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const titleId = `playlist-panel-${playlist.id}`;
+  const contentId = `playlist-panel-${playlist.id}`;
+  const { startFadeTransition } = usePageTransition();
   const currentPlaylistItem = playlist.items.find((item) => item.video.shortCode === shortCode) ?? null;
   const currentIndex = currentPlaylistItem
     ? playlist.items.findIndex((item) => item.video.shortCode === currentPlaylistItem.video.shortCode)
     : -1;
+  const currentPosition = currentIndex >= 0 ? currentIndex + 1 : 1;
+  const totalItems = playlist.items.length;
   const nextVideo = currentIndex >= 0
     ? (playlist.items[currentIndex + 1]?.video ?? null)
     : (playlist.items[0]?.video ?? null);
+  const creatorName = playlist.owner.channel?.name || playlist.owner.name || "创作者";
 
   useLayoutEffect(() => {
     if (!contentRef.current) return;
@@ -82,60 +86,90 @@ export function PlaylistPanel({
     setExpanded((prev) => !prev);
   };
 
+  const handlePlaylistItemClick = (itemShortCode: string) => {
+    if (itemShortCode === shortCode) {
+      return;
+    }
+
+    startFadeTransition(`/watch/${itemShortCode}`, { maskMode: "keep-video" });
+  };
+
   return (
     <Card
       className={cn(
-        "gap-0 border py-2 transition-colors duration-150 hover:border-border",
+        "gap-0 overflow-hidden border py-0 shadow-none transition-colors duration-150 hover:border-border",
       )}
     >
-      <CardHeader className="px-3 py-1">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 flex flex-col gap-1">
-            <p className="truncate text-sm font-semibold">{playlist.title}</p>
-            <p className="truncate text-sm text-muted-foreground">
-              {nextVideo ? `下一条：${nextVideo.title}` : "已是最后一条"}
-            </p>
+      <CardHeader className="px-3 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex flex-1 flex-col gap-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate text-sm font-semibold">{playlist.title}</p>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {currentPosition} / {totalItems}
+              </span>
+            </div>
+            <p className="truncate text-xs text-muted-foreground">{creatorName}</p>
+            {!expanded ? (
+              <p className="truncate text-xs text-muted-foreground">
+                {nextVideo ? `下一条：${nextVideo.title}` : "已是最后一条"}
+              </p>
+            ) : null}
           </div>
 
           <button
             type="button"
             onClick={handleToggleIconClick}
             className={cn(
-              "inline-flex h-10 w-10 p-2 items-center justify-center rounded-full border text-muted-foreground hover:bg-muted",
+              "inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted",
             )}
             aria-label={expanded ? "收起播放列表" : "展开播放列表"}
             aria-expanded={expanded}
-            aria-controls={titleId}
+            aria-controls={contentId}
           >
-            {expanded ? <ChevronUp className="size-full" /> : <ChevronDown className="size-full" />}
+            {expanded ? <ChevronUp className="size-5" /> : <ChevronDown className="size-5" />}
           </button>
         </div>
       </CardHeader>
 
-      <div id={titleId} ref={contentRef} className="hidden overflow-hidden">
-        <CardContent className="space-y-2 px-3 pb-2 pt-1">
-          {playlist.items.map((item) => {
+      <div id={contentId} ref={contentRef} className="hidden overflow-hidden">
+        <CardContent className="flex max-h-[480px] flex-col gap-0 overflow-y-auto px-0 pb-2 pt-0">
+          {playlist.items.map((item, index) => {
             const isCurrent = item.video.shortCode === shortCode;
 
             return (
-              <Link
+              <button
                 key={`${playlist.id}-${item.position}`}
-                href={`/watch/${item.video.shortCode}`}
+                type="button"
+                onClick={() => handlePlaylistItemClick(item.video.shortCode)}
+                aria-current={isCurrent ? "true" : undefined}
                 className={cn(
-                  "flex items-start gap-2 rounded-md border px-2 py-1.5 transition-colors hover:bg-accent/40",
-                  isCurrent ? "border-primary bg-primary/5" : "border-border/70",
+                  "flex w-full items-start gap-2 px-3 py-2 text-left transition-colors hover:bg-muted/70",
+                  isCurrent && "bg-muted",
                 )}
               >
-                <div className="relative w-22 shrink-0 overflow-hidden rounded-sm border bg-muted aspect-video">
-                  <SmartImage src={item.video.thumbnail} alt={item.video.title} />
+                <span
+                  className={cn(
+                    "mt-6 w-6 shrink-0 text-center text-xs text-muted-foreground",
+                    isCurrent && "font-medium text-foreground",
+                  )}
+                >
+                  {index + 1}
+                </span>
+                <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-sm bg-muted">
+                  <SmartImage
+                    src={item.video.thumbnail}
+                    alt={item.video.title}
+                    sizes="96px"
+                  />
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 pt-0.5">
                   <p className="line-clamp-2 text-xs font-medium leading-4">{item.video.title}</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 truncate text-[11px] text-muted-foreground">
                     {formatViewCount(item.video.views)} 次观看
                   </p>
                 </div>
-              </Link>
+              </button>
             );
           })}
         </CardContent>

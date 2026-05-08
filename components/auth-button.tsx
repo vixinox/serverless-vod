@@ -34,26 +34,12 @@ export function AuthButton() {
     lastAvatarImageRef.current = nextImage;
   }, [user?.image]);
 
-  const avatarTrigger = (
-    <div className="relative h-8 w-8">
-      <Avatar
-        className={`absolute inset-0 z-10 h-8 w-8 transition duration-300 ${
-          user?.image && avatarImageLoaded ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <AvatarImage
-          src={user?.image ?? ""}
-          alt={user?.name ?? ""}
-          onLoadingStatusChange={(status) => {
-            setAvatarImageLoaded(status === "loaded");
-          }}
-        />
-      </Avatar>
-    </div>
-  );
-
   if (!user && isPending) {
-    return avatarTrigger;
+    return (
+      <Avatar className="h-10 w-10">
+        <AvatarFallback className="bg-[#33691e] text-lg text-white">U</AvatarFallback>
+      </Avatar>
+    );
   }
 
   if (!user) {
@@ -75,7 +61,19 @@ export function AuthButton() {
       <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-          {avatarTrigger}
+          <Avatar className="h-8 w-8">
+            <AvatarImage
+              src={user?.image ?? ""}
+              alt={user?.name ?? ""}
+              onLoadingStatusChange={(status) => {
+                setAvatarImageLoaded(status === "loaded");
+              }}
+              className={`transition duration-300 ${
+                user?.image && avatarImageLoaded ? "opacity-100" : "opacity-0"
+              }`}
+            />
+            <AvatarFallback className="bg-[#33691e] text-lg text-white">{user?.name?.charAt(0) ?? "U"}</AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
 
@@ -84,7 +82,7 @@ export function AuthButton() {
         <div className="flex p-4 gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={user.image ?? ""} alt={user.name ?? ""} />
-            <AvatarFallback className="bg-[#33691e] text-lg">{user.name?.charAt(0) ?? "U"}</AvatarFallback>
+            <AvatarFallback className="bg-[#33691e] text-lg text-white">{user.name?.charAt(0) ?? "U"}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col truncate">
             <span className="font-medium truncate">{user.name}</span>

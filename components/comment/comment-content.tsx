@@ -59,7 +59,7 @@ export function CommentContent({
     <div className="w-full flex gap-4 items-start">
       <Avatar className={size === "large" ? "size-10" : "size-6"}>
         <AvatarImage src={image} />
-        <AvatarFallback className="bg-[#33691e] text-lg">{name?.charAt(0) ?? "U"}</AvatarFallback>
+        <AvatarFallback className="bg-[#33691e] text-lg text-white">{name?.charAt(0) ?? "U"}</AvatarFallback>
       </Avatar>
 
       {isEditing ? (

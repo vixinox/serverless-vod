@@ -66,10 +66,12 @@ const SECONDARY_NAV_ITEMS: NavTabItem[] = [
 function NavTabButton({
   item,
   isActive,
+  disabled,
   onPress,
 }: {
   item: NavTabItem;
   isActive: boolean;
+  disabled: boolean;
   onPress: (item: NavTabItem) => void;
 }) {
   return (
@@ -81,6 +83,7 @@ function NavTabButton({
           size="icon-lg"
           aria-label={item.label}
           aria-pressed={item.selectable ? isActive : undefined}
+          disabled={disabled}
           onClick={() => onPress(item)}
           className={cn(
             "relative w-11 h-11 p-2.5 cursor-pointer rounded-full border bg-zinc-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_10px_18px_-14px_rgba(0,0,0,0.78)] transition duration-150 ease-out hover:scale-110 hover:border-white/18 active:scale-90 dark:bg-zinc-700",
@@ -114,7 +117,7 @@ export function FloatingActionRail() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { startFadeTransition } = usePageTransition();
+  const { status, startFadeTransition } = usePageTransition();
   const { flushToDB } = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -155,8 +158,10 @@ export function FloatingActionRail() {
         return;
       }
 
-      setActivePath(item.targetPath);
-      startFadeTransition(item.targetPath, { maskMode: "keep-home-rail" });
+      const didStart = startFadeTransition(item.targetPath, { maskMode: "keep-home-rail" });
+      if (didStart) {
+        setActivePath(item.targetPath);
+      }
     }
   };
 
@@ -184,6 +189,7 @@ export function FloatingActionRail() {
                     key={item.id}
                     item={item}
                     isActive={Boolean(item.selectable && item.targetPath === activePath)}
+                    disabled={status !== "idle"}
                     onPress={handlePress}
                   />
                 ))}

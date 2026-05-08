@@ -91,7 +91,7 @@ export const CommentTextarea = memo(function CommentTextarea({
       <div className="w-full flex gap-4 items-start mt-4">
         <Avatar className={avatarSize}>
           <AvatarImage src={user?.image ?? undefined} />
-          <AvatarFallback className="bg-[#33691e] text-lg">{user?.name?.charAt(0) ?? "U"}</AvatarFallback>
+          <AvatarFallback className="bg-[#33691e] text-lg text-white">{user?.name?.charAt(0) ?? "U"}</AvatarFallback>
         </Avatar>
 
         <div className="flex items-start w-full relative">

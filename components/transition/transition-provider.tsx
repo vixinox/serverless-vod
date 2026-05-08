@@ -207,7 +207,7 @@ export function TransitionProvider({ children }: Props) {
 
   const startTransition = useCallback(
     (href: string, thumbnailUrl: string, originRect: DOMRect) => {
-      if (isAnimatingRef.current) return;
+      if (isAnimatingRef.current) return false;
 
       finishedRef.current = false;
       isAnimatingRef.current = true;
@@ -233,6 +233,8 @@ export function TransitionProvider({ children }: Props) {
 
         armRevealTimeout();
       })();
+
+      return true;
     },
     [armRevealTimeout, nextFrame, router]
   );
@@ -246,7 +248,7 @@ export function TransitionProvider({ children }: Props) {
   /** Fade-only transition: overlay fades in, router.push fires, then reveal. */
   const startFadeTransition = useCallback(
     (href: string, options?: FadeTransitionOptions) => {
-      if (isAnimatingRef.current) return;
+      if (isAnimatingRef.current) return false;
 
       const maskMode = options?.maskMode ?? "full";
       fadeMaskModeRef.current = maskMode;
@@ -261,6 +263,7 @@ export function TransitionProvider({ children }: Props) {
       setStatus("covering");
       // The overlay mounts on the next React commit; the useEffect below
       // picks it up and kicks off the GSAP fade-in.
+      return true;
     },
     [readOverlayHoleRect]
   );
@@ -281,6 +284,7 @@ export function TransitionProvider({ children }: Props) {
         duration: FADE_ONLY_COVER_DURATION_S,
         ease: "power2.inOut",
         onComplete: () => {
+          window.scrollTo({ top: 0 });
           router.push(href, { scroll: false });
           armRevealTimeout();
         },
