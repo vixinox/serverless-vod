@@ -40,11 +40,11 @@ export default async function VideoAnalyticsPage({
         <StudioMetricCard
           title="观众反馈"
           value={formatDecimalPercent(analytics.overview30d.positiveRate)}
-          hint={`${analytics.overview30d.likesGained} 赞 / ${analytics.overview30d.dislikesGained} 踩`}
+          hint={`${formatCompactNumber(analytics.overview30d.likesGained)} 赞 / ${formatCompactNumber(analytics.overview30d.dislikesGained)} 踩`}
         />
         <StudioMetricCard
           title="讨论热度"
-          value={analytics.overview30d.commentsGained.toLocaleString("zh-CN")}
+          value={formatCompactNumber(analytics.overview30d.commentsGained)}
           hint={`${analytics.overview30d.commentsPerThousandViews.toFixed(2).replace(".00", "")}/千次播放`}
         />
       </div>
@@ -111,19 +111,19 @@ export default async function VideoAnalyticsPage({
           <CardContent className="flex flex-col gap-4 text-sm">
             <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
               <p className="text-muted-foreground">累计点赞</p>
-              <p className="mt-1 text-xl font-semibold">{analytics.video.likesCount.toLocaleString("zh-CN")}</p>
+              <p className="mt-1 text-xl font-semibold">{formatCompactNumber(analytics.video.likesCount)}</p>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
               <p className="text-muted-foreground">累计评论</p>
-              <p className="mt-1 text-xl font-semibold">{analytics.video.commentsCount.toLocaleString("zh-CN")}</p>
+              <p className="mt-1 text-xl font-semibold">{formatCompactNumber(analytics.video.commentsCount)}</p>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
               <p className="text-muted-foreground">近 30 天互动</p>
               <p className="mt-1 text-xl font-semibold">
-                {`${analytics.overview30d.reactionsGained + analytics.overview30d.commentsGained} 次`}
+                {`${formatCompactNumber(analytics.overview30d.reactionsGained + analytics.overview30d.commentsGained)} 次`}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {`${analytics.overview30d.likesGained} 赞 / ${analytics.overview30d.dislikesGained} 踩 / ${analytics.overview30d.commentsGained} 评论`}
+                {`${formatCompactNumber(analytics.overview30d.likesGained)} 赞 / ${formatCompactNumber(analytics.overview30d.dislikesGained)} 踩 / ${formatCompactNumber(analytics.overview30d.commentsGained)} 评论`}
               </p>
             </div>
           </CardContent>

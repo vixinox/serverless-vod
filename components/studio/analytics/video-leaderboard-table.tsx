@@ -11,8 +11,6 @@ import {
   formatCompactNumber,
   formatDecimalPercent,
   formatDurationSeconds,
-  formatSignedPercent,
-  formatVideoTypeLabel,
 } from "@/components/studio/analytics/utils";
 
 type VideoLeaderboardRow = StatPageData["videoLeaderboard30d"][number];
@@ -60,17 +58,15 @@ export function VideoLeaderboardTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-x-auto">
-        <Table className="min-w-[900px]">
+        <Table className="min-w-[780px]">
           <TableHeader>
             <TableRow>
               <TableHead>排名</TableHead>
               <TableHead>视频</TableHead>
-              <TableHead>类型</TableHead>
               <TableHead>30 天观看</TableHead>
               <TableHead>贡献</TableHead>
               <TableHead>平均观看</TableHead>
               <TableHead>互动率</TableHead>
-              <TableHead>7 天动量</TableHead>
               <TableHead>标签</TableHead>
               <TableHead>跳转</TableHead>
             </TableRow>
@@ -103,9 +99,6 @@ export function VideoLeaderboardTable({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{formatVideoTypeLabel(video.type)}</Badge>
-                    </TableCell>
                     <TableCell className="font-medium">{formatCompactNumber(video.viewsLastDays)}</TableCell>
                     <TableCell>{formatDecimalPercent(video.contributionPercent)}</TableCell>
                     <TableCell>{formatDurationSeconds(video.averageViewSeconds)}</TableCell>
@@ -114,7 +107,6 @@ export function VideoLeaderboardTable({
                         {formatDecimalPercent(video.engagementRate)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatSignedPercent(video.momentum7dPercent)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="rounded-full px-2.5 py-1">
                         {video.label}
@@ -146,7 +138,7 @@ export function VideoLeaderboardTable({
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={10} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   近 30 天还没有视频聚合数据，跑完聚合任务后这里会显示视频排行榜。
                 </TableCell>
               </TableRow>
@@ -157,7 +149,7 @@ export function VideoLeaderboardTable({
 
       {rows.length > 0 ? (
         <div className="flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>{`第 ${currentPage} / ${totalPages} 页 · 共 ${rows.length.toLocaleString("zh-CN")} 条内容`}</span>
+          <span>{`第 ${currentPage} / ${totalPages} 页 · 共 ${formatCompactNumber(rows.length)} 条内容`}</span>
           <div className="flex items-center gap-2">
             <Button
               type="button"

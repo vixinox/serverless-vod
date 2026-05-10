@@ -1033,11 +1033,6 @@ export async function getVideoAnalyticsPageData(shortCode: string): Promise<Vide
     },
     diagnostics: [
       {
-        title: "7 天动量",
-        value: formatSignedPercent(views7dDelta.changePercent),
-        tone: getDiagnosticTone(views7dDelta.changePercent),
-      },
-      {
         title: "平均观看",
         value: formatSeconds(averageViewSeconds),
         tone: averageViewSeconds > 0 ? "up" : "neutral",

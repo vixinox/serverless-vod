@@ -3,42 +3,6 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import prisma from "./prisma";
 
-if (process.env.OAUTH_HTTP_PROXY) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { fetch: undiciFetch, ProxyAgent } = require("undici");
-  const oauthProxyHosts = new Set([
-    "oauth2.googleapis.com",
-    "accounts.google.com",
-    "api.github.com",
-    "github.com",
-  ]);
-  const proxyAgent = new ProxyAgent(process.env.OAUTH_HTTP_PROXY);
-  const originalFetch = globalThis.fetch.bind(globalThis);
-
-  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
-    const targetUrl =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : input.url;
-
-    try {
-      const hostname = new URL(targetUrl).hostname;
-      if (oauthProxyHosts.has(hostname)) {
-        return undiciFetch(targetUrl, {
-          ...init,
-          dispatcher: proxyAgent,
-        });
-      }
-    } catch {
-      return originalFetch(input, init);
-    }
-
-    return originalFetch(input, init);
-  }) as typeof globalThis.fetch;
-}
-
 const normalizeGithubValue = (value: unknown) => {
   if (typeof value !== "string") return "";
   return value.trim();

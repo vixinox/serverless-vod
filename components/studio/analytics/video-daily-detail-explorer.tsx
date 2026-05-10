@@ -108,19 +108,19 @@ const metricMeta: Record<MetricKey, MetricMeta> = {
     label: "新增点赞",
     description: "查看每天新增的点赞反馈。",
     color: "var(--chart-4)",
-    formatValue: (value) => value.toLocaleString("zh-CN"),
+    formatValue: formatCompactNumber,
   },
   dislikesGained: {
     label: "新增点踩",
     description: "查看每天新增的点踩反馈。",
     color: "var(--chart-2)",
-    formatValue: (value) => value.toLocaleString("zh-CN"),
+    formatValue: formatCompactNumber,
   },
   commentsGained: {
     label: "新增评论",
     description: "查看每天新增的评论反馈。",
     color: "var(--chart-5)",
-    formatValue: (value) => value.toLocaleString("zh-CN"),
+    formatValue: formatCompactNumber,
   },
 };
 
@@ -355,7 +355,7 @@ function SecondaryMetricCell({
     <div className="flex min-w-24 flex-col gap-1.5">
       <div className="flex items-center gap-2">
         <Badge variant={value > 0 ? "secondary" : "outline"} className="font-mono tabular-nums">
-          {value.toLocaleString("zh-CN")}
+          {formatCompactNumber(value)}
         </Badge>
         <span className="text-[11px] text-muted-foreground">{label}</span>
       </div>
@@ -744,7 +744,7 @@ export function VideoDailyDetailExplorer({
                 <SummaryPanel
                   label="互动反馈"
                   value={formatDecimalPercent(getPositiveRate(drawerRow.likesGained, drawerRow.dislikesGained))}
-                  helper={`${drawerRow.likesGained} 赞 / ${drawerRow.dislikesGained} 踩 / ${drawerRow.commentsGained} 评论`}
+                  helper={`${formatCompactNumber(drawerRow.likesGained)} 赞 / ${formatCompactNumber(drawerRow.dislikesGained)} 踩 / ${formatCompactNumber(drawerRow.commentsGained)} 评论`}
                   accentColor={metricMeta.commentsGained.color}
                 />
               </div>

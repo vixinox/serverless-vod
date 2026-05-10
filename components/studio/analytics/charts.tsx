@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Label, Line, Pie, PieChart, XAxis, YAxis } from "recharts";
 import type { DashboardPageData, StatPageData, VideoAnalyticsPageData } from "@/lib/server/stats";
+import { useStudioTransition } from "@/components/studio/basic/studio-transition";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -45,6 +46,19 @@ type StatTrendPoint = {
   subscribersNet: number;
   subscribersGained: number;
   subscribersLost: number;
+};
+
+type PublishPacePoint = {
+  date: StatPageData["trend30d"][number]["date"] | string;
+  videosPublished: number;
+};
+
+type ContributionPoint = {
+  id: StatPageData["videoLeaderboard30d"][number]["id"];
+  title: StatPageData["videoLeaderboard30d"][number]["title"];
+  shortCode: StatPageData["videoLeaderboard30d"][number]["shortCode"];
+  viewsLastDays: StatPageData["videoLeaderboard30d"][number]["viewsLastDays"];
+  contributionPercent: StatPageData["videoLeaderboard30d"][number]["contributionPercent"];
 };
 
 type VideoTrendPoint = {
@@ -115,6 +129,13 @@ const subscriberMetricConfig = {
   subscribersLost: {
     label: "流失订阅",
     color: "var(--chart-5)",
+  },
+} satisfies ChartConfig;
+
+const publishPaceConfig = {
+  videosPublished: {
+    label: "发布数",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
@@ -430,7 +451,7 @@ export function VideoTypeDonutChart({
                       return (
                         <TooltipMetricRow
                           label={payload.label}
-                          value={`${Number(value).toLocaleString("zh-CN")} 个`}
+                          value={`${formatCompactNumber(Number(value))} 个`}
                         />
                       );
                     }}
@@ -447,7 +468,7 @@ export function VideoTypeDonutChart({
                     return (
                       <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                         <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-3xl font-semibold">
-                          {totalCount.toLocaleString("zh-CN")}
+                          {formatCompactNumber(totalCount)}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
@@ -725,7 +746,7 @@ export function SubscriberFlowChart({
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 py-0 pb-6 shadow-sm backdrop-blur-sm h-fit">
       <CardHeader className="flex flex-col items-stretch border-b pb-0! border-border/70 bg-background/40 p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 pt-8">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3">
           <CardTitle>订阅变化</CardTitle>
         </div>
         <div className="flex">
@@ -779,7 +800,7 @@ export function SubscriberFlowChart({
                     formatter={(value) => (
                       <TooltipMetricRow
                         label={subscriberMetricMeta[activeMetric].label}
-                        value={Number(value).toLocaleString("zh-CN")}
+                        value={formatCompactNumber(Number(value))}
                       />
                     )}
                   />
@@ -793,6 +814,157 @@ export function SubscriberFlowChart({
             title="还没有订阅变化数据"
             description=""
           />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function PublishPaceChart({
+  data,
+}: {
+  data: PublishPacePoint[];
+}) {
+  const chartData = React.useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        videosPublished: clampNonNegative(item.videosPublished),
+      })),
+    [data],
+  );
+  const hasData = React.useMemo(() => chartData.some((item) => item.videosPublished > 0), [chartData]);
+  const yAxisMax = React.useMemo(
+    () => getPositiveYAxisMax(chartData.map((item) => item.videosPublished)),
+    [chartData],
+  );
+  const totalPublished = React.useMemo(
+    () => chartData.reduce((result, item) => result + item.videosPublished, 0),
+    [chartData],
+  );
+
+  return (
+    <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
+      <CardHeader className="flex items-center gap-2 border-b border-border/70 bg-background/40 px-6 py-5 sm:flex-row">
+        <div className="grid flex-1 gap-1">
+          <CardTitle>发布节奏</CardTitle>
+        </div>
+        <Badge variant="outline" className="w-fit">
+          {`近 30 天共 ${formatCompactNumber(totalPublished)} 条`}
+        </Badge>
+      </CardHeader>
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+        {hasData ? (
+          <ChartContainer config={publishPaceConfig} className="aspect-auto h-[250px] w-full">
+            <BarChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12 }}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={24}
+                tickFormatter={(value) => formatShortDate(value)}
+              />
+              <YAxis hide domain={[0, yAxisMax]} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => formatLongDate(value as string)}
+                    formatter={(value) => (
+                      <TooltipMetricRow
+                        label="发布数"
+                        value={`${formatCompactNumber(Number(value))} 条`}
+                      />
+                    )}
+                  />
+                }
+              />
+              <Bar dataKey="videosPublished" fill="var(--color-videosPublished)" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
+        ) : (
+          <StudioChartEmpty title="最近 30 天还没有发布数据" description="" />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function ContributionDistributionChart({
+  data,
+  topN = 10,
+}: {
+  data: ContributionPoint[];
+  topN?: number;
+}) {
+  const { navigate } = useStudioTransition();
+  const chartData = React.useMemo(
+    () =>
+      data
+        .slice()
+        .sort((left, right) => right.contributionPercent - left.contributionPercent)
+        .slice(0, topN)
+        .map((item) => ({
+          ...item,
+          title: item.title.trim() || "未命名视频",
+          contributionPercent: clampNonNegative(item.contributionPercent),
+          viewsLastDays: clampNonNegative(item.viewsLastDays),
+        })),
+    [data, topN],
+  );
+  const hasData = React.useMemo(() => chartData.some((item) => item.contributionPercent > 0), [chartData]);
+
+  return (
+    <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
+      <CardHeader className="flex items-center justify-between gap-3 border-b border-border/70 bg-background/40 px-6 py-5">
+        <CardTitle>贡献分布</CardTitle>
+        <Badge variant="outline">{`Top ${Math.max(1, topN)}`}</Badge>
+      </CardHeader>
+      <CardContent className="p-0">
+        {hasData ? (
+          <div
+            className="h-[300px] overflow-y-auto [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <div className="divide-y divide-border/60">
+              {chartData.map((item, index) => {
+                const percent = Math.min(item.contributionPercent, 100);
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    title={item.title}
+                    className={cn(
+                      "w-full px-2 py-3 text-left transition-colors",
+                      "hover:bg-muted/35 focus-visible:bg-muted/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+                    )}
+                    onClick={() => navigate(`/studio/stat/${item.shortCode}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex min-w-10 items-center justify-center text-xs font-semibold text-muted-foreground">
+                        #{index + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-medium">{item.title}</span>
+                      <span className="text-sm font-semibold tabular-nums">{formatDecimalPercent(item.contributionPercent)}</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted/70">
+                      <div
+                        className="h-full rounded-full bg-[var(--chart-4)] transition-[width]"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <div className="mt-1.5 text-xs text-muted-foreground">
+                      {`30 天观看 ${formatCompactNumber(item.viewsLastDays)}`}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <StudioChartEmpty title="暂无贡献分布数据" description="" />
         )}
       </CardContent>
     </Card>
@@ -1022,7 +1194,7 @@ export function VideoEngagementChart({
                       return (
                         <TooltipMetricRow
                           label={label}
-                          value={key === "positiveRate" ? formatDecimalPercent(Number(value)) : Number(value).toLocaleString("zh-CN")}
+                          value={key === "positiveRate" ? formatDecimalPercent(Number(value)) : formatCompactNumber(Number(value))}
                         />
                       );
                     }}

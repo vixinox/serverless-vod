@@ -15,10 +15,7 @@
     "seed:db": "bun run scripts/seed/seed-db.mjs",
     "seed:s3": "bun run scripts/seed/seed-s3.mjs",
     "localstack:setup": "bun run scripts/localstack/setup.mjs",
-    "db:apply-pg-extras": "bun run scripts/db/apply-sql.mjs prisma/triggers.core.sql prisma/rollup.daily.sql",
-    "ppt:defense": "bun run scripts/pptx/build-defense-ppt.mjs",
-    "ppt:defense:template": "python scripts/pptx/fill-defense-template.py",
-    "ppt:defense:template:qa": "python scripts/pptx/qa-defense-template.py"
+    "db:apply-pg-extras": "bun run scripts/db/apply-sql.mjs prisma/triggers.core.sql prisma/rollup.daily.sql"
   },
   "dependencies": {
     "@aws-crypto/sha256-browser": "^5.2.0",
@@ -56,7 +53,6 @@
     "sonner": "^2.0.7",
     "swr": "^2.4.1",
     "tailwind-merge": "^3.5.0",
-    "undici": "^7.24.6",
     "vaul": "^1.1.2",
     "zod": "^4.3.6"
   },

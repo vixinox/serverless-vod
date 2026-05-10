@@ -2,8 +2,8 @@ import { getStatPageData } from "@/lib/server/stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StudioMetricCard } from "@/components/studio/analytics/metric-card";
 import {
-  ChannelDiagnosisStrip,
-  ContentTypeRingChart,
+  ContributionDistributionChart,
+  PublishPaceChart,
   SubscriberFlowChart,
   TrendMetricChart,
 } from "@/components/studio/analytics/charts";
@@ -13,6 +13,7 @@ import {
   formatDurationSeconds,
   formatHoursLabel,
   formatSignedPercent,
+  formatSignedNumber,
 } from "@/components/studio/analytics/utils";
 
 export default async function StatPage() {
@@ -41,17 +42,15 @@ export default async function StatPage() {
             />
             <StudioMetricCard
               title="订阅变化"
-              value={`${stats.overview30d.subscribersNet > 0 ? "+" : ""}${stats.overview30d.subscribersNet.toLocaleString("zh-CN")}`}
+              value={formatSignedNumber(stats.overview30d.subscribersNet)}
               hint="近 30 天净增"
             />
             <StudioMetricCard
-              title="近期热度"
-              value={stats.diagnostics.find((item) => item.title === "7 天动量")?.value ?? "暂无"}
-              hint="近 7 天变化"
+              title="30 天发布"
+              value={formatCompactNumber(stats.overview30d.videosPublished)}
+              hint={`日均 ${(stats.overview30d.videosPublished / 30).toFixed(1).replace(".0", "")} 条`}
             />
           </div>
-
-          <ChannelDiagnosisStrip insights={stats.diagnostics} />
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
             <TrendMetricChart
@@ -67,7 +66,12 @@ export default async function StatPage() {
                 subscribersLost: item.subscribersLost,
               }))}
             />
-            <ContentTypeRingChart data={stats.contentTypePerformance} />
+            <PublishPaceChart
+              data={stats.trend30d.map((item) => ({
+                date: item.date.toISOString(),
+                videosPublished: item.videosPublished,
+              }))}
+            />
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
@@ -84,11 +88,14 @@ export default async function StatPage() {
                 subscribersLost: item.subscribersLost,
               }))}
             />
-            <StudioMetricCard
-              title="Top3 贡献"
-              value={stats.diagnostics.find((item) => item.title === "Top3 贡献")?.value ?? "暂无"}
-              hint="榜单集中度"
-              emphasis="soft"
+            <ContributionDistributionChart
+              data={stats.videoLeaderboard30d.map((item) => ({
+                id: item.id,
+                title: item.title,
+                shortCode: item.shortCode,
+                viewsLastDays: item.viewsLastDays,
+                contributionPercent: item.contributionPercent,
+              }))}
             />
           </div>
 

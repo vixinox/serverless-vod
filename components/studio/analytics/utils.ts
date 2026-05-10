@@ -86,7 +86,12 @@ export function formatDecimalPercent(value: number | null) {
 }
 
 export function formatSignedNumber(value: number) {
-  return `${value > 0 ? "+" : ""}${value.toLocaleString("zh-CN")}`;
+  if (value === 0) {
+    return "0";
+  }
+
+  const sign = value > 0 ? "+" : "-";
+  return `${sign}${formatCompactNumber(Math.abs(value))}`;
 }
 
 export function formatSignedPercent(value: number | null) {
