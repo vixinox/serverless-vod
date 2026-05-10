@@ -1,0 +1,290 @@
+<!-- Slide number: 1 -->
+
+本科毕业答辩
+基于AWS Serverless的视频点播平台
+
+设计与实现
+架构主轴
+
+姓名：[姓名]   学号：[学号]
+Web 应用层
+Next.js 16 / React 19
+数据层
+PostgreSQL / Prisma
+专业：[专业]   指导老师：[指导老师]
+答辩日期：2026 年 5 月
+
+媒体处理层
+S3 / Lambda / FFmpeg
+编排与事件
+Step Functions / EventBridge
+
+### Notes:
+
+<!-- Slide number: 2 -->
+
+01 背景
+研究背景与问题
+中小规模视频点播平台的核心挑战
+
+视频文件体积大，后端中转上传会占用大量带宽与连接资源。
+大文件上传压力
+
+转码链路涉及多个阶段，失败恢复与状态一致性处理难度高。
+异步转码复杂
+
+常驻转码服务与中间件集群投入大，资源峰谷不均时成本高。
+传统架构运维重
+
+### Notes:
+
+<!-- Slide number: 3 -->
+
+02 目标
+研究目标与系统范围
+实现内容生产、处理、消费、运营的一体化闭环
+
+上传
+处理
+播放
+统计
+
+游客：浏览首页、搜索、稳定播放公开视频。
+
+注册用户：评论、点赞、订阅、收藏、播放列表。
+
+创作者：上传视频、查看转码状态、管理内容、分析数据。
+
+### Notes:
+
+<!-- Slide number: 4 -->
+
+03 架构
+总体架构设计
+同步业务走应用层，异步媒体任务走Serverless流水线
+
+应用层：Next.js 16 + React 19
+负责页面渲染、接口聚合、权限校验、业务编排。
+
+数据层：PostgreSQL + Prisma
+负责实体关系、任务状态、统计聚合和一致性约束。
+
+媒体处理层：S3 + Lambda + Step Functions + EventBridge
+负责预签名直传、转码切片、阶段事件回写、失败重试。
+
+### Notes:
+
+<!-- Slide number: 5 -->
+
+04 模块
+核心业务模块
+围绕“发现-消费-生产-运营”构建完整平台能力
+
+用户认证
+内容浏览
+播放互动
+1
+2
+3
+Better Auth
+会话管理/权限控制
+首页流式加载
+搜索与推荐展示
+HLS播放
+评论/点赞/订阅
+
+上传处理
+工作室统计
+4
+5
+预签名上传
+状态机异步转码
+内容管理
+数据分析图表
+
+### Notes:
+
+<!-- Slide number: 6 -->
+
+05 核心
+媒体处理流程设计
+预签名直传 + 状态机编排 + 资源回写形成可观测异步链路
+
+01
+02
+03
+04
+05
+06
+获取预签名地址
+直传 vod-raw
+创建 UploadSession/TranscodeJob
+启动 Step Functions
+Lambda 处理链路
+写入 HLS/封面与状态
+
+视频文件上传不经过 Next.js 服务端，减少应用层带宽消耗与阻塞。
+
+流水线阶段状态通过内部接口回写数据库，前端轮询即可追踪进度。
+
+### Notes:
+
+<!-- Slide number: 7 -->
+
+06 稳定性
+状态机与异常恢复
+确保任务失败可定位、可恢复、可重试
+
+成功路径
+失败与恢复路径
+
+Lambda异常 → Catch
+mark-failed 回写
+UPLOADING
+PROCESSING
+READY
+
+FAILED / retry / reconcile-stale
+
+关键点：通过任务表 + 内部回调 + 纠错接口，避免“卡死任务”造成前端长期锁定。
+
+### Notes:
+
+<!-- Slide number: 8 -->
+
+07 数据
+数据库与一致性设计
+核心实体分组 + 触发器计数 + 日级统计汇总
+
+认证与会话
+内容互动
+User / Session / Account / Verification
+Video / Channel / Comment / Reaction / Subscription
+
+上传处理
+统计分析
+UploadSession / TranscodeJob / VideoAsset
+VideoPlaybackEvent / VideoDailyStat / ChannelDailyStat
+
+一致性策略：触发器维护互动计数；存储过程 rollup.daily 按日聚合，降低统计页实时查询压力。
+
+### Notes:
+
+<!-- Slide number: 9 -->
+
+08 实现
+系统实现效果
+可替换为真实系统截图：首页、播放页、上传页、工作室与统计页
+
+待替换截图
+待替换截图
+home-search.png
+watch-page.png
+首页/搜索页
+视频播放页
+
+待替换截图
+待替换截图
+upload-pipeline.png
+studio-stat.png
+上传与转码进度页
+工作室与统计页
+
+### Notes:
+
+<!-- Slide number: 10 -->
+
+09 测试
+测试方案
+黑盒功能 + 异常恢复 + JMeter并发压测
+
+核心功能测试
+异常恢复测试
+并发性能测试
+权限拦截
+损坏视频触发FAILED
+接口：GET /api/videos?limit=12&type=LONG
+
+视频上传
+长时间RUNNING任务纠错
+并发：50 / 100 / 200
+
+状态机运行
+前端状态解除锁定
+指标：吞吐量、RT、P99、错误率
+
+游标分页查询
+
+### Notes:
+
+<!-- Slide number: 11 -->
+
+10 结果
+测试结果与分析
+吞吐量增长明显，但高并发下延迟上升
+
+### Chart
+
+| Category | 吞吐量 (req/s) |
+|---|---|
+| 50线程 | 112.45 |
+| 100线程 | 119.71 |
+| 200线程 | 146.89 |20MB H.264 MP4 可在约10-20秒完成处理并生成HLS资源。
+
+损坏视频可进入失败分支并准确标记为 FAILED。
+
+### Chart
+
+| Category | P99 (ms) |
+|---|---|
+| 50线程 | 883.0 |
+| 100线程 | 1542.0 |
+| 200线程 | 2733.0 |并发从50到200时吞吐量上升，P99从883ms升至2733ms。
+
+### Notes:
+
+<!-- Slide number: 12 -->
+
+11 总结
+总结与展望
+验证中小规模VOD场景下Serverless方案的工程可行性
+
+已完成
+后续展望
+构建上传、转码、播放、互动、统计闭环。
+完善多码率自适应与播放策略。
+
+以Step Functions编排Lambda，增强可观测性。
+引入内容审核与合规处理链路。
+
+验证了异常恢复与状态一致性机制。
+在真实AWS/CDN环境做更完整压测。
+
+### Notes:
+
+<!-- Slide number: 13 -->
+
+备用
+答疑准备
+常见问题与回答线索
+
+为什么选择 Serverless，而不是传统常驻服务架构？
+
+Q1
+为什么上传使用预签名URL直传，而非后端中转？
+
+Q2
+Step Functions 与 EventBridge 在链路中如何分工？
+
+Q3
+LocalStack 仿真与真实 AWS 环境差异有哪些？
+
+Q4
+如何保证转码失败后的状态一致与可恢复？
+
+Q5
+并发压力下主要性能瓶颈在哪，后续如何优化？
+
+Q6
+
+### Notes:
