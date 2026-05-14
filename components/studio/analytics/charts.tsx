@@ -39,7 +39,6 @@ type VideoTypeBreakdown = DashboardPageData["typeBreakdown"];
 type StatTrendPoint = {
   date: StatPageData["trend30d"][number]["date"] | string;
   views: number;
-  watchTimeHours: number;
   averageViewSeconds: number;
   rollingViews7d: number;
   subscriberPerThousandViews: number;
@@ -65,7 +64,6 @@ type VideoTrendPoint = {
   date: VideoAnalyticsPageData["trend30d"][number]["date"] | string;
   views: number;
   uniqueViewers: number;
-  watchTimeHours: number;
   averageViewSeconds: number;
   completionRate: number | null;
   engagementRate: number;
@@ -633,7 +631,6 @@ export function TrendMetricChart({
       data.map((item) => ({
         ...item,
         views: clampNonNegative(item.views),
-        watchTimeHours: clampNonNegative(item.watchTimeHours),
       })),
     [data],
   );

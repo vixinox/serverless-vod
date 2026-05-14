@@ -33,7 +33,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   formatCompactNumber,
   formatDecimalPercent,
-  formatHoursLabel,
+  formatDurationSeconds,
   formatLongDate,
   formatPercent,
   formatShortDate,
@@ -44,7 +44,7 @@ type VideoDailyDetailPoint = {
   date: string;
   views: number;
   uniqueViewers: number;
-  watchTimeHours: number;
+  averageViewSeconds: number;
   likesGained: number;
   dislikesGained: number;
   commentsGained: number;
@@ -55,7 +55,7 @@ type ChartInteractionState = {
   isTooltipActive?: boolean;
 };
 
-type PrimaryMetricKey = "views" | "uniqueViewers" | "watchTimeHours";
+type PrimaryMetricKey = "views" | "uniqueViewers" | "averageViewSeconds";
 type SecondaryMetricKey = "likesGained" | "dislikesGained" | "commentsGained";
 type MetricKey = PrimaryMetricKey | SecondaryMetricKey;
 
@@ -66,7 +66,7 @@ type MetricMeta = {
   formatValue: (value: number) => string;
 };
 
-const PRIMARY_METRICS = ["views", "uniqueViewers", "watchTimeHours"] as const;
+const PRIMARY_METRICS = ["views", "uniqueViewers", "averageViewSeconds"] as const;
 const SECONDARY_METRICS = ["likesGained", "dislikesGained", "commentsGained"] as const;
 const ALL_METRICS = [...PRIMARY_METRICS, ...SECONDARY_METRICS] as const;
 
@@ -79,8 +79,8 @@ const chartConfig = {
     label: "观看人数",
     color: "var(--chart-2)",
   },
-  watchTimeHours: {
-    label: "观看时长",
+  averageViewSeconds: {
+    label: "平均观看",
     color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
@@ -98,11 +98,11 @@ const metricMeta: Record<MetricKey, MetricMeta> = {
     color: "var(--color-uniqueViewers)",
     formatValue: formatCompactNumber,
   },
-  watchTimeHours: {
-    label: "观看时长",
-    description: "衡量这条视频每天带来的实际消费时长。",
-    color: "var(--color-watchTimeHours)",
-    formatValue: formatHoursLabel,
+  averageViewSeconds: {
+    label: "平均观看",
+    description: "衡量这条视频每天单次播放的平均观看深度。",
+    color: "var(--color-averageViewSeconds)",
+    formatValue: formatDurationSeconds,
   },
   likesGained: {
     label: "新增点赞",
@@ -128,7 +128,7 @@ function AnalyticsEmptyState() {
   return (
     <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="border-b border-border/70 bg-background/40 pt-6">
-        <CardTitle>30 天日明细</CardTitle>
+        <CardTitle>最近 30 天</CardTitle>
       </CardHeader>
       <CardContent className="py-10">
         <div className="flex min-h-60 items-center justify-center rounded-xl border border-dashed bg-muted/20 px-6 text-center">
@@ -389,7 +389,7 @@ export function VideoDailyDetailExplorer({
         ...item,
         views: clampNonNegative(item.views),
         uniqueViewers: clampNonNegative(item.uniqueViewers),
-        watchTimeHours: clampNonNegative(item.watchTimeHours),
+        averageViewSeconds: clampNonNegative(item.averageViewSeconds),
         likesGained: clampNonNegative(item.likesGained),
         dislikesGained: clampNonNegative(item.dislikesGained),
         commentsGained: clampNonNegative(item.commentsGained),
@@ -407,7 +407,7 @@ export function VideoDailyDetailExplorer({
         (item) =>
           item.views > 0 ||
           item.uniqueViewers > 0 ||
-          item.watchTimeHours > 0 ||
+          item.averageViewSeconds > 0 ||
           item.likesGained > 0 ||
           item.dislikesGained > 0 ||
           item.commentsGained > 0,
@@ -452,6 +452,8 @@ export function VideoDailyDetailExplorer({
   const activeRow = activeDate ? rowsByDate.get(activeDate) ?? null : null;
   const drawerRow = drawerDate ? rowsByDate.get(drawerDate) ?? null : null;
   const activeMetricInfo = metricMeta[activeMetric];
+  const latestRow = chartData.at(-1) ?? null;
+  const isAverageMetric = activeMetric === "averageViewSeconds";
 
   const activePeakRow = React.useMemo(() => {
     const maxValue = maxima[activeMetric];
@@ -479,7 +481,7 @@ export function VideoDailyDetailExplorer({
       <Card className="overflow-hidden border-border/70 bg-card/95 pt-0 shadow-sm backdrop-blur-sm">
         <CardHeader className="border-b border-border/70 bg-background/40 py-5">
           <div className="grid gap-1">
-            <CardTitle>30 天日明细</CardTitle>
+            <CardTitle>最近 30 天</CardTitle>
           </div>
           <CardAction className="w-full sm:w-auto">
             <ToggleGroup
@@ -496,16 +498,16 @@ export function VideoDailyDetailExplorer({
             >
               <ToggleGroupItem value="views">观看</ToggleGroupItem>
               <ToggleGroupItem value="uniqueViewers">观看人数</ToggleGroupItem>
-              <ToggleGroupItem value="watchTimeHours">观看时长</ToggleGroupItem>
+              <ToggleGroupItem value="averageViewSeconds">平均观看</ToggleGroupItem>
             </ToggleGroup>
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 px-3 pt-4 sm:px-6 sm:pt-6">
           <div className="grid gap-3 lg:grid-cols-3">
             <SummaryPanel
-              label="30 天累计"
-              value={activeMetricInfo.formatValue(totals[activeMetric])}
-              helper={`${activeMetricInfo.label} 的近 30 天总量`}
+              label={isAverageMetric ? "30 天均值" : "30 天累计"}
+              value={activeMetricInfo.formatValue(isAverageMetric ? averages[activeMetric] : totals[activeMetric])}
+              helper={isAverageMetric ? "近 30 天每日平均观看" : `${activeMetricInfo.label} 的近 30 天总量`}
               accentColor={activeMetricInfo.color}
             />
             <SummaryPanel
@@ -515,9 +517,9 @@ export function VideoDailyDetailExplorer({
               accentColor={activeMetricInfo.color}
             />
             <SummaryPanel
-              label="日均水平"
-              value={activeMetricInfo.formatValue(averages[activeMetric])}
-              helper={activeMetricInfo.label}
+              label={isAverageMetric ? "最新一天" : "日均水平"}
+              value={activeMetricInfo.formatValue(isAverageMetric ? latestRow?.averageViewSeconds ?? 0 : averages[activeMetric])}
+              helper={isAverageMetric && latestRow ? formatShortDate(latestRow.date) : activeMetricInfo.label}
               accentColor={activeMetricInfo.color}
             />
           </div>
@@ -619,7 +621,7 @@ export function VideoDailyDetailExplorer({
                     <TableHead className="w-28">日期</TableHead>
                     <TableHead>观看</TableHead>
                     <TableHead>观看人数</TableHead>
-                    <TableHead>观看时长</TableHead>
+                    <TableHead>平均观看</TableHead>
                     <TableHead>新增点赞</TableHead>
                     <TableHead>新增点踩</TableHead>
                     <TableHead>新增评论</TableHead>
@@ -677,10 +679,10 @@ export function VideoDailyDetailExplorer({
                         </TableCell>
                         <TableCell>
                           <PrimaryMetricCell
-                            value={row.watchTimeHours}
-                            max={maxima.watchTimeHours}
-                            formatValue={metricMeta.watchTimeHours.formatValue}
-                            color={metricMeta.watchTimeHours.color}
+                            value={row.averageViewSeconds}
+                            max={maxima.averageViewSeconds}
+                            formatValue={metricMeta.averageViewSeconds.formatValue}
+                            color={metricMeta.averageViewSeconds.color}
                           />
                         </TableCell>
                         <TableCell>
@@ -750,7 +752,7 @@ export function VideoDailyDetailExplorer({
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                {(["views", "uniqueViewers", "watchTimeHours", "likesGained", "dislikesGained", "commentsGained"] as const).map((metric) => (
+                {(["views", "uniqueViewers", "averageViewSeconds", "likesGained", "dislikesGained", "commentsGained"] as const).map((metric) => (
                   <div key={metric} className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium">{metricMeta[metric].label}</p>

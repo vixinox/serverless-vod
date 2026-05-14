@@ -33,9 +33,13 @@ export default async function VideoAnalyticsPage({
           hint={formatSignedPercent(analytics.comparison.views7d.changePercent)}
         />
         <StudioMetricCard
-          title="观看时长"
+          title="平均观看"
           value={formatDurationSeconds(analytics.overview30d.averageViewSeconds)}
-          hint={`${analytics.overview30d.watchTimeHours.toFixed(1)} 小时`}
+          hint={
+            analytics.overview30d.completionRate === null
+              ? "近 30 天单次播放均值"
+              : `估算完播 ${formatDecimalPercent(analytics.overview30d.completionRate)}`
+          }
         />
         <StudioMetricCard
           title="观众反馈"
@@ -72,7 +76,6 @@ export default async function VideoAnalyticsPage({
           date: item.date.toISOString(),
           views: item.views,
           uniqueViewers: item.uniqueViewers,
-          watchTimeHours: item.watchTimeHours,
           averageViewSeconds: item.averageViewSeconds,
           completionRate: item.completionRate,
           engagementRate: item.engagementRate,
@@ -91,7 +94,6 @@ export default async function VideoAnalyticsPage({
             date: item.date.toISOString(),
             views: item.views,
             uniqueViewers: item.uniqueViewers,
-            watchTimeHours: item.watchTimeHours,
             averageViewSeconds: item.averageViewSeconds,
             completionRate: item.completionRate,
             engagementRate: item.engagementRate,
@@ -135,7 +137,7 @@ export default async function VideoAnalyticsPage({
           date: item.date.toISOString(),
           views: item.views,
           uniqueViewers: item.uniqueViewers,
-          watchTimeHours: item.watchTimeHours,
+          averageViewSeconds: item.averageViewSeconds,
           likesGained: item.likesGained,
           dislikesGained: item.dislikesGained,
           commentsGained: item.commentsGained,

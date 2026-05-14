@@ -87,7 +87,7 @@ export function AuthButton() {
           <div className="flex flex-col truncate">
             <span className="font-medium truncate">{user.name}</span>
             <span className="text-xs text-muted-foreground truncate">{user.email}</span>
-            <a href="#" className="mt-2 text-blue-500 text-sm truncate max-w-fit">查看你的频道</a>
+            {/* <a href="#" className="mt-2 text-blue-500 text-sm truncate max-w-fit">查看你的频道</a> */}
           </div>
         </div>
 
@@ -101,13 +101,6 @@ export function AuthButton() {
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-
-        <DropdownMenuItem className="rounded-none cursor-pointer h-11">
-          <div className="flex items-center gap-3">
-            <UsersRound className="text-foreground size-5.5 ml-2" strokeWidth="2" />
-            <span className="text-sm ml-2">切换账号</span>
-          </div>
-        </DropdownMenuItem>
 
         <DropdownMenuItem
           className="rounded-none cursor-pointer h-11"

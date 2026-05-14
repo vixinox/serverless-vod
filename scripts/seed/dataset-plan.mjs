@@ -39,14 +39,14 @@ function buildSeedUploadSessionId(shortCode) {
   return `seed-upload-${shortCode}`;
 }
 
-function buildVideoSeedPlan({ item, itemIndex, owner, audienceUsers }) {
+function buildVideoSeedPlan({ item, itemIndex, owner, audienceUsers, generatedCopy }) {
   const type = deriveType(item);
   const visibility = deriveVisibility(item);
   const duration = deriveDuration(item.shortCode, type);
   const lifecycle = buildLifecycle(item.shortCode);
   const tier = resolveViewTier(itemIndex);
   const totalViews = seededInt(item.shortCode, `total-views-${tier.key}`, tier.totalMin, tier.totalMax);
-  const metadata = resolveVideoMetadata(item);
+  const metadata = resolveVideoMetadata(item, generatedCopy);
   const videoId = buildSeedVideoId(item.shortCode);
   const now = new Date();
 
@@ -64,6 +64,7 @@ function buildVideoSeedPlan({ item, itemIndex, owner, audienceUsers }) {
     audienceUsers,
     dailyRows: analytics.dailyRows,
     tierKey: analytics.tier.key,
+    generatedCopy,
   });
 
   const videoDailyRows = analytics.dailyRows.map((row) => ({
@@ -253,8 +254,14 @@ function buildChannelDailyRows({ owner, videoPlans }) {
   });
 }
 
-export function buildSeedDataset({ items, owner, audienceUsers }) {
-  const videoPlans = items.map((item, itemIndex) => buildVideoSeedPlan({ item, itemIndex, owner, audienceUsers }));
+export function buildSeedDataset({ items, owner, audienceUsers, generatedCopyByShortCode = new Map() }) {
+  const videoPlans = items.map((item, itemIndex) => buildVideoSeedPlan({
+    item,
+    itemIndex,
+    owner,
+    audienceUsers,
+    generatedCopy: generatedCopyByShortCode.get(item.shortCode) ?? null,
+  }));
   const channelDailyRows = buildChannelDailyRows({ owner, videoPlans });
   const ownerPlaylists = buildOwnerPlaylistRows({ owner, videoPlans });
   const ownerPlaybackEventRows = buildOwnerPlaybackEventRows({ owner, videoPlans });

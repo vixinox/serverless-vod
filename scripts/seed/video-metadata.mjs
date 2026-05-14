@@ -78,7 +78,14 @@ function buildFallbackTitle(shortCode) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export function resolveVideoMetadata(item) {
+export function resolveVideoMetadata(item, generatedCopy = null) {
+  if (generatedCopy?.titleZh && generatedCopy?.descriptionZh) {
+    return {
+      title: generatedCopy.titleZh.slice(0, 120),
+      description: generatedCopy.descriptionZh,
+    };
+  }
+
   const description =
     findFirstText(item, [
       ["hints", "descriptionHint"],

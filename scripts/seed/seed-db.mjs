@@ -1,14 +1,95 @@
 import "dotenv/config";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { buildSeedActors } from "./actors.mjs";
-import { createPool, defaultManifestPath, DEFAULT_AUDIENCE_USERS } from "./config.mjs";
+import { createPool, defaultManifestPath, DEFAULT_AUDIENCE_USERS, seedRoot } from "./config.mjs";
 import { importSeedDataset } from "./import-db.mjs";
 import { readManifest, selectReadyItems, writeStage2Manifest } from "./manifest.mjs";
 import { buildSeedDataset } from "./planning.mjs";
 import { normalizeInt, sum } from "./shared.mjs";
 
+const defaultGeneratedCopyPath = join(seedRoot, "generated", "pexels-video-copy.zh.json");
+
+function normalizeText(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeGeneratedCopyThread(thread, index, shortCode) {
+  if (!thread || typeof thread !== "object") {
+    throw new Error(`Invalid generated copy thread for ${shortCode} at index=${index}`);
+  }
+
+  const rank = ["HOT", "NORMAL", "TAIL"].includes(thread.rank) ? thread.rank : "NORMAL";
+  const parent = normalizeText(thread.parent);
+  const replies = Array.isArray(thread.replies)
+    ? thread.replies.map(normalizeText).filter(Boolean)
+    : [];
+  if (!parent || replies.length === 0) {
+    throw new Error(`Generated copy thread for ${shortCode} is missing parent/replies at index=${index}`);
+  }
+
+  return {
+    rank,
+    topic: normalizeText(thread.topic) ?? "观感",
+    parent,
+    replies,
+  };
+}
+
+function normalizeGeneratedCopyItem(item) {
+  if (!item || typeof item !== "object" || !item.shortCode) {
+    throw new Error("Invalid generated copy item: missing shortCode");
+  }
+
+  const titleZh = normalizeText(item.titleZh);
+  const descriptionZh = normalizeText(item.descriptionZh);
+  if (!titleZh || !descriptionZh) {
+    throw new Error(`Generated copy item ${item.shortCode} is missing titleZh/descriptionZh`);
+  }
+
+  return {
+    ...item,
+    titleZh,
+    descriptionZh,
+    commentThreads: Array.isArray(item.commentThreads)
+      ? item.commentThreads.map((thread, index) => normalizeGeneratedCopyThread(thread, index, item.shortCode))
+      : [],
+  };
+}
+
+async function readGeneratedCopyMap(copyPath) {
+  try {
+    const parsed = JSON.parse(await readFile(copyPath, "utf8"));
+    if (!Array.isArray(parsed?.items)) {
+      throw new Error("Invalid generated copy file: expected { items: [] }");
+    }
+
+    const result = new Map();
+    for (const rawItem of parsed.items) {
+      const item = normalizeGeneratedCopyItem(rawItem);
+      if (result.has(item.shortCode)) {
+        throw new Error(`Duplicate generated copy item shortCode=${item.shortCode}`);
+      }
+      result.set(item.shortCode, item);
+    }
+    return result;
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return new Map();
+    }
+    throw error;
+  }
+}
+
 function parseArgs(argv) {
   const args = {
     manifestPath: defaultManifestPath,
+    copyPath: defaultGeneratedCopyPath,
+    useGeneratedCopy: true,
     users: DEFAULT_AUDIENCE_USERS,
     from: 0,
     limit: null,
@@ -23,6 +104,14 @@ function parseArgs(argv) {
     }
     if (token.startsWith("--manifest=")) {
       args.manifestPath = token.slice("--manifest=".length);
+      continue;
+    }
+    if (token === "--no-generated-copy") {
+      args.useGeneratedCopy = false;
+      continue;
+    }
+    if (token.startsWith("--copy=")) {
+      args.copyPath = token.slice("--copy=".length);
       continue;
     }
     if (token.startsWith("--users=")) {
@@ -68,10 +157,19 @@ async function main() {
   const actors = buildSeedActors(args.users);
   console.log(`[stage2] generated audience users=${actors.audience.length}`);
 
+  const generatedCopyByShortCode = args.useGeneratedCopy
+    ? await readGeneratedCopyMap(args.copyPath)
+    : new Map();
+  if (args.useGeneratedCopy) {
+    const selectedCopyCount = selectedItems.filter((item) => generatedCopyByShortCode.has(item.shortCode)).length;
+    console.log(`[stage2] generated copy matched=${selectedCopyCount}/${selectedItems.length} path=${args.copyPath}`);
+  }
+
   const dataset = buildSeedDataset({
     items: selectedItems,
     owner: actors.owner,
     audienceUsers: actors.audience,
+    generatedCopyByShortCode,
   });
 
   if (!args.dryRun) {

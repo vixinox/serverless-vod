@@ -92,7 +92,7 @@ export type StatPageData = {
   };
   comparison30d: {
     views: MetricDelta;
-    watchTimeSeconds: MetricDelta;
+    averageViewSeconds: MetricDelta;
     subscribersNet: MetricDelta;
   };
   diagnostics: DiagnosticInsight[];
@@ -362,7 +362,7 @@ function getEmptyStatPageData(): StatPageData {
     },
     comparison30d: {
       views: getMetricDelta(0, 0),
-      watchTimeSeconds: getMetricDelta(0, 0),
+      averageViewSeconds: getMetricDelta(0, 0),
       subscribersNet: getMetricDelta(0, 0),
     },
     diagnostics: [],
@@ -796,6 +796,8 @@ export async function getStatPageData(): Promise<StatPageData> {
   const bestType = contentTypePerformance
     .slice()
     .sort((left, right) => right.averageViews - left.averageViews)[0];
+  const currentAverageViewSeconds = Math.round(safeRatio(currentSummary.watchTimeSeconds, currentSummary.views));
+  const previousAverageViewSeconds = Math.round(safeRatio(previousSummary.watchTimeSeconds, previousSummary.views));
 
   const trend30d = daily30.map((item, index) => ({
     date: item.date,
@@ -822,13 +824,13 @@ export async function getStatPageData(): Promise<StatPageData> {
         0,
       ),
       videosPublished: daily30.reduce((result, item) => result + item.videosPublished, 0),
-      averageViewSeconds: Math.round(safeRatio(currentSummary.watchTimeSeconds, currentSummary.views)),
+      averageViewSeconds: currentAverageViewSeconds,
       subscriberPerThousandViews: round(safeRatio(currentSummary.subscribersNet, currentSummary.views) * 1000, 2),
       averageViewsPerVideo: Math.round(safeRatio(currentSummary.views, totalVideos)),
     },
     comparison30d: {
       views: getMetricDelta(currentSummary.views, previousSummary.views),
-      watchTimeSeconds: getMetricDelta(currentSummary.watchTimeSeconds, previousSummary.watchTimeSeconds),
+      averageViewSeconds: getMetricDelta(currentAverageViewSeconds, previousAverageViewSeconds),
       subscribersNet: getMetricDelta(currentSummary.subscribersNet, previousSummary.subscribersNet),
     },
     diagnostics: [

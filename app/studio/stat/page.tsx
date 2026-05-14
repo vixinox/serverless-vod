@@ -11,13 +11,15 @@ import { VideoLeaderboardTable } from "@/components/studio/analytics/video-leade
 import {
   formatCompactNumber,
   formatDurationSeconds,
-  formatHoursLabel,
   formatSignedPercent,
   formatSignedNumber,
 } from "@/components/studio/analytics/utils";
 
 export default async function StatPage() {
   const stats = await getStatPageData();
+  const averageViewHint = stats.comparison30d.averageViewSeconds.changePercent === null
+    ? "近 30 天单次播放均值"
+    : `较前 30 天 ${formatSignedPercent(stats.comparison30d.averageViewSeconds.changePercent)}`;
 
   return (
     <div className="flex h-full flex-col gap-6 p-4 md:p-6">
@@ -36,9 +38,9 @@ export default async function StatPage() {
               hint={formatSignedPercent(stats.comparison30d.views.changePercent)}
             />
             <StudioMetricCard
-              title="观看时长"
-              value={formatHoursLabel(stats.overview30d.watchTimeHours)}
-              hint={`平均 ${formatDurationSeconds(stats.overview30d.averageViewSeconds)}`}
+              title="平均观看"
+              value={formatDurationSeconds(stats.overview30d.averageViewSeconds)}
+              hint={averageViewHint}
             />
             <StudioMetricCard
               title="订阅变化"
@@ -57,7 +59,6 @@ export default async function StatPage() {
               data={stats.trend30d.map((item) => ({
                 date: item.date.toISOString(),
                 views: item.views,
-                watchTimeHours: item.watchTimeHours,
                 averageViewSeconds: item.averageViewSeconds,
                 rollingViews7d: item.rollingViews7d,
                 subscriberPerThousandViews: item.subscriberPerThousandViews,
@@ -79,7 +80,6 @@ export default async function StatPage() {
               data={stats.subscriberFlow30d.map((item) => ({
                 date: item.date.toISOString(),
                 views: item.views,
-                watchTimeHours: item.watchTimeHours,
                 averageViewSeconds: item.averageViewSeconds,
                 rollingViews7d: item.rollingViews7d,
                 subscriberPerThousandViews: item.subscriberPerThousandViews,

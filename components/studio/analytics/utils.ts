@@ -41,10 +41,6 @@ export function formatCompactNumber(value: number) {
   return value.toLocaleString("zh-CN");
 }
 
-export function formatHoursLabel(value: number) {
-  return `${value.toFixed(1)} 小时`;
-}
-
 export function formatShortDate(value: Date | string) {
   return SHORT_DATE_FORMATTER.format(new Date(value));
 }

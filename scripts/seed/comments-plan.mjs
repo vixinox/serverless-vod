@@ -14,6 +14,9 @@ import {
   toDateKey,
 } from "./shared.mjs";
 
+const GENERATED_COMMENT_MIN = 180;
+const GENERATED_COMMENT_MAX = 320;
+
 function buildShortCommentSentence(shortCode, index, mode = "comment") {
   const opener = maybeChoice(shortCode, `comment-opener-${mode}-${index}`, COMMENT_OPENERS);
   const followup = maybeChoice(shortCode, `comment-followup-${mode}-${index}`, COMMENT_FOLLOWUPS);
@@ -51,6 +54,89 @@ function buildCommentSentence(shortCode, index, mode = "comment") {
   return shouldUseLong
     ? buildLongCommentSentence(shortCode, index, mode)
     : buildShortCommentSentence(shortCode, index, mode);
+}
+
+function getGeneratedThreadTemplates(generatedCopy) {
+  if (!generatedCopy || !Array.isArray(generatedCopy.commentThreads)) {
+    return [];
+  }
+
+  return generatedCopy.commentThreads.filter((thread) => thread?.parent && Array.isArray(thread.replies));
+}
+
+function buildGeneratedParentSentence(generatedThreads, index) {
+  const thread = generatedThreads[index % generatedThreads.length];
+  return thread?.parent ?? null;
+}
+
+function buildGeneratedReplySentence(generatedThreads, index) {
+  const thread = generatedThreads[index % generatedThreads.length];
+  const replies = thread?.replies ?? [];
+  return replies[Math.floor(index / Math.max(1, generatedThreads.length)) % replies.length] ?? null;
+}
+
+function buildGeneratedExpansionSentence(shortCode, index, generatedCopy, mode = "comment") {
+  const title = generatedCopy?.titleZh ?? "这个片段";
+  const topic = maybeChoice(shortCode, `generated-topic-${mode}-${index}`, [
+    "镜头节奏",
+    "画面层次",
+    "现场氛围",
+    "色彩变化",
+    "细节处理",
+    "剪辑留白",
+    "情绪推进",
+    "观看体验",
+  ]);
+  const angle = maybeChoice(shortCode, `generated-angle-${mode}-${index}`, [
+    "很适合放在演示页里观察真实评论流动",
+    "比纯占位文案更容易看出数据状态",
+    "短时间内就能让人抓到主题",
+    "作为素材库预览也不会显得空",
+    "能撑起详情页里的讨论感",
+    "放在列表里识别度挺高",
+    "重复看也还有一些细节可找",
+    "和标题的预期基本对得上",
+  ]);
+
+  if (mode === "reply") {
+    const replyLead = maybeChoice(shortCode, `generated-reply-lead-${index}`, [
+      "同意这个点",
+      "我也注意到了",
+      "这里确实明显",
+      "补充一下",
+      "换个角度看",
+      "这个说法挺准确",
+    ]);
+    return `${replyLead}，${topic}让《${title}》看起来更完整，${angle}。`;
+  }
+
+  const lead = maybeChoice(shortCode, `generated-parent-lead-${index}`, [
+    "这条最抓我的地方是",
+    "看完以后印象最深的是",
+    "这个片段真正耐看的点在于",
+    "如果用来做演示，我会先看",
+    "评论区能聊起来主要因为",
+    "这个素材不是单纯好看，关键是",
+  ]);
+  return `${lead}${topic}，${angle}。`;
+}
+
+function buildParentSentence({ shortCode, index, generatedThreads, generatedCopy }) {
+  return (
+    buildGeneratedParentSentence(generatedThreads, index) ??
+    (generatedCopy
+      ? buildGeneratedExpansionSentence(shortCode, index, generatedCopy, "parent")
+      : buildCommentSentence(shortCode, index, "parent"))
+  );
+}
+
+function buildReplySentence({ shortCode, index, generatedThreads, generatedCopy }) {
+  return (
+    buildGeneratedReplySentence(generatedThreads, index) ??
+    (generatedCopy
+      ? buildGeneratedExpansionSentence(shortCode, index, generatedCopy, "reply")
+      : buildCommentSentence(shortCode, index, "reply"))
+  );
 }
 
 function getHotLikeRange(tierKey) {
@@ -101,9 +187,18 @@ function pickReactionTimestamp(baseDate, seed, salt) {
   ));
 }
 
-export function buildCommentPlan({ shortCode, videoId, audienceUsers, dailyRows, tierKey }) {
-  const totalComments = seededInt(shortCode, "total-comments", 50, 100);
-  const parentCount = Math.min(totalComments - 1, seededInt(shortCode, "parent-comments", 12, 24));
+export function buildCommentPlan({ shortCode, videoId, audienceUsers, dailyRows, tierKey, generatedCopy = null }) {
+  const generatedThreads = getGeneratedThreadTemplates(generatedCopy);
+  const hasGeneratedCopy = generatedThreads.length > 0;
+  const totalComments = hasGeneratedCopy
+    ? seededInt(shortCode, "generated-total-comments", GENERATED_COMMENT_MIN, GENERATED_COMMENT_MAX)
+    : seededInt(shortCode, "total-comments", 50, 100);
+  const parentCount = Math.min(
+    totalComments - 1,
+    hasGeneratedCopy
+      ? seededInt(shortCode, "generated-parent-comments", 42, 72)
+      : seededInt(shortCode, "parent-comments", 12, 24),
+  );
   const replyCount = totalComments - parentCount;
   const hotParentCount = Math.min(parentCount, seededInt(shortCode, "hot-parent-count", 3, 5));
   const commentAuthors = pickSeededSubset(audienceUsers, shortCode, "comment-authors", totalComments);
@@ -132,7 +227,7 @@ export function buildCommentPlan({ shortCode, videoId, audienceUsers, dailyRows,
 
       parentRows.push({
         id,
-        content: buildCommentSentence(shortCode, parentCursor, "parent"),
+        content: buildParentSentence({ shortCode, index: parentCursor, generatedThreads, generatedCopy }),
         userId: commentAuthors[parentCursor % commentAuthors.length].id,
         videoId,
         parentId: null,
@@ -173,7 +268,7 @@ export function buildCommentPlan({ shortCode, videoId, audienceUsers, dailyRows,
 
       replyRows.push({
         id,
-        content: buildCommentSentence(shortCode, replyCursor, "reply"),
+        content: buildReplySentence({ shortCode, index: replyCursor, generatedThreads, generatedCopy }),
         userId: author.id,
         videoId,
         parentId: parent.id,
