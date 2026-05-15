@@ -2,6 +2,10 @@ import { PlaybackEventType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { recordPlaybackEvent } from "@/lib/server/videos";
 
+/**
+ * 播放器的行为事件入口。
+ * 前端上报事件类型和播放位置，服务端处理去重、统计和历史记录。
+ */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ shortCode: string }> },
@@ -49,6 +53,7 @@ export async function POST(
   }
 
   try {
+    // 请求头提供用户、来源等统计上下文。
     await recordPlaybackEvent(
       {
         shortCode,

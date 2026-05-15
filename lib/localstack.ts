@@ -49,17 +49,25 @@ export const sfnClient = new SFNClient({
 });
 
 /**
- * vod-raw 存储键：{shortCode}/source.mp4
- * 与 vod-hls 的 {shortCode}/ 前缀保持命名空间一致，方便对照调试。
+ * 原始视频统一放在 vod-raw/{shortCode}/source.mp4。
+ * 处理后 HLS 资源也使用 {shortCode}/ 前缀，保持源文件、转码产物和数据库记录一致。
  */
 export function createRawVideoObjectKey(shortCode: string) {
   return `${shortCode}/source.mp4`;
 }
 
+/**
+ * HLS 输出目录直接使用 shortCode。
+ * 播放页最终会读取 {shortCode}/master.m3u8，再由清单继续请求同目录下的切片。
+ */
 export function createHlsOutputPrefix(shortCode: string) {
   return shortCode;
 }
 
+/**
+ * LocalStack 本地开发时不预设桶一定存在。
+ * 上传或处理前先保证桶可用。
+ */
 export async function ensureBucket(bucket: string) {
   try {
     await s3Client.send(new HeadBucketCommand({ Bucket: bucket }));
@@ -77,6 +85,10 @@ export async function ensureStateMachineArn(): Promise<string> {
   );
 }
 
+/**
+ * 生成浏览器直传 S3 的临时 URL。
+ * 应用服务器只负责鉴权和签名，不接收视频大文件。
+ */
 export async function createUploadPresignedUrl(params: {
   bucket: string;
   key: string;
@@ -104,6 +116,10 @@ export interface TranscodeExecutionInput {
   videoType: "LONG" | "SHORT";
 }
 
+/**
+ * 启动一次 Step Functions 执行。
+ * 输入包含 jobId/videoId 和对象存储位置，供后续 Lambda 处理和回调。
+ */
 export async function startTranscodeExecution(input: TranscodeExecutionInput) {
   const stateMachineArn = await ensureStateMachineArn();
   const response = await sfnClient.send(
@@ -125,6 +141,10 @@ export function createPublicLikeObjectUrl(bucket: string, key: string) {
   return `${cleanEndpoint}/${bucket}/${key}`;
 }
 
+/**
+ * 生成短期播放签名 URL。
+ * 当前 HLS 主路径走代理或 CDN，该函数用于直接访问对象存储的内部场景。
+ */
 export async function createPlaybackSignedUrl(params: {
   bucket: string;
   key: string;

@@ -1,14 +1,11 @@
 /**
  * POST /api/internal/vod/reconcile-stale
  *
- * Internal maintenance endpoint:
- * - Find stale transcode jobs (QUEUED/RUNNING older than threshold)
- * - Mark stale jobs as FAILED
- * - Mark corresponding videos as FAILED when they are still PROCESSING and
- *   have no other active transcode job
+ * 内部维护接口，用于处理长时间未结束的转码任务。
+ * 当状态机或本地仿真环境异常中断时，QUEUED/RUNNING 任务可能长期卡住；
+ * 达到时间阈值后将任务标记为 FAILED，工作室页面显示失败并允许重试。
  *
- * Auth:
- * - Requires Authorization: Bearer <INTERNAL_API_SECRET>
+ * 仅允许持有 INTERNAL_API_SECRET 的内部调用方访问。
  */
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
@@ -44,6 +41,7 @@ function isStaleJob(job: {
   queuedAt: Date;
   startedAt: Date | null;
 }, cutoff: Date): boolean {
+  // RUNNING 按 startedAt 判断，QUEUED 按 queuedAt 判断。
   if (job.status === "RUNNING") {
     if (job.startedAt) return job.startedAt < cutoff;
     return job.queuedAt < cutoff;
@@ -123,6 +121,7 @@ export async function POST(req: Request) {
   const staleJobIds = staleJobs.map((job) => job.id);
   const staleVideoIds = [...new Set(staleJobs.map((job) => job.videoId))];
 
+  // 同一视频存在新的活跃任务时，不更新视频状态。
   const otherActiveJobs = await prisma.transcodeJob.findMany({
     where: {
       videoId: { in: staleVideoIds },

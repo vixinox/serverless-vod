@@ -85,6 +85,8 @@ export async function getVideoInfo(shortCode: string) {
 
   const isOwner = currentUserId === video.userId;
 
+  // 视频访问控制：
+  // PUBLIC/UNLISTED 可被非作者观看，但必须处理完成；PRIVATE/DRAFT 只允许作者访问。
   switch (video.visibility) {
     case "PUBLIC":
     case "UNLISTED":
@@ -714,6 +716,7 @@ export async function getProcessingStatuses(
     return [];
   }
 
+  // 工作室表格轮询该接口，合并视频状态和最新任务阶段。
   const userId = await requireUserId(requestHeaders);
   const videos = await prisma.video.findMany({
     where: {
@@ -854,6 +857,7 @@ async function resolveVideoStatus(video: {
   processingError: string | null;
   readyAt: Date | null;
 }): Promise<VideoStatusResult> {
+  // 处理状态接口优先读取数据库中的主 HLS 资源。
   const primaryManifest = await prisma.videoAsset.findFirst({
     where: {
       videoId: video.id,
@@ -937,6 +941,7 @@ export type PipelineStatus = {
 };
 
 export async function getPipelineStatus(shortCode: string): Promise<PipelineStatus> {
+  // 上传弹窗和处理进度页读取该状态。
   const video = await prisma.video.findUnique({
     where: { shortCode },
     select: {
@@ -1123,6 +1128,8 @@ export async function getVideoUploadUrl(
   title?: string,
   requestHeaders?: Headers,
 ): Promise<VideoUploadUrlResult> {
+  // 第一步：创建视频草稿和 UploadSession，并返回预签名 URL。
+  // 浏览器拿到 URL 后直接 PUT 到对象存储，应用服务器不接收视频大文件。
   const userId = await requireUserId(requestHeaders);
   const safeName = filename.trim() || "upload.mp4";
   const safeContentType = contentType.trim() || "video/mp4";
@@ -1191,6 +1198,8 @@ export async function createVideo(
   shortCode: string,
   requestHeaders?: Headers,
 ) {
+  // 第二步：源文件上传完成后，创建 TranscodeJob 并启动 Step Functions。
+  // UploadSession 记录源文件位置，TranscodeJob 记录后台处理任务，VideoAsset 会在 Finalize 阶段写入。
   const userId = await requireUserId(requestHeaders);
   const safeShortCode = shortCode.trim();
 
@@ -1270,6 +1279,7 @@ export async function createVideo(
 }
 
 export async function retryVideoJob(shortCode: string, requestHeaders?: Headers) {
+  // 失败重试复用上一条任务的输入文件，重新启动一条 TranscodeJob。
   const userId = await requireUserId(requestHeaders);
   const safeShortCode = shortCode.trim();
 
@@ -1371,6 +1381,7 @@ export async function retryVideoJob(shortCode: string, requestHeaders?: Headers)
 }
 
 export async function cancelVideoJob(shortCode: string, requestHeaders?: Headers) {
+  // 取消任务时停止状态机执行，并更新本地任务状态。
   const userId = await requireUserId(requestHeaders);
   const safeShortCode = shortCode.trim();
 
@@ -1431,7 +1442,7 @@ export async function cancelVideoJob(shortCode: string, requestHeaders?: Headers
     try {
       await stopTranscodeExecution(activeJob.queueMessageId, CANCEL_REASON);
     } catch {
-      // Execution may already be terminal; local record still should be reconciled.
+      // 状态机可能已经进入终态；仍需更新本地记录。
     }
   }
 
@@ -1573,6 +1584,9 @@ export async function recordPlaybackEvent(
   },
   requestHeaders?: Headers,
 ) {
+  // 播放器原始事件入口：
+  // PLAY_START 用于播放次数，PLAY_PROGRESS.watchDeltaMs 用于观看时长，
+  // userId/sessionId 用于统计去重观众和观看历史。
   const sessionUserId = await getOptionalUserId(requestHeaders);
   const safeShortCode = params.shortCode.trim();
 

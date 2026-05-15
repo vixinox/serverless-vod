@@ -3,8 +3,13 @@
  *
  * 创建或更新 LocalStack Step Functions 状态机。
  *
- * 流程为：ExtractMetadata -> Transcode -> Finalize，
- * 任一步骤失败时通过 Catch 分支路由到 MarkFailed。
+ * 状态机包含四个阶段：
+ * 1. ExtractMetadata：标记任务开始，并让视频进入 PROCESSING。
+ * 2. Transcode：下载源视频，生成 HLS 播放资源和封面。
+ * 3. Finalize：把播放资源写回数据库，并把视频置为 READY。
+ * 4. MarkFailed：记录失败原因，供前端展示和后续重试。
+ *
+ * 前三步是主路径；任一步失败都会通过 Catch 进入 MarkFailed。
  */
 
 import {
@@ -41,10 +46,10 @@ const lambda = new LambdaClient({
   },
 });
 
-// ── ASL 定义构建 ─────────────────────────────────────────────────────────
+// ── 状态机定义构建 ───────────────────────────────────────────────────────
 
 function buildDefinition(arns) {
-  // Route any task failure to MarkFailed while preserving state input.
+  // Catch 将失败信息写入 $.errorInfo，并保留原始 jobId/videoId 等输入。
   const catchToMarkFailed = [
     {
       ErrorEquals: ["States.ALL"],
@@ -54,21 +59,21 @@ function buildDefinition(arns) {
   ];
 
   return {
-    Comment: "VOD transcode pipeline: ExtractMetadata -> Transcode -> Finalize",
+    Comment: "视频处理流水线：元数据登记 -> 转码切片 -> 结果入库 -> 失败处理",
     StartAt: "ExtractMetadata",
     States:  {
       ExtractMetadata: {
         Type:       "Task",
         Resource:   arns["extract-metadata"],
-        Comment:    "Set TranscodeJob to RUNNING and Video to PROCESSING",
-        ResultPath: null,   // Keep input shape unchanged for next step
+        Comment:    "登记处理开始：TranscodeJob 置为 RUNNING，Video 置为 PROCESSING",
+        ResultPath: null,   // 这一步只改数据库，不改传给下一步的输入结构。
         Next:       "Transcode",
         Catch:      catchToMarkFailed,
       },
       Transcode: {
         Type:     "Task",
         Resource: arns["transcode"],
-        Comment:  "Download source video, transcode with ffmpeg, upload HLS",
+        Comment:  "执行媒体处理：下载源视频，用 ffmpeg 生成 HLS 切片和封面",
         Retry: [
           {
             ErrorEquals:     ["States.TaskFailed"],
@@ -83,14 +88,14 @@ function buildDefinition(arns) {
       Finalize: {
         Type:     "Task",
         Resource: arns["finalize"],
-        Comment:  "Write VideoAsset metadata and set READY",
+        Comment:  "结果入库：写入 VideoAsset，并把视频标记为 READY",
         End:      true,
         Catch:    catchToMarkFailed,
       },
       MarkFailed: {
         Type:       "Task",
         Resource:   arns["mark-failed"],
-        Comment:    "Set job and video to FAILED",
+        Comment:    "失败处理：记录错误原因，并把任务和视频标记为 FAILED",
         Retry: [
           {
             ErrorEquals:     ["States.ALL"],
@@ -160,7 +165,7 @@ async function buildLambdaArnMap() {
   };
 }
 
-// Main flow
+// ── 主流程：校验 Lambda、创建或更新状态机 ─────────────────────────────────
 
 async function main() {
   const startedAt = Date.now();

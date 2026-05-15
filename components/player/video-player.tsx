@@ -63,6 +63,7 @@ export function VideoPlayer({
   const didEndRef = useRef(false);
   const controlsHideTimeoutRef = useRef<number | null>(null);
 
+  // 同一页面会话内复用 sessionId，用于关联播放、暂停、拖动等事件。
   useEffect(() => {
     if (typeof window === "undefined" || !shortCode) {
       return;
@@ -80,6 +81,7 @@ export function VideoPlayer({
     hasRecordedPlayStartRef.current = false;
   }, [shortCode]);
 
+  // 播放器事件只做轻量上报，失败时静默丢弃，避免统计接口影响用户看视频。
   const submitPlaybackEvent = (
     eventType: PlaybackEventType,
     extra?: {
@@ -138,6 +140,7 @@ export function VideoPlayer({
     }
   };
 
+  // 播放时短暂隐藏控制栏；暂停、聚焦或结束时保持可见。
   const scheduleControlsHide = (playing = isPlaying) => {
     if (typeof window === "undefined") {
       return;
@@ -176,6 +179,7 @@ export function VideoPlayer({
     setFlashFeedback(feedback);
   };
 
+  // 播放、暂停、音量变化时的中心提示仅负责视觉反馈。
   useEffect(() => {
     if (!flashFeedback) {
       return;
@@ -218,6 +222,7 @@ export function VideoPlayer({
     };
   }, [flashFeedback]);
 
+  // 切换到另一条视频时清空上一条视频的播放状态，避免进度和结束封面串到新视频。
   useEffect(() => {
     clearControlsHideTimeout();
     flashTimelineRef.current?.kill();
@@ -241,6 +246,7 @@ export function VideoPlayer({
     };
   }, []);
 
+  // 评论时间戳点击后派发该事件，播放器统一处理跳转。
   useEffect(() => {
     const handleSeekRequest = (event: Event) => {
       const customEvent = event as CustomEvent<PlayerSeekDetail>;
@@ -262,6 +268,7 @@ export function VideoPlayer({
     };
   }, []);
 
+  // 按固定间隔上报观看增量，而不是每一帧都写库，兼顾统计可用性和接口压力。
   const flushProgressEvent = () => {
     const player = playerRef.current;
 
@@ -287,6 +294,7 @@ export function VideoPlayer({
     progressCheckpointRef.current = currentTime;
   };
 
+  // Vidstack 处理键盘播放逻辑，本组件补充控制栏显示和音量提示。
   const handlePlayerKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.altKey || event.ctrlKey || event.metaKey) {
       return;
@@ -439,7 +447,7 @@ export function VideoPlayer({
           submitPlaybackEvent("RESUME");
         }
 
-        // Initial center play hint should disappear immediately on first play.
+        // 首次播放后隐藏中心播放提示，后续再显示短暂的播放反馈。
         if (showInitialFlashIcon) {
           setShowInitialFlashIcon(false);
           return;
@@ -476,6 +484,7 @@ export function VideoPlayer({
         }
       }}
       onSeeking={() => {
+        // 记录拖动前的位置，拖动结束后再判断位移是否足够大，避免普通播放抖动被当成 SEEK。
         if (didEndRef.current) {
           setShowEndedPoster(false);
         }
@@ -512,6 +521,7 @@ export function VideoPlayer({
       }}
       className={`group/player relative w-full aspect-video overflow-hidden rounded-xl text-white ring-media-focus data-focus:ring-4 ${className}`}
     >
+      {/* Vidstack 根据 src 自动处理 HLS 播放；浏览器原生不支持时由库内部接管解码链路。 */}
       <MediaProvider>
         <Poster
           src={thumbnail}
@@ -520,6 +530,7 @@ export function VideoPlayer({
         />
       </MediaProvider>
 
+      {/* 播放结束后重新展示封面，避免停在最后一帧影响内容观感。 */}
       {thumbnail && (
         <div
           className={`pointer-events-none absolute inset-0 z-20 overflow-hidden bg-black transition-opacity duration-300 ${showEndedPoster ? 'opacity-100' : 'opacity-0'}`}
@@ -546,14 +557,14 @@ export function VideoPlayer({
         </div>
       )}
 
-      {/* Click to play / pause (all zones) */}
+      {/* 单击任意区域播放或暂停，贴近常见视频平台的操作习惯。 */}
       <Gesture className="absolute left-0 top-0 z-10 block h-full w-1/5" event="pointerup" action="toggle:paused" />
       <Gesture className="absolute left-1/5 top-0 z-10 block h-full w-3/5" event="pointerup" action="toggle:paused" />
       <Gesture className="absolute right-0 top-0 z-10 block h-full w-1/5" event="pointerup" action="toggle:paused" />
-      {/* Double-click side zones to seek */}
+      {/* 双击左右两侧快退/快进，中间区域保留给全屏切换。 */}
       <Gesture className="absolute left-0 top-0 z-20 block h-full w-1/5" event="dblpointerup" action="seek:-10" />
       <Gesture className="absolute right-0 top-0 z-20 block h-full w-1/5" event="dblpointerup" action="seek:10" />
-      {/* Double-click center to toggle fullscreen */}
+      {/* 双击中间切换全屏，避免和左右快进手势冲突。 */}
       <Gesture className="absolute left-1/5 top-0 z-20 block h-full w-3/5" event="dblpointerup" action="toggle:fullscreen" />
 
       <YoutubeControls compact={compact} visible={areControlsVisible} />

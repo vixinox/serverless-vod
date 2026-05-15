@@ -606,7 +606,7 @@ export function VideoDailyDetailExplorer({
           <div className="rounded-xl border border-border/70 bg-background/40">
             <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
               <div>
-                <p className="font-medium">逐日分析表</p>
+                <p className="font-medium">最近30天数据</p>
               </div>
               {activeRow ? (
                 <Badge variant="outline" className="hidden sm:inline-flex">

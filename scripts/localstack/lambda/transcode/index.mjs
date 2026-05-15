@@ -1,36 +1,32 @@
 /**
  * Lambda：`vod-transcode`
  *
- * 状态机第二步：
- * 1. 从 vod-raw 下载源视频 ({shortCode}/source.mp4)
- * 2. ffprobe 提取源视频元数据（时长、宽、高）
- * 3. 调用 ffmpeg 转为 HLS（长短视频统一单码率）
- *    - 速度优先：先尝试 stream copy（免转码），失败再回退到单路重编码
- *    - 通过 -threads 限制 CPU 占用（默认 2，由 FFMPEG_THREADS 控制）
- * 4. 将 HLS 切片和 manifest 上传至 vod-hls
- * 5. 优先复用视频内嵌封面（attached_pic）；若无则在局部时间窗口内用 thumbnail 选代表帧，上传至 vod-image
- * 6. 返回元数据（durationSeconds / width / height / thumbnailKey）供 Finalize 步骤存库
+ * 1. 从 vod-raw 下载源视频。
+ * 2. 用 ffprobe 读取时长、宽高和内嵌封面等元数据。
+ * 3. 用 ffmpeg 生成 HLS 清单和切片；能直接封装就先走 copy，失败再重编码。
+ * 4. 把 HLS 资源上传到 vod-hls，并清理同一前缀下的旧结果。
+ * 5. 优先复用视频内嵌封面；没有封面时再从视频帧里截取缩略图。
+ * 6. 把播放资源位置和元数据返回给 Finalize，由 Finalize 统一写数据库。
  *
- * 进度通知方式：阶段性里程碑事件（回调 /api/internal/vod/stage + EventBridge），
- * 不再使用 ffmpeg -progress pipe:1 逐帧百分比上报。
+ * 阶段通知采用双路并行：一边发 EventBridge 事件，用于后续扩展异步订阅；
+ * 一边回调 /api/internal/vod/stage，立即更新数据库给前端轮询展示。
+ * 两条路都不阻塞主流程，避免“进度通知失败”反过来导致视频处理失败。
  *
- * 阶段 → 里程碑说明：
  *   downloading          下载源视频
- *   probing              ffprobe 探测元数据
- *   transcoding          ffmpeg 开始转码
- *   uploading_segments   上传 HLS 切片到 S3
- *   thumbnail_extracting ffmpeg 截取封面
- *   thumbnail_uploading  上传封面到 S3
+ *   probing              读取元数据
+ *   transcoding          生成 HLS 资源
+ *   uploading_segments   上传 HLS 切片和清单
+ *   thumbnail_extracting 提取封面
+ *   thumbnail_uploading  上传封面
  *
  * 输入与 extract-metadata 输出一致：
  *   { jobId, videoId, shortCode, inputBucket, inputKey,
  *     outputBucket, outputPrefix, videoType }
  *
- * 环境变量：
- *   FFMPEG_BIN       — ffmpeg 可执行路径（默认 "ffmpeg"）
- *   FFPROBE_BIN      — ffprobe 可执行路径（默认 "ffprobe"）
- *   FFMPEG_THREADS   — 编码线程数，用于限制 CPU 占用（默认 2）
- *   VOD_IMAGE_BUCKET — 缩略图存储桶（默认 "vod-image"）
+ *   FFMPEG_BIN       ffmpeg 可执行路径，默认 "ffmpeg"
+ *   FFPROBE_BIN      ffprobe 可执行路径，默认 "ffprobe"
+ *   FFMPEG_THREADS   编码线程数，默认 2，用来限制本地开发环境的 CPU 占用
+ *   VOD_IMAGE_BUCKET 缩略图存储桶，默认 "vod-image"
  */
 import { mkdtemp, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -49,11 +45,13 @@ const imageBucket = process.env.VOD_IMAGE_BUCKET ?? "vod-image";
 const threads     = Math.max(1, parseInt(process.env.FFMPEG_THREADS ?? "2", 10));
 const stderrTailChars = resolveStderrTailChars();
 
-// ── 阶段事件：EventBridge + API 回调（双路并行，互不阻塞主流程）─────────────
+// ── 阶段事件：事件总线 + 数据库回调双路并行 ───────────────────────────────
 
 /**
- * 向 EventBridge 和 Next.js 内部 API 同时发布当前流水线阶段事件。
- * 任一失败仅记录警告，不中止主流程。
+ * 发布当前处理阶段。
+ * EventBridge 更适合扩展通知、日志订阅等旁路能力；
+ * 内部 API 直接写库，保证创作者端能及时看到“正在下载/正在转码”等状态。
+ * 两边任一失败都只记警告，因为阶段提示不是视频处理成功的必要条件。
  *
  * @param {string} jobId
  * @param {string} videoId
@@ -69,11 +67,11 @@ async function emitStage(jobId, videoId, shortCode, stage) {
   ]);
 }
 
-// ── ffprobe：提取视频流元数据 ──────────────────────────────────────────────
+// ── ffprobe：读取视频元数据 ───────────────────────────────────────────────
 
 /**
- * 用 ffprobe 探测视频元数据（时长、宽、高）。
- * 失败时返回 null，不阻塞主流程。
+ * 读取时长、分辨率和可能存在的内嵌封面。
+ * 元数据缺失不会阻塞转码，最多影响展示时长、分辨率或封面。
  *
  * @param {string} inputPath
  * @returns {Promise<{
@@ -160,7 +158,7 @@ function probeVideo(inputPath) {
             }
           : null;
 
-        // ── 诊断日志：打印 ffprobe 返回的关键字段 ──
+        // 保留关键字段日志，用于本地排查元数据来源。
         console.log(
           `[transcode] ffprobe raw: ` +
           `stream.duration=${JSON.stringify(mainVideoStream?.duration)} ` +
@@ -196,11 +194,11 @@ function probeVideo(inputPath) {
   });
 }
 
-// ── ffmpeg 执行器（无进度流，仅 stderr 错误捕获）────────────────────────────
+// ── ffmpeg 执行器：只关心成功失败和尾部错误信息 ───────────────────────────
 
 /**
- * 执行 ffmpeg 命令，等待完成后返回 stderr 字符串。
- * 不再使用 -progress pipe:1，减少不必要的进度解析开销。
+ * 执行 ffmpeg 命令，等待完成后返回 stderr 尾部内容。
+ * 本系统只展示阶段里程碑，不解析逐帧百分比。
  *
  * @param {string[]} args
  * @param {string}   cwd
@@ -342,7 +340,7 @@ function extractEmbeddedCoverArt(inputPath, outputPath, streamIndex) {
   });
 }
 
-// ── HLS 转码（统一单码率，速度优先）──────────────────────────────────────
+// ── HLS 转码：先尝试快速封装，失败再重编码 ───────────────────────────────
 
 async function transcodeSingleRenditionReencode(inputPath, outputDir) {
   await runFfmpeg(
@@ -389,7 +387,7 @@ async function transcodeSingleRenditionFast(inputPath, outputDir) {
   }
 }
 
-// ── Lambda handler ─────────────────────────────────────────────────────────
+// ── Lambda 主流程：下载、探测、转码、上传、封面、返回结果 ──────────────────
 
 export const handler = async (event) => {
   const {
@@ -406,13 +404,13 @@ export const handler = async (event) => {
   try {
     await mkdir(outputDir, { recursive: true });
 
-    // ── 1. 下载源文件 ───────────────────────────────────────────────────
+    // 1. 下载源文件：应用服务器不经手大文件，Lambda 从对象存储读取。
     await emitStage(jobId, videoId, shortCode, "downloading");
     console.log(`[transcode] job=${jobId} downloading s3://${inputBucket}/${inputKey}`);
     await downloadObject(inputBucket, inputKey, sourcePath);
     console.log(`[transcode] job=${jobId} download complete`);
 
-    // ── 2. 提取视频元数据（ffprobe）────────────────────────────────────
+    // 2. 提取视频元数据：给播放页展示时长、分辨率，也给封面策略提供依据。
     await emitStage(jobId, videoId, shortCode, "probing");
     const meta = await probeVideo(sourcePath);
     console.log(
@@ -420,7 +418,7 @@ export const handler = async (event) => {
       `resolution=${meta?.width ?? "?"}x${meta?.height ?? "?"}`,
     );
 
-    // ── 3. 转码 ────────────────────────────────────────────────────────
+    // 3. 转码：生成 HLS 清单和切片，让播放器可以按需加载、支持拖动。
     await emitStage(jobId, videoId, shortCode, "transcoding");
     console.log(
       `[transcode] job=${jobId} ffmpeg start type=${videoType} mode=single-rendition threads=${threads}`,
@@ -428,7 +426,7 @@ export const handler = async (event) => {
     await transcodeSingleRenditionFast(sourcePath, outputDir);
     console.log(`[transcode] job=${jobId} ffmpeg done`);
 
-    // ── 4. 上传 HLS 切片 ───────────────────────────────────────────────
+    // 4. 上传 HLS 资源：重试前先清理旧前缀，避免新旧切片混在一起。
     await emitStage(jobId, videoId, shortCode, "uploading_segments");
     console.log(
       `[transcode] job=${jobId} uploading HLS to s3://${outputBucket}/${outputPrefix}`,
@@ -437,7 +435,7 @@ export const handler = async (event) => {
     await uploadDirectory(outputBucket, outputPrefix, outputDir);
     console.log(`[transcode] job=${jobId} HLS upload done`);
 
-    // ── 5. 截取封面缩略图 ───────────────────────────────────────────────
+    // 5. 提取封面：有内嵌封面就复用，没有再从视频内容中选代表帧。
     await emitStage(jobId, videoId, shortCode, "thumbnail_extracting");
     const coverArt = meta?.coverArt ?? null;
     const thumbnailExt = coverArt?.extension ?? "jpg";
@@ -457,7 +455,7 @@ export const handler = async (event) => {
         console.log(`[transcode] job=${jobId} thumbnail extracted from video frame`);
       }
 
-      // ── 6. 上传缩略图 ─────────────────────────────────────────────────
+      // 6. 上传缩略图：Finalize 使用该 key 生成封面 URL。
       await emitStage(jobId, videoId, shortCode, "thumbnail_uploading");
       thumbnailKey = `thumbnails/${shortCode}/thumbnail.${thumbnailExt}`;
       await uploadFile(imageBucket, thumbnailKey, thumbnailLocalPath, thumbnailContentType);
@@ -491,7 +489,7 @@ export const handler = async (event) => {
 
     console.log(`[transcode] job=${jobId} ✓ all done`);
 
-    // 将元数据透传给 Finalize 步骤写库
+    // 只返回结果，不直接写业务表；数据库更新交给 Finalize。
     return {
       jobId, videoId, shortCode,
       outputBucket, outputPrefix,

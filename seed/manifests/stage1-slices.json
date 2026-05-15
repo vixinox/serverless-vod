@@ -57,16 +57,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:43.620Z",
-        "finishedAt": "2026-05-13T10:46:43.931Z",
-        "elapsedMs": 311,
+        "startedAt": "2026-05-26T13:14:57.351Z",
+        "finishedAt": "2026-05-26T13:14:57.591Z",
+        "elapsedMs": 240,
         "uploadRaw": false
       }
     },
@@ -107,16 +107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:43.620Z",
-        "finishedAt": "2026-05-13T10:46:44.145Z",
-        "elapsedMs": 525,
+        "startedAt": "2026-05-26T13:14:57.351Z",
+        "finishedAt": "2026-05-26T13:14:57.641Z",
+        "elapsedMs": 290,
         "uploadRaw": false
       }
     },
@@ -157,16 +157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:43.620Z",
-        "finishedAt": "2026-05-13T10:46:44.091Z",
-        "elapsedMs": 471,
+        "startedAt": "2026-05-26T13:14:57.351Z",
+        "finishedAt": "2026-05-26T13:14:57.649Z",
+        "elapsedMs": 298,
         "uploadRaw": false
       }
     },
@@ -207,16 +207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:43.620Z",
-        "finishedAt": "2026-05-13T10:46:44.020Z",
-        "elapsedMs": 400,
+        "startedAt": "2026-05-26T13:14:57.351Z",
+        "finishedAt": "2026-05-26T13:14:57.662Z",
+        "elapsedMs": 311,
         "uploadRaw": false
       }
     },
@@ -257,16 +257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:43.931Z",
-        "finishedAt": "2026-05-13T10:46:44.261Z",
-        "elapsedMs": 330,
+        "startedAt": "2026-05-26T13:14:57.591Z",
+        "finishedAt": "2026-05-26T13:14:57.862Z",
+        "elapsedMs": 271,
         "uploadRaw": false
       }
     },
@@ -307,16 +307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.020Z",
-        "finishedAt": "2026-05-13T10:46:44.138Z",
-        "elapsedMs": 118,
+        "startedAt": "2026-05-26T13:14:57.641Z",
+        "finishedAt": "2026-05-26T13:14:57.760Z",
+        "elapsedMs": 119,
         "uploadRaw": false
       }
     },
@@ -357,16 +357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.091Z",
-        "finishedAt": "2026-05-13T10:46:44.385Z",
-        "elapsedMs": 294,
+        "startedAt": "2026-05-26T13:14:57.650Z",
+        "finishedAt": "2026-05-26T13:14:57.932Z",
+        "elapsedMs": 282,
         "uploadRaw": false
       }
     },
@@ -407,16 +407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.138Z",
-        "finishedAt": "2026-05-13T10:46:44.533Z",
-        "elapsedMs": 395,
+        "startedAt": "2026-05-26T13:14:57.662Z",
+        "finishedAt": "2026-05-26T13:14:58.031Z",
+        "elapsedMs": 369,
         "uploadRaw": false
       }
     },
@@ -457,16 +457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 17,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.145Z",
-        "finishedAt": "2026-05-13T10:46:44.474Z",
-        "elapsedMs": 329,
+        "startedAt": "2026-05-26T13:14:57.760Z",
+        "finishedAt": "2026-05-26T13:14:58.087Z",
+        "elapsedMs": 327,
         "uploadRaw": false
       }
     },
@@ -507,16 +507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.261Z",
-        "finishedAt": "2026-05-13T10:46:44.475Z",
-        "elapsedMs": 214,
+        "startedAt": "2026-05-26T13:14:57.863Z",
+        "finishedAt": "2026-05-26T13:14:58.159Z",
+        "elapsedMs": 296,
         "uploadRaw": false
       }
     },
@@ -557,16 +557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.385Z",
-        "finishedAt": "2026-05-13T10:46:44.600Z",
-        "elapsedMs": 215,
+        "startedAt": "2026-05-26T13:14:57.932Z",
+        "finishedAt": "2026-05-26T13:14:58.090Z",
+        "elapsedMs": 158,
         "uploadRaw": false
       }
     },
@@ -607,16 +607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.474Z",
-        "finishedAt": "2026-05-13T10:46:44.785Z",
-        "elapsedMs": 311,
+        "startedAt": "2026-05-26T13:14:58.032Z",
+        "finishedAt": "2026-05-26T13:14:58.217Z",
+        "elapsedMs": 185,
         "uploadRaw": false
       }
     },
@@ -657,16 +657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.475Z",
-        "finishedAt": "2026-05-13T10:46:44.643Z",
-        "elapsedMs": 168,
+        "startedAt": "2026-05-26T13:14:58.087Z",
+        "finishedAt": "2026-05-26T13:14:58.280Z",
+        "elapsedMs": 193,
         "uploadRaw": false
       }
     },
@@ -707,16 +707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.533Z",
-        "finishedAt": "2026-05-13T10:46:44.831Z",
-        "elapsedMs": 298,
+        "startedAt": "2026-05-26T13:14:58.090Z",
+        "finishedAt": "2026-05-26T13:14:58.404Z",
+        "elapsedMs": 314,
         "uploadRaw": false
       }
     },
@@ -757,16 +757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 8,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.600Z",
-        "finishedAt": "2026-05-13T10:46:44.909Z",
-        "elapsedMs": 309,
+        "startedAt": "2026-05-26T13:14:58.159Z",
+        "finishedAt": "2026-05-26T13:14:58.543Z",
+        "elapsedMs": 384,
         "uploadRaw": false
       }
     },
@@ -807,16 +807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.644Z",
-        "finishedAt": "2026-05-13T10:46:44.834Z",
-        "elapsedMs": 190,
+        "startedAt": "2026-05-26T13:14:58.217Z",
+        "finishedAt": "2026-05-26T13:14:58.474Z",
+        "elapsedMs": 257,
         "uploadRaw": false
       }
     },
@@ -857,16 +857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.785Z",
-        "finishedAt": "2026-05-13T10:46:44.887Z",
-        "elapsedMs": 102,
+        "startedAt": "2026-05-26T13:14:58.280Z",
+        "finishedAt": "2026-05-26T13:14:58.410Z",
+        "elapsedMs": 130,
         "uploadRaw": false
       }
     },
@@ -907,16 +907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.831Z",
-        "finishedAt": "2026-05-13T10:46:45.105Z",
-        "elapsedMs": 274,
+        "startedAt": "2026-05-26T13:14:58.404Z",
+        "finishedAt": "2026-05-26T13:14:58.727Z",
+        "elapsedMs": 323,
         "uploadRaw": false
       }
     },
@@ -957,16 +957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.834Z",
-        "finishedAt": "2026-05-13T10:46:44.993Z",
-        "elapsedMs": 159,
+        "startedAt": "2026-05-26T13:14:58.410Z",
+        "finishedAt": "2026-05-26T13:14:58.556Z",
+        "elapsedMs": 146,
         "uploadRaw": false
       }
     },
@@ -1007,16 +1007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.887Z",
-        "finishedAt": "2026-05-13T10:46:45.183Z",
-        "elapsedMs": 296,
+        "startedAt": "2026-05-26T13:14:58.474Z",
+        "finishedAt": "2026-05-26T13:14:58.659Z",
+        "elapsedMs": 185,
         "uploadRaw": false
       }
     },
@@ -1057,16 +1057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.909Z",
-        "finishedAt": "2026-05-13T10:46:45.285Z",
-        "elapsedMs": 376,
+        "startedAt": "2026-05-26T13:14:58.544Z",
+        "finishedAt": "2026-05-26T13:14:58.838Z",
+        "elapsedMs": 294,
         "uploadRaw": false
       }
     },
@@ -1107,16 +1107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:44.993Z",
-        "finishedAt": "2026-05-13T10:46:45.148Z",
-        "elapsedMs": 155,
+        "startedAt": "2026-05-26T13:14:58.556Z",
+        "finishedAt": "2026-05-26T13:14:58.876Z",
+        "elapsedMs": 320,
         "uploadRaw": false
       }
     },
@@ -1157,16 +1157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.105Z",
-        "finishedAt": "2026-05-13T10:46:45.305Z",
-        "elapsedMs": 200,
+        "startedAt": "2026-05-26T13:14:58.659Z",
+        "finishedAt": "2026-05-26T13:14:58.924Z",
+        "elapsedMs": 265,
         "uploadRaw": false
       }
     },
@@ -1207,16 +1207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.148Z",
-        "finishedAt": "2026-05-13T10:46:45.259Z",
-        "elapsedMs": 111,
+        "startedAt": "2026-05-26T13:14:58.727Z",
+        "finishedAt": "2026-05-26T13:14:58.794Z",
+        "elapsedMs": 67,
         "uploadRaw": false
       }
     },
@@ -1257,16 +1257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.183Z",
-        "finishedAt": "2026-05-13T10:46:45.358Z",
-        "elapsedMs": 175,
+        "startedAt": "2026-05-26T13:14:58.794Z",
+        "finishedAt": "2026-05-26T13:14:58.970Z",
+        "elapsedMs": 176,
         "uploadRaw": false
       }
     },
@@ -1307,16 +1307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.259Z",
-        "finishedAt": "2026-05-13T10:46:45.430Z",
-        "elapsedMs": 171,
+        "startedAt": "2026-05-26T13:14:58.838Z",
+        "finishedAt": "2026-05-26T13:14:59.038Z",
+        "elapsedMs": 200,
         "uploadRaw": false
       }
     },
@@ -1357,16 +1357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.285Z",
-        "finishedAt": "2026-05-13T10:46:45.707Z",
-        "elapsedMs": 422,
+        "startedAt": "2026-05-26T13:14:58.876Z",
+        "finishedAt": "2026-05-26T13:14:59.111Z",
+        "elapsedMs": 235,
         "uploadRaw": false
       }
     },
@@ -1407,16 +1407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.305Z",
-        "finishedAt": "2026-05-13T10:46:45.499Z",
-        "elapsedMs": 194,
+        "startedAt": "2026-05-26T13:14:58.924Z",
+        "finishedAt": "2026-05-26T13:14:59.155Z",
+        "elapsedMs": 231,
         "uploadRaw": false
       }
     },
@@ -1457,16 +1457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 30,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.358Z",
-        "finishedAt": "2026-05-13T10:46:46.291Z",
-        "elapsedMs": 933,
+        "startedAt": "2026-05-26T13:14:58.970Z",
+        "finishedAt": "2026-05-26T13:15:00.026Z",
+        "elapsedMs": 1056,
         "uploadRaw": false
       }
     },
@@ -1507,16 +1507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.430Z",
-        "finishedAt": "2026-05-13T10:46:45.771Z",
-        "elapsedMs": 341,
+        "startedAt": "2026-05-26T13:14:59.038Z",
+        "finishedAt": "2026-05-26T13:14:59.309Z",
+        "elapsedMs": 271,
         "uploadRaw": false
       }
     },
@@ -1557,16 +1557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.499Z",
-        "finishedAt": "2026-05-13T10:46:45.786Z",
-        "elapsedMs": 287,
+        "startedAt": "2026-05-26T13:14:59.111Z",
+        "finishedAt": "2026-05-26T13:14:59.392Z",
+        "elapsedMs": 281,
         "uploadRaw": false
       }
     },
@@ -1607,16 +1607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.707Z",
-        "finishedAt": "2026-05-13T10:46:46.053Z",
-        "elapsedMs": 346,
+        "startedAt": "2026-05-26T13:14:59.155Z",
+        "finishedAt": "2026-05-26T13:14:59.542Z",
+        "elapsedMs": 387,
         "uploadRaw": false
       }
     },
@@ -1657,16 +1657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.771Z",
-        "finishedAt": "2026-05-13T10:46:46.178Z",
-        "elapsedMs": 407,
+        "startedAt": "2026-05-26T13:14:59.309Z",
+        "finishedAt": "2026-05-26T13:14:59.707Z",
+        "elapsedMs": 398,
         "uploadRaw": false
       }
     },
@@ -1707,16 +1707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:45.786Z",
-        "finishedAt": "2026-05-13T10:46:46.131Z",
-        "elapsedMs": 345,
+        "startedAt": "2026-05-26T13:14:59.392Z",
+        "finishedAt": "2026-05-26T13:14:59.711Z",
+        "elapsedMs": 319,
         "uploadRaw": false
       }
     },
@@ -1757,16 +1757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 58,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.053Z",
-        "finishedAt": "2026-05-13T10:46:47.706Z",
-        "elapsedMs": 1653,
+        "startedAt": "2026-05-26T13:14:59.542Z",
+        "finishedAt": "2026-05-26T13:15:01.120Z",
+        "elapsedMs": 1578,
         "uploadRaw": false
       }
     },
@@ -1807,16 +1807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.131Z",
-        "finishedAt": "2026-05-13T10:46:46.385Z",
-        "elapsedMs": 254,
+        "startedAt": "2026-05-26T13:14:59.707Z",
+        "finishedAt": "2026-05-26T13:14:59.983Z",
+        "elapsedMs": 276,
         "uploadRaw": false
       }
     },
@@ -1857,16 +1857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.178Z",
-        "finishedAt": "2026-05-13T10:46:46.356Z",
-        "elapsedMs": 178,
+        "startedAt": "2026-05-26T13:14:59.711Z",
+        "finishedAt": "2026-05-26T13:14:59.881Z",
+        "elapsedMs": 170,
         "uploadRaw": false
       }
     },
@@ -1907,16 +1907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.291Z",
-        "finishedAt": "2026-05-13T10:46:46.423Z",
-        "elapsedMs": 132,
+        "startedAt": "2026-05-26T13:14:59.881Z",
+        "finishedAt": "2026-05-26T13:15:00.103Z",
+        "elapsedMs": 222,
         "uploadRaw": false
       }
     },
@@ -1957,16 +1957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.356Z",
-        "finishedAt": "2026-05-13T10:46:46.698Z",
-        "elapsedMs": 342,
+        "startedAt": "2026-05-26T13:14:59.983Z",
+        "finishedAt": "2026-05-26T13:15:00.316Z",
+        "elapsedMs": 333,
         "uploadRaw": false
       }
     },
@@ -2007,16 +2007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.385Z",
-        "finishedAt": "2026-05-13T10:46:46.570Z",
-        "elapsedMs": 185,
+        "startedAt": "2026-05-26T13:15:00.026Z",
+        "finishedAt": "2026-05-26T13:15:00.177Z",
+        "elapsedMs": 151,
         "uploadRaw": false
       }
     },
@@ -2057,16 +2057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.423Z",
-        "finishedAt": "2026-05-13T10:46:46.758Z",
-        "elapsedMs": 335,
+        "startedAt": "2026-05-26T13:15:00.103Z",
+        "finishedAt": "2026-05-26T13:15:00.414Z",
+        "elapsedMs": 311,
         "uploadRaw": false
       }
     },
@@ -2107,16 +2107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.571Z",
-        "finishedAt": "2026-05-13T10:46:47.184Z",
-        "elapsedMs": 613,
+        "startedAt": "2026-05-26T13:15:00.177Z",
+        "finishedAt": "2026-05-26T13:15:00.835Z",
+        "elapsedMs": 658,
         "uploadRaw": false
       }
     },
@@ -2157,16 +2157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.698Z",
-        "finishedAt": "2026-05-13T10:46:46.951Z",
-        "elapsedMs": 253,
+        "startedAt": "2026-05-26T13:15:00.316Z",
+        "finishedAt": "2026-05-26T13:15:00.488Z",
+        "elapsedMs": 172,
         "uploadRaw": false
       }
     },
@@ -2207,16 +2207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 13,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.758Z",
-        "finishedAt": "2026-05-13T10:46:47.083Z",
-        "elapsedMs": 325,
+        "startedAt": "2026-05-26T13:15:00.414Z",
+        "finishedAt": "2026-05-26T13:15:00.756Z",
+        "elapsedMs": 342,
         "uploadRaw": false
       }
     },
@@ -2257,15 +2257,15 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:46.951Z",
-        "finishedAt": "2026-05-13T10:46:47.115Z",
+        "startedAt": "2026-05-26T13:15:00.488Z",
+        "finishedAt": "2026-05-26T13:15:00.652Z",
         "elapsedMs": 164,
         "uploadRaw": false
       }
@@ -2307,16 +2307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.084Z",
-        "finishedAt": "2026-05-13T10:46:47.529Z",
-        "elapsedMs": 445,
+        "startedAt": "2026-05-26T13:15:00.652Z",
+        "finishedAt": "2026-05-26T13:15:00.928Z",
+        "elapsedMs": 276,
         "uploadRaw": false
       }
     },
@@ -2357,16 +2357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.115Z",
-        "finishedAt": "2026-05-13T10:46:47.599Z",
-        "elapsedMs": 484,
+        "startedAt": "2026-05-26T13:15:00.756Z",
+        "finishedAt": "2026-05-26T13:15:01.122Z",
+        "elapsedMs": 366,
         "uploadRaw": false
       }
     },
@@ -2407,16 +2407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 17,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.184Z",
-        "finishedAt": "2026-05-13T10:46:47.457Z",
-        "elapsedMs": 273,
+        "startedAt": "2026-05-26T13:15:00.835Z",
+        "finishedAt": "2026-05-26T13:15:01.039Z",
+        "elapsedMs": 204,
         "uploadRaw": false
       }
     },
@@ -2457,16 +2457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.457Z",
-        "finishedAt": "2026-05-13T10:46:47.738Z",
-        "elapsedMs": 281,
+        "startedAt": "2026-05-26T13:15:00.928Z",
+        "finishedAt": "2026-05-26T13:15:01.253Z",
+        "elapsedMs": 325,
         "uploadRaw": false
       }
     },
@@ -2507,16 +2507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.529Z",
-        "finishedAt": "2026-05-13T10:46:47.854Z",
-        "elapsedMs": 325,
+        "startedAt": "2026-05-26T13:15:01.039Z",
+        "finishedAt": "2026-05-26T13:15:01.254Z",
+        "elapsedMs": 215,
         "uploadRaw": false
       }
     },
@@ -2557,16 +2557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.599Z",
-        "finishedAt": "2026-05-13T10:46:47.897Z",
-        "elapsedMs": 298,
+        "startedAt": "2026-05-26T13:15:01.120Z",
+        "finishedAt": "2026-05-26T13:15:01.456Z",
+        "elapsedMs": 336,
         "uploadRaw": false
       }
     },
@@ -2607,16 +2607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.706Z",
-        "finishedAt": "2026-05-13T10:46:47.983Z",
-        "elapsedMs": 277,
+        "startedAt": "2026-05-26T13:15:01.122Z",
+        "finishedAt": "2026-05-26T13:15:01.336Z",
+        "elapsedMs": 214,
         "uploadRaw": false
       }
     },
@@ -2657,16 +2657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.738Z",
-        "finishedAt": "2026-05-13T10:46:48.005Z",
-        "elapsedMs": 267,
+        "startedAt": "2026-05-26T13:15:01.253Z",
+        "finishedAt": "2026-05-26T13:15:01.468Z",
+        "elapsedMs": 215,
         "uploadRaw": false
       }
     },
@@ -2707,16 +2707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.854Z",
-        "finishedAt": "2026-05-13T10:46:48.004Z",
-        "elapsedMs": 150,
+        "startedAt": "2026-05-26T13:15:01.254Z",
+        "finishedAt": "2026-05-26T13:15:01.569Z",
+        "elapsedMs": 315,
         "uploadRaw": false
       }
     },
@@ -2757,16 +2757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.898Z",
-        "finishedAt": "2026-05-13T10:46:48.149Z",
-        "elapsedMs": 251,
+        "startedAt": "2026-05-26T13:15:01.336Z",
+        "finishedAt": "2026-05-26T13:15:01.488Z",
+        "elapsedMs": 152,
         "uploadRaw": false
       }
     },
@@ -2807,16 +2807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:47.983Z",
-        "finishedAt": "2026-05-13T10:46:48.204Z",
-        "elapsedMs": 221,
+        "startedAt": "2026-05-26T13:15:01.456Z",
+        "finishedAt": "2026-05-26T13:15:01.569Z",
+        "elapsedMs": 113,
         "uploadRaw": false
       }
     },
@@ -2857,16 +2857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 15,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.004Z",
-        "finishedAt": "2026-05-13T10:46:48.595Z",
-        "elapsedMs": 591,
+        "startedAt": "2026-05-26T13:15:01.468Z",
+        "finishedAt": "2026-05-26T13:15:02.203Z",
+        "elapsedMs": 735,
         "uploadRaw": false
       }
     },
@@ -2907,16 +2907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.005Z",
-        "finishedAt": "2026-05-13T10:46:48.595Z",
-        "elapsedMs": 590,
+        "startedAt": "2026-05-26T13:15:01.489Z",
+        "finishedAt": "2026-05-26T13:15:02.204Z",
+        "elapsedMs": 715,
         "uploadRaw": false
       }
     },
@@ -2957,16 +2957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.149Z",
-        "finishedAt": "2026-05-13T10:46:48.582Z",
-        "elapsedMs": 433,
+        "startedAt": "2026-05-26T13:15:01.569Z",
+        "finishedAt": "2026-05-26T13:15:02.134Z",
+        "elapsedMs": 565,
         "uploadRaw": false
       }
     },
@@ -3007,16 +3007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 11,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.204Z",
-        "finishedAt": "2026-05-13T10:46:48.517Z",
-        "elapsedMs": 313,
+        "startedAt": "2026-05-26T13:15:01.569Z",
+        "finishedAt": "2026-05-26T13:15:02.131Z",
+        "elapsedMs": 562,
         "uploadRaw": false
       }
     },
@@ -3057,16 +3057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 14,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.517Z",
-        "finishedAt": "2026-05-13T10:46:49.045Z",
-        "elapsedMs": 528,
+        "startedAt": "2026-05-26T13:15:02.131Z",
+        "finishedAt": "2026-05-26T13:15:02.463Z",
+        "elapsedMs": 332,
         "uploadRaw": false
       }
     },
@@ -3107,16 +3107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.582Z",
-        "finishedAt": "2026-05-13T10:46:48.751Z",
-        "elapsedMs": 169,
+        "startedAt": "2026-05-26T13:15:02.134Z",
+        "finishedAt": "2026-05-26T13:15:02.360Z",
+        "elapsedMs": 226,
         "uploadRaw": false
       }
     },
@@ -3157,16 +3157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.595Z",
-        "finishedAt": "2026-05-13T10:46:49.054Z",
-        "elapsedMs": 459,
+        "startedAt": "2026-05-26T13:15:02.203Z",
+        "finishedAt": "2026-05-26T13:15:02.556Z",
+        "elapsedMs": 353,
         "uploadRaw": false
       }
     },
@@ -3207,16 +3207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.595Z",
-        "finishedAt": "2026-05-13T10:46:48.794Z",
-        "elapsedMs": 199,
+        "startedAt": "2026-05-26T13:15:02.204Z",
+        "finishedAt": "2026-05-26T13:15:02.459Z",
+        "elapsedMs": 255,
         "uploadRaw": false
       }
     },
@@ -3257,16 +3257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.751Z",
-        "finishedAt": "2026-05-13T10:46:49.109Z",
-        "elapsedMs": 358,
+        "startedAt": "2026-05-26T13:15:02.361Z",
+        "finishedAt": "2026-05-26T13:15:02.875Z",
+        "elapsedMs": 514,
         "uploadRaw": false
       }
     },
@@ -3307,16 +3307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:48.794Z",
-        "finishedAt": "2026-05-13T10:46:49.110Z",
-        "elapsedMs": 316,
+        "startedAt": "2026-05-26T13:15:02.460Z",
+        "finishedAt": "2026-05-26T13:15:02.801Z",
+        "elapsedMs": 341,
         "uploadRaw": false
       }
     },
@@ -3357,16 +3357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 17,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.045Z",
-        "finishedAt": "2026-05-13T10:46:49.455Z",
-        "elapsedMs": 410,
+        "startedAt": "2026-05-26T13:15:02.463Z",
+        "finishedAt": "2026-05-26T13:15:02.877Z",
+        "elapsedMs": 414,
         "uploadRaw": false
       }
     },
@@ -3407,16 +3407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.109Z",
-        "finishedAt": "2026-05-13T10:46:49.544Z",
-        "elapsedMs": 435,
+        "startedAt": "2026-05-26T13:15:02.556Z",
+        "finishedAt": "2026-05-26T13:15:02.951Z",
+        "elapsedMs": 395,
         "uploadRaw": false
       }
     },
@@ -3457,16 +3457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.110Z",
-        "finishedAt": "2026-05-13T10:46:49.660Z",
-        "elapsedMs": 550,
+        "startedAt": "2026-05-26T13:15:02.801Z",
+        "finishedAt": "2026-05-26T13:15:03.130Z",
+        "elapsedMs": 329,
         "uploadRaw": false
       }
     },
@@ -3507,16 +3507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.455Z",
-        "finishedAt": "2026-05-13T10:46:49.815Z",
-        "elapsedMs": 360,
+        "startedAt": "2026-05-26T13:15:02.875Z",
+        "finishedAt": "2026-05-26T13:15:03.204Z",
+        "elapsedMs": 329,
         "uploadRaw": false
       }
     },
@@ -3557,16 +3557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 17,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.544Z",
-        "finishedAt": "2026-05-13T10:46:50.022Z",
-        "elapsedMs": 478,
+        "startedAt": "2026-05-26T13:15:02.877Z",
+        "finishedAt": "2026-05-26T13:15:03.205Z",
+        "elapsedMs": 328,
         "uploadRaw": false
       }
     },
@@ -3607,16 +3607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.591Z",
-        "finishedAt": "2026-05-13T10:46:49.964Z",
-        "elapsedMs": 373,
+        "startedAt": "2026-05-26T13:15:02.951Z",
+        "finishedAt": "2026-05-26T13:15:03.204Z",
+        "elapsedMs": 253,
         "uploadRaw": false
       }
     },
@@ -3657,16 +3657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.660Z",
-        "finishedAt": "2026-05-13T10:46:49.956Z",
-        "elapsedMs": 296,
+        "startedAt": "2026-05-26T13:15:03.130Z",
+        "finishedAt": "2026-05-26T13:15:03.473Z",
+        "elapsedMs": 343,
         "uploadRaw": false
       }
     },
@@ -3707,16 +3707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.815Z",
-        "finishedAt": "2026-05-13T10:46:50.088Z",
-        "elapsedMs": 273,
+        "startedAt": "2026-05-26T13:15:03.204Z",
+        "finishedAt": "2026-05-26T13:15:03.468Z",
+        "elapsedMs": 264,
         "uploadRaw": false
       }
     },
@@ -3757,16 +3757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.956Z",
-        "finishedAt": "2026-05-13T10:46:50.098Z",
-        "elapsedMs": 142,
+        "startedAt": "2026-05-26T13:15:03.204Z",
+        "finishedAt": "2026-05-26T13:15:03.413Z",
+        "elapsedMs": 209,
         "uploadRaw": false
       }
     },
@@ -3807,16 +3807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.965Z",
-        "finishedAt": "2026-05-13T10:46:50.150Z",
-        "elapsedMs": 185,
+        "startedAt": "2026-05-26T13:15:03.205Z",
+        "finishedAt": "2026-05-26T13:15:03.495Z",
+        "elapsedMs": 290,
         "uploadRaw": false
       }
     },
@@ -3857,16 +3857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 8,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.022Z",
-        "finishedAt": "2026-05-13T10:46:50.266Z",
-        "elapsedMs": 244,
+        "startedAt": "2026-05-26T13:15:03.413Z",
+        "finishedAt": "2026-05-26T13:15:03.656Z",
+        "elapsedMs": 243,
         "uploadRaw": false
       }
     },
@@ -3907,16 +3907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.088Z",
-        "finishedAt": "2026-05-13T10:46:50.432Z",
-        "elapsedMs": 344,
+        "startedAt": "2026-05-26T13:15:03.468Z",
+        "finishedAt": "2026-05-26T13:15:03.689Z",
+        "elapsedMs": 221,
         "uploadRaw": false
       }
     },
@@ -3957,16 +3957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.098Z",
-        "finishedAt": "2026-05-13T10:46:50.218Z",
-        "elapsedMs": 120,
+        "startedAt": "2026-05-26T13:15:03.473Z",
+        "finishedAt": "2026-05-26T13:15:03.787Z",
+        "elapsedMs": 314,
         "uploadRaw": false
       }
     },
@@ -4007,16 +4007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.150Z",
-        "finishedAt": "2026-05-13T10:46:50.317Z",
-        "elapsedMs": 167,
+        "startedAt": "2026-05-26T13:15:03.496Z",
+        "finishedAt": "2026-05-26T13:15:03.751Z",
+        "elapsedMs": 255,
         "uploadRaw": false
       }
     },
@@ -4057,16 +4057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.218Z",
-        "finishedAt": "2026-05-13T10:46:50.551Z",
-        "elapsedMs": 333,
+        "startedAt": "2026-05-26T13:15:03.656Z",
+        "finishedAt": "2026-05-26T13:15:03.948Z",
+        "elapsedMs": 292,
         "uploadRaw": false
       }
     },
@@ -4107,16 +4107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 17,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.266Z",
-        "finishedAt": "2026-05-13T10:46:51.022Z",
-        "elapsedMs": 756,
+        "startedAt": "2026-05-26T13:15:03.689Z",
+        "finishedAt": "2026-05-26T13:15:04.437Z",
+        "elapsedMs": 748,
         "uploadRaw": false
       }
     },
@@ -4157,16 +4157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.317Z",
-        "finishedAt": "2026-05-13T10:46:50.813Z",
-        "elapsedMs": 496,
+        "startedAt": "2026-05-26T13:15:03.751Z",
+        "finishedAt": "2026-05-26T13:15:04.153Z",
+        "elapsedMs": 402,
         "uploadRaw": false
       }
     },
@@ -4207,16 +4207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 22,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.432Z",
-        "finishedAt": "2026-05-13T10:46:51.347Z",
-        "elapsedMs": 915,
+        "startedAt": "2026-05-26T13:15:03.787Z",
+        "finishedAt": "2026-05-26T13:15:04.716Z",
+        "elapsedMs": 929,
         "uploadRaw": false
       }
     },
@@ -4257,16 +4257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 49,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.552Z",
-        "finishedAt": "2026-05-13T10:46:51.452Z",
-        "elapsedMs": 900,
+        "startedAt": "2026-05-26T13:15:03.948Z",
+        "finishedAt": "2026-05-26T13:15:04.789Z",
+        "elapsedMs": 841,
         "uploadRaw": false
       }
     },
@@ -4307,16 +4307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:50.813Z",
-        "finishedAt": "2026-05-13T10:46:51.212Z",
-        "elapsedMs": 399,
+        "startedAt": "2026-05-26T13:15:04.153Z",
+        "finishedAt": "2026-05-26T13:15:04.574Z",
+        "elapsedMs": 421,
         "uploadRaw": false
       }
     },
@@ -4357,16 +4357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.022Z",
-        "finishedAt": "2026-05-13T10:46:51.342Z",
-        "elapsedMs": 320,
+        "startedAt": "2026-05-26T13:15:04.437Z",
+        "finishedAt": "2026-05-26T13:15:04.795Z",
+        "elapsedMs": 358,
         "uploadRaw": false
       }
     },
@@ -4407,16 +4407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.212Z",
-        "finishedAt": "2026-05-13T10:46:51.393Z",
-        "elapsedMs": 181,
+        "startedAt": "2026-05-26T13:15:04.574Z",
+        "finishedAt": "2026-05-26T13:15:04.779Z",
+        "elapsedMs": 205,
         "uploadRaw": false
       }
     },
@@ -4457,16 +4457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.342Z",
-        "finishedAt": "2026-05-13T10:46:51.417Z",
-        "elapsedMs": 75,
+        "startedAt": "2026-05-26T13:15:04.724Z",
+        "finishedAt": "2026-05-26T13:15:04.880Z",
+        "elapsedMs": 156,
         "uploadRaw": false
       }
     },
@@ -4507,16 +4507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.347Z",
-        "finishedAt": "2026-05-13T10:46:51.537Z",
-        "elapsedMs": 190,
+        "startedAt": "2026-05-26T13:15:04.779Z",
+        "finishedAt": "2026-05-26T13:15:04.929Z",
+        "elapsedMs": 150,
         "uploadRaw": false
       }
     },
@@ -4557,16 +4557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.393Z",
-        "finishedAt": "2026-05-13T10:46:51.483Z",
-        "elapsedMs": 90,
+        "startedAt": "2026-05-26T13:15:04.789Z",
+        "finishedAt": "2026-05-26T13:15:04.858Z",
+        "elapsedMs": 69,
         "uploadRaw": false
       }
     },
@@ -4607,16 +4607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.417Z",
-        "finishedAt": "2026-05-13T10:46:51.787Z",
-        "elapsedMs": 370,
+        "startedAt": "2026-05-26T13:15:04.795Z",
+        "finishedAt": "2026-05-26T13:15:05.053Z",
+        "elapsedMs": 258,
         "uploadRaw": false
       }
     },
@@ -4657,16 +4657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.453Z",
-        "finishedAt": "2026-05-13T10:46:51.699Z",
-        "elapsedMs": 246,
+        "startedAt": "2026-05-26T13:15:04.858Z",
+        "finishedAt": "2026-05-26T13:15:05.033Z",
+        "elapsedMs": 175,
         "uploadRaw": false
       }
     },
@@ -4707,16 +4707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.483Z",
-        "finishedAt": "2026-05-13T10:46:51.691Z",
-        "elapsedMs": 208,
+        "startedAt": "2026-05-26T13:15:04.880Z",
+        "finishedAt": "2026-05-26T13:15:05.128Z",
+        "elapsedMs": 248,
         "uploadRaw": false
       }
     },
@@ -4757,16 +4757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 11,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.537Z",
-        "finishedAt": "2026-05-13T10:46:51.690Z",
-        "elapsedMs": 153,
+        "startedAt": "2026-05-26T13:15:04.929Z",
+        "finishedAt": "2026-05-26T13:15:05.099Z",
+        "elapsedMs": 170,
         "uploadRaw": false
       }
     },
@@ -4807,16 +4807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.690Z",
-        "finishedAt": "2026-05-13T10:46:51.841Z",
-        "elapsedMs": 151,
+        "startedAt": "2026-05-26T13:15:05.033Z",
+        "finishedAt": "2026-05-26T13:15:05.167Z",
+        "elapsedMs": 134,
         "uploadRaw": false
       }
     },
@@ -4857,16 +4857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.691Z",
-        "finishedAt": "2026-05-13T10:46:52.249Z",
-        "elapsedMs": 558,
+        "startedAt": "2026-05-26T13:15:05.054Z",
+        "finishedAt": "2026-05-26T13:15:05.455Z",
+        "elapsedMs": 401,
         "uploadRaw": false
       }
     },
@@ -4907,16 +4907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.699Z",
-        "finishedAt": "2026-05-13T10:46:51.881Z",
-        "elapsedMs": 182,
+        "startedAt": "2026-05-26T13:15:05.099Z",
+        "finishedAt": "2026-05-26T13:15:05.242Z",
+        "elapsedMs": 143,
         "uploadRaw": false
       }
     },
@@ -4957,16 +4957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 8,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.787Z",
-        "finishedAt": "2026-05-13T10:46:52.090Z",
-        "elapsedMs": 303,
+        "startedAt": "2026-05-26T13:15:05.128Z",
+        "finishedAt": "2026-05-26T13:15:05.409Z",
+        "elapsedMs": 281,
         "uploadRaw": false
       }
     },
@@ -5007,16 +5007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.841Z",
-        "finishedAt": "2026-05-13T10:46:52.047Z",
-        "elapsedMs": 206,
+        "startedAt": "2026-05-26T13:15:05.167Z",
+        "finishedAt": "2026-05-26T13:15:05.359Z",
+        "elapsedMs": 192,
         "uploadRaw": false
       }
     },
@@ -5057,16 +5057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 10,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:51.882Z",
-        "finishedAt": "2026-05-13T10:46:52.195Z",
-        "elapsedMs": 313,
+        "startedAt": "2026-05-26T13:15:05.243Z",
+        "finishedAt": "2026-05-26T13:15:05.585Z",
+        "elapsedMs": 342,
         "uploadRaw": false
       }
     },
@@ -5107,16 +5107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.047Z",
-        "finishedAt": "2026-05-13T10:46:52.159Z",
-        "elapsedMs": 112,
+        "startedAt": "2026-05-26T13:15:05.360Z",
+        "finishedAt": "2026-05-26T13:15:05.504Z",
+        "elapsedMs": 144,
         "uploadRaw": false
       }
     },
@@ -5157,16 +5157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.090Z",
-        "finishedAt": "2026-05-13T10:46:52.190Z",
-        "elapsedMs": 100,
+        "startedAt": "2026-05-26T13:15:05.409Z",
+        "finishedAt": "2026-05-26T13:15:05.665Z",
+        "elapsedMs": 256,
         "uploadRaw": false
       }
     },
@@ -5207,16 +5207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.159Z",
-        "finishedAt": "2026-05-13T10:46:52.353Z",
-        "elapsedMs": 194,
+        "startedAt": "2026-05-26T13:15:05.455Z",
+        "finishedAt": "2026-05-26T13:15:05.720Z",
+        "elapsedMs": 265,
         "uploadRaw": false
       }
     },
@@ -5257,16 +5257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 11,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.190Z",
-        "finishedAt": "2026-05-13T10:46:52.605Z",
-        "elapsedMs": 415,
+        "startedAt": "2026-05-26T13:15:05.504Z",
+        "finishedAt": "2026-05-26T13:15:05.959Z",
+        "elapsedMs": 455,
         "uploadRaw": false
       }
     },
@@ -5307,16 +5307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 13,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.195Z",
-        "finishedAt": "2026-05-13T10:46:52.718Z",
-        "elapsedMs": 523,
+        "startedAt": "2026-05-26T13:15:05.585Z",
+        "finishedAt": "2026-05-26T13:15:06.060Z",
+        "elapsedMs": 475,
         "uploadRaw": false
       }
     },
@@ -5357,16 +5357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 10,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.250Z",
-        "finishedAt": "2026-05-13T10:46:52.531Z",
-        "elapsedMs": 281,
+        "startedAt": "2026-05-26T13:15:05.665Z",
+        "finishedAt": "2026-05-26T13:15:05.868Z",
+        "elapsedMs": 203,
         "uploadRaw": false
       }
     },
@@ -5407,16 +5407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.353Z",
-        "finishedAt": "2026-05-13T10:46:52.707Z",
-        "elapsedMs": 354,
+        "startedAt": "2026-05-26T13:15:05.720Z",
+        "finishedAt": "2026-05-26T13:15:06.067Z",
+        "elapsedMs": 347,
         "uploadRaw": false
       }
     },
@@ -5457,16 +5457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.531Z",
-        "finishedAt": "2026-05-13T10:46:52.849Z",
-        "elapsedMs": 318,
+        "startedAt": "2026-05-26T13:15:05.868Z",
+        "finishedAt": "2026-05-26T13:15:06.340Z",
+        "elapsedMs": 472,
         "uploadRaw": false
       }
     },
@@ -5507,16 +5507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.605Z",
-        "finishedAt": "2026-05-13T10:46:52.963Z",
-        "elapsedMs": 358,
+        "startedAt": "2026-05-26T13:15:05.959Z",
+        "finishedAt": "2026-05-26T13:15:06.548Z",
+        "elapsedMs": 589,
         "uploadRaw": false
       }
     },
@@ -5557,16 +5557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.707Z",
-        "finishedAt": "2026-05-13T10:46:52.895Z",
-        "elapsedMs": 188,
+        "startedAt": "2026-05-26T13:15:06.060Z",
+        "finishedAt": "2026-05-26T13:15:06.221Z",
+        "elapsedMs": 161,
         "uploadRaw": false
       }
     },
@@ -5607,16 +5607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 8,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.718Z",
-        "finishedAt": "2026-05-13T10:46:53.012Z",
-        "elapsedMs": 294,
+        "startedAt": "2026-05-26T13:15:06.067Z",
+        "finishedAt": "2026-05-26T13:15:06.260Z",
+        "elapsedMs": 193,
         "uploadRaw": false
       }
     },
@@ -5657,16 +5657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.849Z",
-        "finishedAt": "2026-05-13T10:46:53.058Z",
-        "elapsedMs": 209,
+        "startedAt": "2026-05-26T13:15:06.221Z",
+        "finishedAt": "2026-05-26T13:15:06.460Z",
+        "elapsedMs": 239,
         "uploadRaw": false
       }
     },
@@ -5707,16 +5707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.895Z",
-        "finishedAt": "2026-05-13T10:46:53.127Z",
-        "elapsedMs": 232,
+        "startedAt": "2026-05-26T13:15:06.260Z",
+        "finishedAt": "2026-05-26T13:15:06.426Z",
+        "elapsedMs": 166,
         "uploadRaw": false
       }
     },
@@ -5757,16 +5757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:52.963Z",
-        "finishedAt": "2026-05-13T10:46:53.083Z",
-        "elapsedMs": 120,
+        "startedAt": "2026-05-26T13:15:06.340Z",
+        "finishedAt": "2026-05-26T13:15:06.489Z",
+        "elapsedMs": 149,
         "uploadRaw": false
       }
     },
@@ -5807,16 +5807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.012Z",
-        "finishedAt": "2026-05-13T10:46:53.127Z",
-        "elapsedMs": 115,
+        "startedAt": "2026-05-26T13:15:06.426Z",
+        "finishedAt": "2026-05-26T13:15:06.655Z",
+        "elapsedMs": 229,
         "uploadRaw": false
       }
     },
@@ -5857,16 +5857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.058Z",
-        "finishedAt": "2026-05-13T10:46:53.214Z",
-        "elapsedMs": 156,
+        "startedAt": "2026-05-26T13:15:06.460Z",
+        "finishedAt": "2026-05-26T13:15:06.625Z",
+        "elapsedMs": 165,
         "uploadRaw": false
       }
     },
@@ -5907,16 +5907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.083Z",
-        "finishedAt": "2026-05-13T10:46:53.261Z",
-        "elapsedMs": 178,
+        "startedAt": "2026-05-26T13:15:06.490Z",
+        "finishedAt": "2026-05-26T13:15:06.710Z",
+        "elapsedMs": 220,
         "uploadRaw": false
       }
     },
@@ -5957,16 +5957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.127Z",
-        "finishedAt": "2026-05-13T10:46:53.482Z",
-        "elapsedMs": 355,
+        "startedAt": "2026-05-26T13:15:06.548Z",
+        "finishedAt": "2026-05-26T13:15:06.705Z",
+        "elapsedMs": 157,
         "uploadRaw": false
       }
     },
@@ -6007,16 +6007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.127Z",
-        "finishedAt": "2026-05-13T10:46:53.300Z",
-        "elapsedMs": 173,
+        "startedAt": "2026-05-26T13:15:06.625Z",
+        "finishedAt": "2026-05-26T13:15:06.822Z",
+        "elapsedMs": 197,
         "uploadRaw": false
       }
     },
@@ -6057,16 +6057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.214Z",
-        "finishedAt": "2026-05-13T10:46:53.415Z",
-        "elapsedMs": 201,
+        "startedAt": "2026-05-26T13:15:06.656Z",
+        "finishedAt": "2026-05-26T13:15:06.779Z",
+        "elapsedMs": 123,
         "uploadRaw": false
       }
     },
@@ -6107,16 +6107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.261Z",
-        "finishedAt": "2026-05-13T10:46:53.349Z",
-        "elapsedMs": 88,
+        "startedAt": "2026-05-26T13:15:06.705Z",
+        "finishedAt": "2026-05-26T13:15:06.823Z",
+        "elapsedMs": 118,
         "uploadRaw": false
       }
     },
@@ -6157,16 +6157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.300Z",
-        "finishedAt": "2026-05-13T10:46:53.439Z",
-        "elapsedMs": 139,
+        "startedAt": "2026-05-26T13:15:06.710Z",
+        "finishedAt": "2026-05-26T13:15:06.823Z",
+        "elapsedMs": 113,
         "uploadRaw": false
       }
     },
@@ -6207,16 +6207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.349Z",
-        "finishedAt": "2026-05-13T10:46:53.587Z",
-        "elapsedMs": 238,
+        "startedAt": "2026-05-26T13:15:06.779Z",
+        "finishedAt": "2026-05-26T13:15:07.172Z",
+        "elapsedMs": 393,
         "uploadRaw": false
       }
     },
@@ -6257,16 +6257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.416Z",
-        "finishedAt": "2026-05-13T10:46:53.617Z",
-        "elapsedMs": 201,
+        "startedAt": "2026-05-26T13:15:06.823Z",
+        "finishedAt": "2026-05-26T13:15:06.987Z",
+        "elapsedMs": 164,
         "uploadRaw": false
       }
     },
@@ -6307,16 +6307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.439Z",
-        "finishedAt": "2026-05-13T10:46:53.657Z",
-        "elapsedMs": 218,
+        "startedAt": "2026-05-26T13:15:06.823Z",
+        "finishedAt": "2026-05-26T13:15:06.962Z",
+        "elapsedMs": 139,
         "uploadRaw": false
       }
     },
@@ -6357,16 +6357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.482Z",
-        "finishedAt": "2026-05-13T10:46:53.723Z",
-        "elapsedMs": 241,
+        "startedAt": "2026-05-26T13:15:06.824Z",
+        "finishedAt": "2026-05-26T13:15:07.221Z",
+        "elapsedMs": 397,
         "uploadRaw": false
       }
     },
@@ -6407,16 +6407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.587Z",
-        "finishedAt": "2026-05-13T10:46:53.828Z",
-        "elapsedMs": 241,
+        "startedAt": "2026-05-26T13:15:06.962Z",
+        "finishedAt": "2026-05-26T13:15:07.111Z",
+        "elapsedMs": 149,
         "uploadRaw": false
       }
     },
@@ -6457,16 +6457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 13,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.617Z",
-        "finishedAt": "2026-05-13T10:46:53.961Z",
-        "elapsedMs": 344,
+        "startedAt": "2026-05-26T13:15:06.987Z",
+        "finishedAt": "2026-05-26T13:15:07.270Z",
+        "elapsedMs": 283,
         "uploadRaw": false
       }
     },
@@ -6507,16 +6507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.657Z",
-        "finishedAt": "2026-05-13T10:46:53.885Z",
-        "elapsedMs": 228,
+        "startedAt": "2026-05-26T13:15:07.111Z",
+        "finishedAt": "2026-05-26T13:15:07.271Z",
+        "elapsedMs": 160,
         "uploadRaw": false
       }
     },
@@ -6557,16 +6557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.723Z",
-        "finishedAt": "2026-05-13T10:46:54.025Z",
-        "elapsedMs": 302,
+        "startedAt": "2026-05-26T13:15:07.172Z",
+        "finishedAt": "2026-05-26T13:15:07.400Z",
+        "elapsedMs": 228,
         "uploadRaw": false
       }
     },
@@ -6607,16 +6607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.828Z",
-        "finishedAt": "2026-05-13T10:46:54.262Z",
-        "elapsedMs": 434,
+        "startedAt": "2026-05-26T13:15:07.222Z",
+        "finishedAt": "2026-05-26T13:15:07.485Z",
+        "elapsedMs": 263,
         "uploadRaw": false
       }
     },
@@ -6657,16 +6657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.885Z",
-        "finishedAt": "2026-05-13T10:46:54.050Z",
-        "elapsedMs": 165,
+        "startedAt": "2026-05-26T13:15:07.270Z",
+        "finishedAt": "2026-05-26T13:15:07.461Z",
+        "elapsedMs": 191,
         "uploadRaw": false
       }
     },
@@ -6707,16 +6707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 10,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:53.962Z",
-        "finishedAt": "2026-05-13T10:46:54.295Z",
-        "elapsedMs": 333,
+        "startedAt": "2026-05-26T13:15:07.271Z",
+        "finishedAt": "2026-05-26T13:15:07.592Z",
+        "elapsedMs": 321,
         "uploadRaw": false
       }
     },
@@ -6757,16 +6757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.025Z",
-        "finishedAt": "2026-05-13T10:46:54.180Z",
-        "elapsedMs": 155,
+        "startedAt": "2026-05-26T13:15:07.400Z",
+        "finishedAt": "2026-05-26T13:15:07.516Z",
+        "elapsedMs": 116,
         "uploadRaw": false
       }
     },
@@ -6807,16 +6807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.050Z",
-        "finishedAt": "2026-05-13T10:46:54.145Z",
-        "elapsedMs": 95,
+        "startedAt": "2026-05-26T13:15:07.461Z",
+        "finishedAt": "2026-05-26T13:15:07.630Z",
+        "elapsedMs": 169,
         "uploadRaw": false
       }
     },
@@ -6857,16 +6857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.145Z",
-        "finishedAt": "2026-05-13T10:46:54.258Z",
-        "elapsedMs": 113,
+        "startedAt": "2026-05-26T13:15:07.485Z",
+        "finishedAt": "2026-05-26T13:15:07.630Z",
+        "elapsedMs": 145,
         "uploadRaw": false
       }
     },
@@ -6907,16 +6907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 11,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.180Z",
-        "finishedAt": "2026-05-13T10:46:54.579Z",
-        "elapsedMs": 399,
+        "startedAt": "2026-05-26T13:15:07.516Z",
+        "finishedAt": "2026-05-26T13:15:07.774Z",
+        "elapsedMs": 258,
         "uploadRaw": false
       }
     },
@@ -6957,16 +6957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.258Z",
-        "finishedAt": "2026-05-13T10:46:54.473Z",
-        "elapsedMs": 215,
+        "startedAt": "2026-05-26T13:15:07.592Z",
+        "finishedAt": "2026-05-26T13:15:07.870Z",
+        "elapsedMs": 278,
         "uploadRaw": false
       }
     },
@@ -7007,16 +7007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.262Z",
-        "finishedAt": "2026-05-13T10:46:54.395Z",
-        "elapsedMs": 133,
+        "startedAt": "2026-05-26T13:15:07.630Z",
+        "finishedAt": "2026-05-26T13:15:07.829Z",
+        "elapsedMs": 199,
         "uploadRaw": false
       }
     },
@@ -7057,16 +7057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.295Z",
-        "finishedAt": "2026-05-13T10:46:54.471Z",
-        "elapsedMs": 176,
+        "startedAt": "2026-05-26T13:15:07.630Z",
+        "finishedAt": "2026-05-26T13:15:07.776Z",
+        "elapsedMs": 146,
         "uploadRaw": false
       }
     },
@@ -7107,16 +7107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.395Z",
-        "finishedAt": "2026-05-13T10:46:54.657Z",
-        "elapsedMs": 262,
+        "startedAt": "2026-05-26T13:15:07.775Z",
+        "finishedAt": "2026-05-26T13:15:07.942Z",
+        "elapsedMs": 167,
         "uploadRaw": false
       }
     },
@@ -7157,16 +7157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 8,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.471Z",
-        "finishedAt": "2026-05-13T10:46:54.778Z",
-        "elapsedMs": 307,
+        "startedAt": "2026-05-26T13:15:07.776Z",
+        "finishedAt": "2026-05-26T13:15:08.076Z",
+        "elapsedMs": 300,
         "uploadRaw": false
       }
     },
@@ -7207,16 +7207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.473Z",
-        "finishedAt": "2026-05-13T10:46:54.670Z",
-        "elapsedMs": 197,
+        "startedAt": "2026-05-26T13:15:07.829Z",
+        "finishedAt": "2026-05-26T13:15:08.023Z",
+        "elapsedMs": 194,
         "uploadRaw": false
       }
     },
@@ -7257,16 +7257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.579Z",
-        "finishedAt": "2026-05-13T10:46:55.008Z",
-        "elapsedMs": 429,
+        "startedAt": "2026-05-26T13:15:07.870Z",
+        "finishedAt": "2026-05-26T13:15:08.124Z",
+        "elapsedMs": 254,
         "uploadRaw": false
       }
     },
@@ -7307,16 +7307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.657Z",
-        "finishedAt": "2026-05-13T10:46:54.944Z",
-        "elapsedMs": 287,
+        "startedAt": "2026-05-26T13:15:07.942Z",
+        "finishedAt": "2026-05-26T13:15:08.078Z",
+        "elapsedMs": 136,
         "uploadRaw": false
       }
     },
@@ -7357,16 +7357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.671Z",
-        "finishedAt": "2026-05-13T10:46:55.007Z",
-        "elapsedMs": 336,
+        "startedAt": "2026-05-26T13:15:08.023Z",
+        "finishedAt": "2026-05-26T13:15:08.477Z",
+        "elapsedMs": 454,
         "uploadRaw": false
       }
     },
@@ -7407,16 +7407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.778Z",
-        "finishedAt": "2026-05-13T10:46:54.937Z",
-        "elapsedMs": 159,
+        "startedAt": "2026-05-26T13:15:08.076Z",
+        "finishedAt": "2026-05-26T13:15:08.276Z",
+        "elapsedMs": 200,
         "uploadRaw": false
       }
     },
@@ -7457,16 +7457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.937Z",
-        "finishedAt": "2026-05-13T10:46:55.236Z",
-        "elapsedMs": 299,
+        "startedAt": "2026-05-26T13:15:08.078Z",
+        "finishedAt": "2026-05-26T13:15:08.578Z",
+        "elapsedMs": 500,
         "uploadRaw": false
       }
     },
@@ -7507,16 +7507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:54.944Z",
-        "finishedAt": "2026-05-13T10:46:55.173Z",
-        "elapsedMs": 229,
+        "startedAt": "2026-05-26T13:15:08.124Z",
+        "finishedAt": "2026-05-26T13:15:08.464Z",
+        "elapsedMs": 340,
         "uploadRaw": false
       }
     },
@@ -7557,16 +7557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.007Z",
-        "finishedAt": "2026-05-13T10:46:55.287Z",
-        "elapsedMs": 280,
+        "startedAt": "2026-05-26T13:15:08.276Z",
+        "finishedAt": "2026-05-26T13:15:08.712Z",
+        "elapsedMs": 436,
         "uploadRaw": false
       }
     },
@@ -7607,16 +7607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.008Z",
-        "finishedAt": "2026-05-13T10:46:55.371Z",
-        "elapsedMs": 363,
+        "startedAt": "2026-05-26T13:15:08.464Z",
+        "finishedAt": "2026-05-26T13:15:08.624Z",
+        "elapsedMs": 160,
         "uploadRaw": false
       }
     },
@@ -7657,16 +7657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.173Z",
-        "finishedAt": "2026-05-13T10:46:55.346Z",
-        "elapsedMs": 173,
+        "startedAt": "2026-05-26T13:15:08.477Z",
+        "finishedAt": "2026-05-26T13:15:08.603Z",
+        "elapsedMs": 126,
         "uploadRaw": false
       }
     },
@@ -7707,16 +7707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.237Z",
-        "finishedAt": "2026-05-13T10:46:55.424Z",
-        "elapsedMs": 187,
+        "startedAt": "2026-05-26T13:15:08.578Z",
+        "finishedAt": "2026-05-26T13:15:08.718Z",
+        "elapsedMs": 140,
         "uploadRaw": false
       }
     },
@@ -7757,16 +7757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 4,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.287Z",
-        "finishedAt": "2026-05-13T10:46:55.480Z",
-        "elapsedMs": 193,
+        "startedAt": "2026-05-26T13:15:08.603Z",
+        "finishedAt": "2026-05-26T13:15:08.774Z",
+        "elapsedMs": 171,
         "uploadRaw": false
       }
     },
@@ -7807,16 +7807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.346Z",
-        "finishedAt": "2026-05-13T10:46:55.602Z",
-        "elapsedMs": 256,
+        "startedAt": "2026-05-26T13:15:08.624Z",
+        "finishedAt": "2026-05-26T13:15:08.829Z",
+        "elapsedMs": 205,
         "uploadRaw": false
       }
     },
@@ -7857,16 +7857,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 15,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.371Z",
-        "finishedAt": "2026-05-13T10:46:55.947Z",
-        "elapsedMs": 576,
+        "startedAt": "2026-05-26T13:15:08.712Z",
+        "finishedAt": "2026-05-26T13:15:09.138Z",
+        "elapsedMs": 426,
         "uploadRaw": false
       }
     },
@@ -7907,16 +7907,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 8,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.424Z",
-        "finishedAt": "2026-05-13T10:46:55.707Z",
-        "elapsedMs": 283,
+        "startedAt": "2026-05-26T13:15:08.718Z",
+        "finishedAt": "2026-05-26T13:15:08.979Z",
+        "elapsedMs": 261,
         "uploadRaw": false
       }
     },
@@ -7957,16 +7957,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.480Z",
-        "finishedAt": "2026-05-13T10:46:55.944Z",
-        "elapsedMs": 464,
+        "startedAt": "2026-05-26T13:15:08.774Z",
+        "finishedAt": "2026-05-26T13:15:09.120Z",
+        "elapsedMs": 346,
         "uploadRaw": false
       }
     },
@@ -8007,16 +8007,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.602Z",
-        "finishedAt": "2026-05-13T10:46:55.947Z",
-        "elapsedMs": 345,
+        "startedAt": "2026-05-26T13:15:08.829Z",
+        "finishedAt": "2026-05-26T13:15:09.079Z",
+        "elapsedMs": 250,
         "uploadRaw": false
       }
     },
@@ -8057,16 +8057,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.707Z",
-        "finishedAt": "2026-05-13T10:46:56.018Z",
-        "elapsedMs": 311,
+        "startedAt": "2026-05-26T13:15:08.979Z",
+        "finishedAt": "2026-05-26T13:15:09.189Z",
+        "elapsedMs": 210,
         "uploadRaw": false
       }
     },
@@ -8107,16 +8107,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.944Z",
-        "finishedAt": "2026-05-13T10:46:56.176Z",
-        "elapsedMs": 232,
+        "startedAt": "2026-05-26T13:15:09.079Z",
+        "finishedAt": "2026-05-26T13:15:09.452Z",
+        "elapsedMs": 373,
         "uploadRaw": false
       }
     },
@@ -8157,16 +8157,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.947Z",
-        "finishedAt": "2026-05-13T10:46:56.224Z",
-        "elapsedMs": 277,
+        "startedAt": "2026-05-26T13:15:09.120Z",
+        "finishedAt": "2026-05-26T13:15:09.246Z",
+        "elapsedMs": 126,
         "uploadRaw": false
       }
     },
@@ -8207,16 +8207,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:55.947Z",
-        "finishedAt": "2026-05-13T10:46:56.324Z",
-        "elapsedMs": 377,
+        "startedAt": "2026-05-26T13:15:09.138Z",
+        "finishedAt": "2026-05-26T13:15:09.317Z",
+        "elapsedMs": 179,
         "uploadRaw": false
       }
     },
@@ -8257,16 +8257,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.018Z",
-        "finishedAt": "2026-05-13T10:46:56.262Z",
-        "elapsedMs": 244,
+        "startedAt": "2026-05-26T13:15:09.189Z",
+        "finishedAt": "2026-05-26T13:15:09.381Z",
+        "elapsedMs": 192,
         "uploadRaw": false
       }
     },
@@ -8307,16 +8307,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 5,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.176Z",
-        "finishedAt": "2026-05-13T10:46:56.264Z",
-        "elapsedMs": 88,
+        "startedAt": "2026-05-26T13:15:09.246Z",
+        "finishedAt": "2026-05-26T13:15:09.335Z",
+        "elapsedMs": 89,
         "uploadRaw": false
       }
     },
@@ -8357,16 +8357,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.224Z",
-        "finishedAt": "2026-05-13T10:46:56.323Z",
-        "elapsedMs": 99,
+        "startedAt": "2026-05-26T13:15:09.317Z",
+        "finishedAt": "2026-05-26T13:15:09.430Z",
+        "elapsedMs": 113,
         "uploadRaw": false
       }
     },
@@ -8407,16 +8407,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.262Z",
-        "finishedAt": "2026-05-13T10:46:56.620Z",
-        "elapsedMs": 358,
+        "startedAt": "2026-05-26T13:15:09.335Z",
+        "finishedAt": "2026-05-26T13:15:09.754Z",
+        "elapsedMs": 419,
         "uploadRaw": false
       }
     },
@@ -8457,16 +8457,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.264Z",
-        "finishedAt": "2026-05-13T10:46:56.693Z",
-        "elapsedMs": 429,
+        "startedAt": "2026-05-26T13:15:09.381Z",
+        "finishedAt": "2026-05-26T13:15:09.652Z",
+        "elapsedMs": 271,
         "uploadRaw": false
       }
     },
@@ -8507,16 +8507,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.323Z",
-        "finishedAt": "2026-05-13T10:46:56.649Z",
-        "elapsedMs": 326,
+        "startedAt": "2026-05-26T13:15:09.430Z",
+        "finishedAt": "2026-05-26T13:15:09.657Z",
+        "elapsedMs": 227,
         "uploadRaw": false
       }
     },
@@ -8557,16 +8557,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 14,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.324Z",
-        "finishedAt": "2026-05-13T10:46:56.644Z",
-        "elapsedMs": 320,
+        "startedAt": "2026-05-26T13:15:09.453Z",
+        "finishedAt": "2026-05-26T13:15:09.695Z",
+        "elapsedMs": 242,
         "uploadRaw": false
       }
     },
@@ -8607,16 +8607,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 3,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.620Z",
-        "finishedAt": "2026-05-13T10:46:56.908Z",
-        "elapsedMs": 288,
+        "startedAt": "2026-05-26T13:15:09.652Z",
+        "finishedAt": "2026-05-26T13:15:09.801Z",
+        "elapsedMs": 149,
         "uploadRaw": false
       }
     },
@@ -8657,16 +8657,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.644Z",
-        "finishedAt": "2026-05-13T10:46:56.964Z",
-        "elapsedMs": 320,
+        "startedAt": "2026-05-26T13:15:09.657Z",
+        "finishedAt": "2026-05-26T13:15:09.879Z",
+        "elapsedMs": 222,
         "uploadRaw": false
       }
     },
@@ -8707,16 +8707,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 12,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.649Z",
-        "finishedAt": "2026-05-13T10:46:57.133Z",
-        "elapsedMs": 484,
+        "startedAt": "2026-05-26T13:15:09.695Z",
+        "finishedAt": "2026-05-26T13:15:10.039Z",
+        "elapsedMs": 344,
         "uploadRaw": false
       }
     },
@@ -8757,16 +8757,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 6,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.694Z",
-        "finishedAt": "2026-05-13T10:46:57.037Z",
-        "elapsedMs": 343,
+        "startedAt": "2026-05-26T13:15:09.754Z",
+        "finishedAt": "2026-05-26T13:15:10.021Z",
+        "elapsedMs": 267,
         "uploadRaw": false
       }
     },
@@ -8807,16 +8807,16 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 9,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.908Z",
-        "finishedAt": "2026-05-13T10:46:57.146Z",
-        "elapsedMs": 238,
+        "startedAt": "2026-05-26T13:15:09.801Z",
+        "finishedAt": "2026-05-26T13:15:10.020Z",
+        "elapsedMs": 219,
         "uploadRaw": false
       }
     },
@@ -8857,23 +8857,23 @@
         "status": "seeded",
         "uploaderId": "seed-demo-user",
         "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
+        "seededAt": "2026-05-15T16:03:17.605Z"
       },
       "stage3": {
         "status": "uploaded",
         "uploaded": 7,
         "skipped": 0,
         "retried": 0,
-        "startedAt": "2026-05-13T10:46:56.964Z",
-        "finishedAt": "2026-05-13T10:46:57.325Z",
-        "elapsedMs": 361,
+        "startedAt": "2026-05-26T13:15:09.879Z",
+        "finishedAt": "2026-05-26T13:15:10.077Z",
+        "elapsedMs": 198,
         "uploadRaw": false
       }
     }
   ],
   "stage2": {
-    "updatedAt": "2026-05-13T10:48:03.725Z",
-    "selectedCount": 178,
+    "updatedAt": "2026-05-15T16:03:17.605Z",
+    "selectedCount": 177,
     "seededAudienceUsers": 120000,
     "seedOwner": {
       "id": "seed-demo-user",
@@ -8886,9 +8886,9 @@
     "codes": null
   },
   "stage3": {
-    "updatedAt": "2026-05-13T10:46:57.325Z",
-    "selectedCount": 178,
-    "uploadedObjects": 1365,
+    "updatedAt": "2026-05-26T13:15:10.077Z",
+    "selectedCount": 177,
+    "uploadedObjects": 1358,
     "skippedObjects": 0,
     "retried": 0,
     "failed": 0,

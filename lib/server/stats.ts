@@ -769,6 +769,8 @@ export async function getDashboardPageData(): Promise<DashboardPageData> {
 }
 
 export async function getStatPageData(): Promise<StatPageData> {
+  // 频道分析页读取的是日汇总表，不直接扫描原始播放事件。
+  // 原始事件由 rollup.daily.sql 汇总后，再生成趋势、诊断和排行榜。
   const userId = await requireUserId();
   const channel = await getCurrentChannel(userId);
 
@@ -859,6 +861,8 @@ export async function getStatPageData(): Promise<StatPageData> {
 }
 
 export async function getVideoAnalyticsPageData(shortCode: string): Promise<VideoAnalyticsPageData> {
+  // 单视频分析页同样基于 VideoDailyStat。
+  // 图表查询只读取最近 30 天的汇总数据。
   const userId = await requireUserId();
   const safeShortCode = shortCode.trim();
 

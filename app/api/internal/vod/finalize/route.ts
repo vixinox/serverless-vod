@@ -1,9 +1,14 @@
 /**
  * POST /api/internal/vod/finalize
  *
- * Lambda vod-finalize 的回调接口。
- * 写入 VideoAsset（HLS_MASTER），将 Video 置为 READY，TranscodeJob 置为 SUCCEEDED。
- * 若 transcode 步骤提供了缩略图信息，同时写入 VideoAsset(THUMBNAIL) 并更新 Video.thumbnail。
+ * finalize 是状态机成功路径的最后一步，负责登记转码结果。
+ *
+ * 主要写入三类数据：
+ * 1. TranscodeJob 置为 SUCCEEDED，清空 pipelineStage。
+ * 2. Video 置为 READY，并写入时长、封面等展示字段。
+ * 3. 写入 VideoAsset，把 HLS master 清单和缩略图保存成可查询的资源记录。
+ *
+ * transcode Lambda 只返回处理结果；数据库写入集中在 finalize。
  *
  * 仅允许持有 INTERNAL_API_SECRET 的内部调用方访问。
  */
@@ -18,8 +23,7 @@ function checkAuth(req: Request): boolean {
 
 /**
  * 根据环境变量构造缩略图可访问 URL。
- * - 配置了 VIDEO_IMAGE_CDN_DOMAIN：https://<domain>/<key>
- * - 本地开发（未配置）：<LOCALSTACK_ENDPOINT>/<imageBucket>/<key>
+ * 线上返回图片 CDN 地址，本地开发返回 LocalStack 对象地址。
  */
 function buildThumbnailUrl(bucket: string, key: string): string {
   const cdnDomain = process.env.VIDEO_IMAGE_CDN_DOMAIN;
@@ -85,7 +89,7 @@ export async function POST(req: Request) {
         ...(thumbnailUrl    != null && { thumbnail: thumbnailUrl }),
       },
     }),
-    // 删除旧 HLS_MASTER 防止重试时重复写入
+    // 重试成功后替换旧主清单记录。
     prisma.videoAsset.deleteMany({ where: { videoId, assetType: "HLS_MASTER" } }),
     prisma.videoAsset.create({
       data: {
@@ -100,7 +104,7 @@ export async function POST(req: Request) {
         duration: durationSeconds ?? null,
       },
     }),
-    // 删除旧 THUMBNAIL
+    // 缩略图记录保持单主资源。
     ...(thumbnailBucket && thumbnailKey
       ? [
           prisma.videoAsset.deleteMany({ where: { videoId, assetType: "THUMBNAIL" } }),

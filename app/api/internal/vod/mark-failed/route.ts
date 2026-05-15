@@ -1,8 +1,10 @@
 /**
  * POST /api/internal/vod/mark-failed
  *
- * Lambda vod-mark-failed 的回调接口。
- * 将 TranscodeJob 和 Video 状态均置为 FAILED，并记录错误原因。
+ * mark-failed 是状态机的失败处理入口。
+ * ExtractMetadata、Transcode 或 Finalize 任一步抛错，Catch 会传入原始输入和错误信息。
+ *
+ * 该接口会同时把 TranscodeJob 和 Video 标记为 FAILED，并保存错误原因。
  *
  * 仅允许持有 INTERNAL_API_SECRET 的内部调用方访问。
  */
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 拼接错误信息，限长 1000 字符，避免写入过长的 Cause 字符串
+  // Step Functions 的 Cause 可能很长，入库前限制长度。
   const message =
     [error, cause].filter(Boolean).join(": ").slice(0, 1000) || "transcode failed";
 

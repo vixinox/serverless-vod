@@ -1,8 +1,10 @@
 /**
  * POST /api/internal/vod/stage
  *
- * Lambda 各步骤在关键里程碑处回调此接口，将当前流水线阶段写入 TranscodeJob.pipelineStage。
- * 替代旧的 /progress 接口（逐帧百分比 → 阶段性里程碑）。
+ * transcode Lambda 在关键里程碑处回调该接口，将当前阶段写入 TranscodeJob.pipelineStage。
+ * 前端轮询任务状态时读取该字段，展示下载、转码、上传等过程。
+ *
+ * 采用阶段而不是逐帧百分比，避免持续解析 ffmpeg 输出。
  *
  * 合法 stage 值（与 Lambda 代码保持一致）：
  *   job_started | downloading | probing | transcoding
@@ -13,7 +15,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-/** 合法的阶段标识列表（用于校验，防止写入垃圾数据） */
+/** 阶段白名单：只允许写入前端能识别的处理阶段。 */
 const VALID_STAGES = new Set([
   "job_started",
   "downloading",
@@ -59,7 +61,7 @@ export async function POST(req: Request) {
   await prisma.transcodeJob.updateMany({
     where: {
       id:     jobId,
-      status: "RUNNING", // 只在 RUNNING 状态才更新，避免覆盖终态
+      status: "RUNNING", // 只更新运行中的任务，防止迟到回调覆盖终态。
     },
     data: { pipelineStage: stage },
   });

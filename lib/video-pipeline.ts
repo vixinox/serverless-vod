@@ -46,6 +46,10 @@ async function generateUniqueShortCode(seedInput: string) {
   throw new Error("无法生成唯一短码");
 }
 
+/**
+ * 确保上传者拥有频道。
+ * 首次上传时自动创建频道记录。
+ */
 export async function ensureChannelForUser(userId: string, fallbackName: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -85,6 +89,10 @@ export async function ensureChannelForUser(userId: string, fallbackName: string)
   return channel.id;
 }
 
+/**
+ * 创建上传草稿。
+ * 仅创建 Video 和 shortCode，视频文件随后由浏览器直传对象存储。
+ */
 export async function createUploadVideoDraft(params: {
   userId: string;
   title: string;

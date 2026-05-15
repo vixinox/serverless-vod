@@ -82,6 +82,7 @@ enum SystemPlaylistKey {
   FAVORITES
 }
 
+/// 用户设置表：保存主题等用户级偏好，不参与视频业务主流程。
 model UserSettings {
   userId    String          @id
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -91,6 +92,7 @@ model UserSettings {
   @@map("user_settings")
 }
 
+/// 用户表：Better Auth 用户主体，同时关联频道、视频、评论和播放行为。
 model User {
   id               String               @id
   name             String
@@ -116,6 +118,7 @@ model User {
   @@map("user")
 }
 
+/// 登录会话表：Better Auth 维护的登录态记录。
 model Session {
   id        String   @id
   expiresAt DateTime
@@ -131,6 +134,7 @@ model Session {
   @@map("session")
 }
 
+/// 账号绑定表：Better Auth 维护邮箱密码和第三方 OAuth 账号。
 model Account {
   id                    String    @id
   accountId             String
@@ -150,6 +154,7 @@ model Account {
   @@map("account")
 }
 
+/// 验证凭据表：Better Auth 用于邮箱验证、重置等临时凭据。
 model Verification {
   id         String    @id
   identifier String
@@ -161,6 +166,7 @@ model Verification {
   @@map("verification")
 }
 
+/// 频道表：创作者的内容主页，承载视频列表和订阅统计。
 model Channel {
   id               String             @id @default(cuid())
   ownerId          String             @unique
@@ -176,6 +182,7 @@ model Channel {
   updatedAt        DateTime           @updatedAt
 }
 
+/// 订阅关系表：记录用户订阅频道，并由数据库触发器维护订阅数。
 model Subscription {
   id           String   @id @default(cuid())
   subscriberId String
@@ -189,6 +196,7 @@ model Subscription {
   @@index([channelId])
 }
 
+/// 视频内容表：保存视频基础信息、可见性、处理状态和互动计数。
 model Video {
   id               String                @id @default(cuid())
   title            String
@@ -231,6 +239,7 @@ model Video {
   @@index([processingStatus])
 }
 
+/// 视频互动表：一名用户对一个视频只能保留一个点赞或点踩状态。
 model VideoReaction {
   userId       String
   videoId      String
@@ -243,6 +252,7 @@ model VideoReaction {
   @@index([videoId])
 }
 
+/// 评论表：同时承载一级评论和二级回复，parentId 为空时为一级评论。
 model Comment {
   id            String            @id @default(cuid())
   content       String            @db.Text
@@ -266,6 +276,7 @@ model Comment {
   @@index([parentId])
 }
 
+/// 评论互动表：一名用户对一条评论只能保留一个点赞或点踩状态。
 model CommentReaction {
   userId       String
   commentId    String
@@ -278,6 +289,7 @@ model CommentReaction {
   @@index([commentId])
 }
 
+/// 播放列表表：同时支持用户自定义列表和系统列表。
 model Playlist {
   id          String             @id @default(cuid())
   ownerId     String
@@ -297,6 +309,7 @@ model Playlist {
   @@index([ownerId, isPublic, updatedAt])
 }
 
+/// 播放列表条目表：记录视频在某个播放列表中的顺序。
 model PlaylistItem {
   id         String   @id @default(cuid())
   playlistId String
@@ -316,6 +329,7 @@ model PlaylistItem {
   @@index([addedById])
 }
 
+/// 视频日统计表：从播放事件和互动记录汇总而来，供单视频分析页读取。
 model VideoDailyStat {
   id               String   @id @default(cuid())
   videoId          String
@@ -332,6 +346,7 @@ model VideoDailyStat {
   @@index([date])
 }
 
+/// 频道日统计表：把频道下的视频日统计继续聚合成创作者看板数据。
 model ChannelDailyStat {
   id                String   @id @default(cuid())
   channelId         String
@@ -347,6 +362,7 @@ model ChannelDailyStat {
   @@index([date])
 }
 
+/// 上传会话表：记录一次浏览器直传 vod-raw 的对象位置和过期时间。
 model UploadSession {
   id                String              @id @default(cuid())
   videoId           String
@@ -369,6 +385,7 @@ model UploadSession {
   @@index([status, expiresAt])
 }
 
+/// 转码任务表：记录一次 Step Functions 执行及其阶段、输入输出和失败原因。
 model TranscodeJob {
   id             String             @id @default(cuid())
   videoId        String
@@ -381,7 +398,6 @@ model TranscodeJob {
   status         TranscodeJobStatus @default(QUEUED)
   attempt        Int                @default(0)
   maxAttempts    Int                @default(3)
-  /// 当前流水线阶段标识，例如 "downloading" / "transcoding" / "uploading_segments" / "thumbnail_extracting" 等
   pipelineStage  String?
   lastError      String?
   queuedAt       DateTime           @default(now())
@@ -396,6 +412,7 @@ model TranscodeJob {
   @@index([provider, status])
 }
 
+/// 视频资源表：保存源文件、HLS 主清单、封面等对象存储产物。
 model VideoAsset {
   id            String         @id @default(cuid())
   videoId       String
@@ -421,6 +438,7 @@ model VideoAsset {
   @@index([videoId, assetType])
 }
 
+/// 播放事件表：播放器的原始埋点日志
 model VideoPlaybackEvent {
   id              String            @id @default(cuid())
   videoId         String

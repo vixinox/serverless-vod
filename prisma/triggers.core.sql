@@ -1,10 +1,10 @@
--- Core DB triggers/functions for counter consistency and lifecycle timestamps
--- Apply manually in migration SQL after Prisma migrations are created.
+-- 数据库计数触发器：维护点赞数、评论数、回复数和订阅数的一致性。
+-- 这些计数放在数据库层自动更新，可以减少并发写入时应用层重复计算带来的偏差。
 
 BEGIN;
 
 -- ------------------------------------------------------------
--- 1) Video reaction counters: Video.likesCount / Video.dislikesCount
+-- 1) 视频点赞计数：维护 Video.likesCount / Video.dislikesCount
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_video_reaction_counter()
 RETURNS TRIGGER
@@ -50,7 +50,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_video_reaction_counter();
 
 -- ------------------------------------------------------------
--- 2) Comment reaction counters: Comment.likesCount / Comment.dislikesCount
+-- 2) 评论点赞计数：维护 Comment.likesCount / Comment.dislikesCount
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_comment_reaction_counter()
 RETURNS TRIGGER
@@ -96,7 +96,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_comment_reaction_counter();
 
 -- ------------------------------------------------------------
--- 评论统计触发器: Video.commentsCount / parent Comment.repliesCount
+-- 3) 评论与回复计数：维护 Video.commentsCount / parent Comment.repliesCount
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_comment_counter()
 RETURNS TRIGGER
@@ -147,7 +147,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_comment_counter();
 
 -- ------------------------------------------------------------
--- 4) Subscription counters: Channel.subscribersCount
+-- 4) 频道订阅计数：维护 Channel.subscribersCount
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_subscription_counter()
 RETURNS TRIGGER

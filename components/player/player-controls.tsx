@@ -53,9 +53,7 @@ function ControlSurface({ children, innerClassName }: ControlSurfaceProps) {
   );
 }
 
-// ─────────────────────────────────────────────
-//  Left-side buttons
-// ─────────────────────────────────────────────
+// 左侧基础操作：播放/暂停和音量。
 
 function PlayBtn({ compact = false }: { compact?: boolean }) {
   const controlBtnCls = compact
@@ -89,9 +87,7 @@ function VolumeBtn({ compact = false }: { compact?: boolean }) {
   );
 }
 
-// ─────────────────────────────────────────────
-//  Right pill helpers
-// ─────────────────────────────────────────────
+// 右侧辅助信息：时间显示和全屏切换。
 
 function FullscreenBtn({ compact = false }: { compact?: boolean }) {
   const controlBtnCls = compact
@@ -125,9 +121,7 @@ function TimeDisplay({ compact = false }: { compact?: boolean }) {
   );
 }
 
-// ─────────────────────────────────────────────
-//  Seek / progress slider (full width row)
-// ─────────────────────────────────────────────
+// 进度条占据整行，承担查看进度、拖动跳转和悬停预览时间三件事。
 
 function ProgressBar({ compact = false }: { compact?: boolean }) {
   const rootCls = compact
@@ -142,16 +136,16 @@ function ProgressBar({ compact = false }: { compact?: boolean }) {
 
   return (
     <TimeSlider.Root className={rootCls}>
-      {/* Track */}
+      {/* 轨道：灰色表示总时长，浅色表示已缓冲，红色表示当前播放进度。 */}
       <TimeSlider.Track className={trackCls}>
         <TimeSlider.Progress className="absolute top-0 left-0 h-full w-(--slider-progress) rounded-full bg-white/35 will-change-[width]" />
         <TimeSlider.TrackFill className="absolute top-0 left-0 h-full w-(--slider-fill) rounded-full bg-[#ff0033] will-change-[width]" />
       </TimeSlider.Track>
 
-      {/* Thumb */}
+      {/* 拖动点：只有悬停或拖动时显示，减少遮挡画面。 */}
       <TimeSlider.Thumb className={thumbCls} />
 
-      {/* Hover preview time */}
+      {/* 悬停预览：用户拖动前先看到目标时间点。 */}
       <TimeSlider.Preview className="flex flex-col items-center opacity-0 transition-opacity duration-200 data-visible:opacity-100">
         <TimeSlider.Value className="rounded bg-black/70 px-1.5 py-0.5 text-xs text-white" />
       </TimeSlider.Preview>
@@ -159,9 +153,7 @@ function ProgressBar({ compact = false }: { compact?: boolean }) {
   );
 }
 
-// ─────────────────────────────────────────────
-//  Volume slider (appears inline next to mute btn)
-// ─────────────────────────────────────────────
+// 音量条平时收起，指针进入音量区域后展开，避免控制栏长期占用横向空间。
 
 function InlineVolumeSlider({ expanded, compact = false }: { expanded: boolean; compact?: boolean }) {
   const expandedCls = compact ? 'ml-1 w-16 opacity-100' : 'ml-1 w-20 opacity-100';
@@ -195,9 +187,7 @@ function VolumeControl({ expanded, onExpand, compact = false }: { expanded: bool
   );
 }
 
-// ─────────────────────────────────────────────
-//  Main exported layout
-// ─────────────────────────────────────────────
+// 控制栏整体布局：上方是进度条，下方是播放、音量、时间和全屏。
 
 export function YoutubeControls({
   compact = false,

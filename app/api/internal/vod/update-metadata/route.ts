@@ -1,8 +1,13 @@
 /**
  * POST /api/internal/vod/update-metadata
  *
- * Lambda vod-extract-metadata 的回调接口。
- * 收到请求后将 TranscodeJob 状态更新为 RUNNING，Video 状态更新为 PROCESSING。
+ * extract-metadata 是状态机第一步，负责登记后台处理开始。
+ *
+ * 收到回调后更新两类状态：
+ * - TranscodeJob 置为 RUNNING，记录 startedAt，并增加 attempt。
+ * - Video 置为 PROCESSING，清空上一次失败留下的错误信息。
+ *
+ * 前端据此显示处理中状态。
  *
  * 仅允许持有 INTERNAL_API_SECRET 的内部调用方访问。
  */
@@ -11,7 +16,7 @@ import prisma from "@/lib/prisma";
 
 function checkAuth(req: Request): boolean {
   const secret = process.env.INTERNAL_API_SECRET;
-  // 如果未配置密钥则拒绝一切请求，防止意外暴露
+  // 未配置密钥时直接拒绝，避免内部接口在本地或测试环境被误暴露。
   if (!secret) return false;
   return req.headers.get("authorization") === `Bearer ${secret}`;
 }

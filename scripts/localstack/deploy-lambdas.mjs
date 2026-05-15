@@ -98,8 +98,46 @@ function fmtMs(ms) {
   return `${ms}ms`;
 }
 
+function sleep(ms) {
+  return new Promise((resolve_) => setTimeout(resolve_, ms));
+}
+
 function sha256(input) {
   return createHash("sha256").update(input).digest("hex");
+}
+
+function errorText(err) {
+  return [
+    err?.name,
+    err?.Code,
+    err?.code,
+    err?.__type,
+    err?.message,
+  ].filter(Boolean).join(" ");
+}
+
+function isLocalstackLambdaUpdateRace(err) {
+  const text = errorText(err);
+  return text.includes("InternalError") &&
+    text.includes("cannot be updated if an old one is not running");
+}
+
+async function sendWithLocalstackUpdateRetry(label, commandFactory) {
+  const delays = [750, 1_500, 3_000, 5_000];
+
+  for (let attempt = 0; attempt <= delays.length; attempt++) {
+    try {
+      return await lambda.send(commandFactory());
+    } catch (err) {
+      if (!isLocalstackLambdaUpdateRace(err) || attempt >= delays.length) {
+        throw err;
+      }
+
+      const delay = delays[attempt];
+      console.warn(`[retry] ${label} LocalStack Lambda runtime not ready; retrying in ${fmtMs(delay)}`);
+      await sleep(delay);
+    }
+  }
 }
 
 function sortedObject(obj) {
@@ -433,8 +471,9 @@ async function deployFunction(name, zipBuffer, handlerPath, previousCacheEntry, 
       if (!ZipFile) throw new Error(`${name} 代码已变化但缺少 ZIP 内容`);
       console.log(`[update:code] ${name}`);
       const updateCodeStart = nowMs();
-      await lambda.send(
-        new UpdateFunctionCodeCommand({ FunctionName: name, ZipFile }),
+      await sendWithLocalstackUpdateRetry(
+        `${name} update:code`,
+        () => new UpdateFunctionCodeCommand({ FunctionName: name, ZipFile }),
       );
       metrics.updateCodeMs = nowMs() - updateCodeStart;
 
@@ -450,8 +489,9 @@ async function deployFunction(name, zipBuffer, handlerPath, previousCacheEntry, 
 
     if (envChanged) {
       const updateConfigStart = nowMs();
-      await lambda.send(
-        new UpdateFunctionConfigurationCommand({
+      await sendWithLocalstackUpdateRetry(
+        `${name} update:config`,
+        () => new UpdateFunctionConfigurationCommand({
           FunctionName: name,
           Environment: { Variables: lambdaEnv },
         }),

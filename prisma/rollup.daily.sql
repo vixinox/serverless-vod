@@ -1,4 +1,5 @@
--- Daily rollup from VideoPlaybackEvent to VideoDailyStat / ChannelDailyStat
+-- 日级统计汇总：把原始播放事件和互动记录汇总到 VideoDailyStat / ChannelDailyStat。
+-- 分析页读取汇总表而不是直接扫原始事件表，能降低图表页面的查询压力。
 
 BEGIN;
 
@@ -20,7 +21,8 @@ BEGIN
     RAISE EXCEPTION 'p_from_date (%) must be <= p_to_date (%)', p_from_date, p_to_date;
   END IF;
 
-  -- 1) Video daily stats from playback events + reactions/comments
+  -- 1) 视频日统计：PLAY_START 统计播放次数，watchDeltaMs 汇总观看时长，
+  --    userId / sessionId 用于去重观众数，互动记录用于统计当日增长。
   INSERT INTO "VideoDailyStat" (
     "id",
     "videoId",
@@ -85,7 +87,8 @@ BEGIN
     "dislikesGained" = EXCLUDED."dislikesGained",
     "commentsGained" = EXCLUDED."commentsGained";
 
-  -- 2) Channel daily stats from video daily stats + subscriptions + published videos
+  -- 2) 频道日统计：在视频日统计基础上继续按频道聚合，
+  --    同时合并订阅增长和当日发布视频数。
   INSERT INTO "ChannelDailyStat" (
     "id",
     "channelId",
@@ -153,6 +156,6 @@ $$;
 
 COMMIT;
 
--- Usage examples:
+-- 使用示例：
 -- SELECT sp_rollup_daily_stats('2020-01-01'::date, CURRENT_DATE);
 -- SELECT sp_rollup_daily_stats(CURRENT_DATE - 2, CURRENT_DATE);

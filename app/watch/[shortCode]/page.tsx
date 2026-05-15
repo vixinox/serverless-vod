@@ -37,6 +37,8 @@ export default async function VideoPage({ params }: { params: Promise<{ shortCod
   const cloudfrontDomain = process.env.VIDEO_CLOUDFRONT_DOMAIN ?? "";
   const playlist = sidebarData.playlist;
 
+  // 线上优先走 CDN，减少应用服务压力；本地开发没有 CDN 时走 /api/hls 代理到 LocalStack。
+  // 两条路径都指向同一个 {shortCode}/master.m3u8，播放器不用关心资源来自哪里。
   const playbackUrl = cloudfrontDomain.trim()
     ? `https://${cloudfrontDomain.trim()}/${shortCode}/master.m3u8`
     : `/api/hls/${encodeURIComponent(shortCode)}/master.m3u8`;
