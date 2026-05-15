@@ -3,7 +3,7 @@ import { useState } from "react";
 import { SmartImage } from "@/components/smart-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTransition } from "@/components/transition/transition-context";
-import { Check, ClockPlus, ListVideo } from "lucide-react";
+import { Check, ClockPlus } from "lucide-react";
 import type { RecommendationVideoData as VideoData } from "@/lib/server/videos";
 import { usePathname } from "next/navigation";
 import { formatRelativeTime } from "@/lib/utils";
@@ -60,16 +60,6 @@ export function RecommendVideo({ data }: { data: VideoData }) {
             }}
           >
             {clickedButton === "clock" ? <Check size={20}/> : <ClockPlus size={20}/>}
-          </button>
-          <button
-            type="button"
-            className="w-8 h-8 backdrop-blur rounded-full flex items-center justify-center hover:bg-foreground/20"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleButtonClick("list");
-            }}
-          >
-            {clickedButton === "list" ? <Check size={20}/> : <ListVideo size={20}/>}
           </button>
         </div>
       </div>

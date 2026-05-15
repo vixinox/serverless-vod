@@ -369,6 +369,9 @@ export function VideoPlayer({
     );
   }
 
+  const isCircularCenterFeedback =
+    showInitialFlashIcon || flashFeedback?.type === 'play' || flashFeedback?.type === 'pause';
+
   return (
     <MediaPlayer
       ref={playerRef}
@@ -530,7 +533,13 @@ export function VideoPlayer({
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <div
             ref={flashIconRef}
-            className={`rounded-full backdrop-blur-sm ${compact ? 'px-3 py-2.5' : 'px-5 py-4'} ${showInitialFlashIcon ? 'bg-black/55 transition-colors duration-300 group-hover/player:bg-black/70' : 'bg-black/65'}`}
+            className={`rounded-full backdrop-blur-sm ${
+              isCircularCenterFeedback
+                ? `flex items-center justify-center ${compact ? 'size-14' : 'size-24'}`
+                : compact
+                  ? 'px-3 py-2.5'
+                  : 'px-5 py-4'
+            } ${showInitialFlashIcon ? 'bg-black/55 transition-colors duration-300 group-hover/player:bg-black/70' : 'bg-black/65'}`}
           >
             {renderCenterFeedback()}
           </div>

@@ -27,7 +27,6 @@ export function VideoInfo({ videoData, channelData, isOwner }: {
           subscribersCount={channelData.subscribersCount}
           initialIsSubscribed={channelData.isSubscribed}
           isOwner={Boolean(isOwner)}
-          href={`/channel/${encodeURIComponent(channelData.name)}`}
         />
 
         <VideoActionButtons

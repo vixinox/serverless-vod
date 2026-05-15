@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { usePageTransition } from "@/components/transition/transition-context";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -116,7 +116,6 @@ function NavTabButton({
 export function FloatingActionRail() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const { status, startFadeTransition } = usePageTransition();
   const { flushToDB } = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -144,7 +143,7 @@ export function FloatingActionRail() {
 
   const handlePress = (item: NavTabItem) => {
     if (item.action === "refresh") {
-      router.refresh();
+      window.location.reload();
       return;
     }
 

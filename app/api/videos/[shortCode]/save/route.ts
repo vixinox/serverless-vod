@@ -2,6 +2,7 @@ import { jsonResponse } from "@/lib/api-route";
 import { toggleSystemPlaylistVideo } from "@/lib/server/playlists";
 import {
   isSystemPlaylistKey,
+  type SystemPlaylistKey,
   WATCH_LATER_PLAYLIST_KEY,
 } from "@/lib/system-playlists";
 
@@ -10,7 +11,7 @@ export async function POST(
   { params }: { params: Promise<{ shortCode: string }> },
 ) {
   const { shortCode } = await params;
-  let playlistKey = WATCH_LATER_PLAYLIST_KEY;
+  let playlistKey: SystemPlaylistKey = WATCH_LATER_PLAYLIST_KEY;
 
   try {
     const rawBody = await request.text();

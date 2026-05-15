@@ -210,7 +210,7 @@ async function readFileListRecursively(root, current) {
 
 async function mapWithConcurrency(items, limit, worker, onProgress) {
   let index = 0;
-  const results = new Array(items.length);
+  const results = Array.from({ length: items.length });
 
   async function loop() {
     while (true) {

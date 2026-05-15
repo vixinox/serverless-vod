@@ -219,6 +219,8 @@ export async function getWatchSidebarData(shortCode: string) {
   const playlist = await prisma.playlist.findFirst({
     where: {
       ownerId: currentVideo.userId,
+      systemKey: null,
+      NOT: WATCH_LATER_LEGACY_MATCH,
       ...(isOwner ? {} : { isPublic: true }),
       items: {
         some: {

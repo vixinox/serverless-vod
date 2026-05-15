@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 
 export function BrowseStage({ children }: { children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const routeKey = `${pathname}?${searchParams.toString()}`;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -52,7 +50,7 @@ export function BrowseStage({ children }: { children: ReactNode }) {
     return () => {
       ctx.revert();
     };
-  }, [routeKey]);
+  }, [pathname]);
 
   return <div ref={rootRef}>{children}</div>;
 }

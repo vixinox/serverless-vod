@@ -9,13 +9,11 @@ export default async function HistoryPage() {
     <BrowseShell>
       <VideoTimeline
         title="观看历史"
-        description=""
         videos={videos.map((video) => ({
           ...video,
           timelineAt: video.lastWatchedAt,
         }))}
         variant="history"
-        timelineLabel="上次观看"
         emptyState="还没有历史记录，先去看点视频吧。"
       />
     </BrowseShell>

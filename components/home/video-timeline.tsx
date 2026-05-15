@@ -219,11 +219,9 @@ export function VideoTimeline({
   variant = "saved",
 }: {
   title: string;
-  description: string;
   videos: TimelineVideoItem[];
   emptyState: string;
   variant?: TimelineVariant;
-  timelineLabel?: string;
 }) {
   const palette = TIMELINE_VARIANTS[variant];
   const unit: TimelineUnit = "day";

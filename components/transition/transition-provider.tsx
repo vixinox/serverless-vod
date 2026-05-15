@@ -67,24 +67,46 @@ export function TransitionProvider({ children }: Props) {
     (maskMode: FadeMaskMode): OverlayHoleRect | null => {
       if (maskMode === "full") return null;
 
-      const selector =
+      const selectors =
         maskMode === "keep-video"
-          ? '[data-transition-keep-visible="video"]'
+          ? [
+              '[data-transition-keep-visible="video"]',
+              '[data-transition-keep-visible="playlist"]',
+            ]
           : maskMode === "keep-home-rail"
-            ? '[data-transition-keep-visible="home-rail"]'
-            : '[data-transition-keep-visible="home-navbar"]';
+            ? ['[data-transition-keep-visible="home-rail"]']
+            : ['[data-transition-keep-visible="home-navbar"]'];
 
-      const targetEl = document.querySelector<HTMLElement>(selector);
-      if (!targetEl) return null;
+      const targets = selectors.flatMap((selector) =>
+        Array.from(document.querySelectorAll<HTMLElement>(selector))
+      );
+      if (targets.length === 0) return null;
 
-      const rect = targetEl.getBoundingClientRect();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const left = Math.max(0, Math.min(rect.left, vw));
-      const top = Math.max(0, Math.min(rect.top, vh));
-      const right = Math.max(left, Math.min(rect.right, vw));
-      const bottom = Math.max(top, Math.min(rect.bottom, vh));
-      const hasArea = right > left && bottom > top;
+      let left = vw;
+      let top = vh;
+      let right = 0;
+      let bottom = 0;
+      let hasArea = false;
+
+      for (const targetEl of targets) {
+        const rect = targetEl.getBoundingClientRect();
+        const clippedLeft = Math.max(0, Math.min(rect.left, vw));
+        const clippedTop = Math.max(0, Math.min(rect.top, vh));
+        const clippedRight = Math.max(clippedLeft, Math.min(rect.right, vw));
+        const clippedBottom = Math.max(clippedTop, Math.min(rect.bottom, vh));
+
+        if (clippedRight <= clippedLeft || clippedBottom <= clippedTop) {
+          continue;
+        }
+
+        hasArea = true;
+        left = Math.min(left, clippedLeft);
+        top = Math.min(top, clippedTop);
+        right = Math.max(right, clippedRight);
+        bottom = Math.max(bottom, clippedBottom);
+      }
 
       return hasArea ? { top, left, right, bottom } : null;
     },

@@ -22,7 +22,9 @@ export function BrowseShell({
         data-transition-keep-visible="home-rail"
         className="fixed right-6 top-1/2 z-10001 hidden -translate-y-1/2 items-center justify-center xl:flex"
       >
-        <FloatingActionRail />
+        <Suspense fallback={null}>
+          <FloatingActionRail />
+        </Suspense>
       </div>
 
       <main className={cn("w-full px-[5%] py-6", mainClassName)}>

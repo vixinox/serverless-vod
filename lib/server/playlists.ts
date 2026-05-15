@@ -728,8 +728,6 @@ export async function addVideoToPlaylist(
     select: {
       id: true,
       userId: true,
-      visibility: true,
-      processingStatus: true,
     },
   });
 
@@ -737,13 +735,8 @@ export async function addVideoToPlaylist(
     throw new Error("视频不存在");
   }
 
-  const canAdd =
-    video.userId === userId ||
-    ((video.visibility === "PUBLIC" || video.visibility === "UNLISTED") &&
-      video.processingStatus === "READY");
-
-  if (!canAdd) {
-    throw new Error("该视频当前不可加入播放列表");
+  if (video.userId !== userId) {
+    throw new Error("普通播放列表只能加入自己的视频");
   }
 
   const existed = await prisma.playlistItem.findFirst({

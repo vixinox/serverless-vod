@@ -4,10 +4,9 @@ import { ReactionType } from "@prisma/client";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Bookmark, ClockPlus, ListVideo, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Bookmark, ClockPlus, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { apiRequest } from "@/lib/api-client";
-import { SaveToPlaylistDialog } from "@/components/player/save-to-playlist-dialog";
 import {
   FAVORITES_PLAYLIST_KEY,
   FAVORITES_PLAYLIST_TITLE,
@@ -37,7 +36,6 @@ export function VideoActionButtons({
   const [favorited, setFavorited] = useState(isFavorited);
   const [isReactionPending, startReactionTransition] = useTransition();
   const [isPlaylistPending, startPlaylistTransition] = useTransition();
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleReaction = (nextReaction: ReactionType) => {
     const previousReaction = reaction;
@@ -188,18 +186,7 @@ export function VideoActionButtons({
           <ClockPlus />
           <p>{watchLater ? "已加入稍后再看" : WATCH_LATER_PLAYLIST_TITLE}</p>
         </Button>
-
-        <Button
-          className="rounded-full shadow-none"
-          onClick={() => setDialogOpen(true)}
-          variant="secondary"
-        >
-          <ListVideo />
-          <p>添加到</p>
-        </Button>
       </div>
-
-      <SaveToPlaylistDialog open={dialogOpen} onOpenChange={setDialogOpen} shortCode={shortCode} />
     </>
   );
 }

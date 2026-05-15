@@ -3371,56 +3371,6 @@
       }
     },
     {
-      "shortCode": "MfcIhM3wONx",
-      "sourceFingerprint": "12624653:1773113210000",
-      "source": {
-        "mp4RelativePath": "videos_1080p/MfcIhM3wONx/8307050.mp4",
-        "thumbnailSourceRelativePath": "videos_1080p/MfcIhM3wONx/8307050.jpg",
-        "sizeBytes": 12624653,
-        "mtimeMs": 1773113210000
-      },
-      "outputs": {
-        "hlsDirRelativePath": "hls-videos/MfcIhM3wONx",
-        "hlsMasterRelativePath": "hls-videos/MfcIhM3wONx/master.m3u8",
-        "thumbnailRelativePath": "images/thumbnails/MfcIhM3wONx/thumbnail.jpg",
-        "s3Preview": {
-          "hlsMasterKey": "MfcIhM3wONx/master.m3u8",
-          "thumbnailKey": "thumbnails/MfcIhM3wONx/thumbnail.jpg"
-        }
-      },
-      "hints": {
-        "uploaderHint": "seed-demo-user",
-        "titleHint": "Seed video MfcIhM3wONx",
-        "videoTypeHint": "SHORT"
-      },
-      "stage1": {
-        "status": "ready",
-        "reused": false,
-        "thumbnailReused": false,
-        "ffmpegPath": "copy",
-        "error": null,
-        "startedAt": "2026-03-10T06:02:39.235Z",
-        "finishedAt": "2026-03-10T06:02:39.363Z",
-        "elapsedMs": 128
-      },
-      "stage2": {
-        "status": "seeded",
-        "uploaderId": "seed-demo-user",
-        "channelId": "seed-channel-seed-demo-user",
-        "seededAt": "2026-05-13T10:48:03.725Z"
-      },
-      "stage3": {
-        "status": "uploaded",
-        "uploaded": 7,
-        "skipped": 0,
-        "retried": 0,
-        "startedAt": "2026-05-13T10:46:49.054Z",
-        "finishedAt": "2026-05-13T10:46:49.591Z",
-        "elapsedMs": 537,
-        "uploadRaw": false
-      }
-    },
-    {
       "shortCode": "NGDU7xlwyKo",
       "sourceFingerprint": "24032268:1773113182000",
       "source": {

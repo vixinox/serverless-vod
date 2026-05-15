@@ -96,6 +96,7 @@ export function PlaylistPanel({
 
   return (
     <Card
+      data-transition-keep-visible="playlist"
       className={cn(
         "gap-0 overflow-hidden border py-0 shadow-none transition-colors duration-150 hover:border-border",
       )}
